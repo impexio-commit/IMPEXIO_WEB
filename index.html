@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IMPEXIO — Export Import Document Management</title>
+  <link rel="stylesheet" href="styles.css"/>
+  <link rel="icon" href="impexio_logo.png" type="image/png"/>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════
+     NAVBAR
+════════════════════════════════════════════ -->
+<nav class="navbar" id="navbar">
+
+  <a href="index.html" class="nav-brand">
+    <div class="nav-logo-wrap">
+      <img src="impexio_logo.png" alt="IMPEXIO" class="nav-logo"/>
+    </div>
+    <div>
+      <div class="nav-brand-name">IMPEXIO</div>
+      <div class="nav-brand-sub">Trade Document Suite</div>
+    </div>
+  </a>
+
+  <ul class="nav-menu">
+
+    <li class="nav-item">
+      <span class="nav-link">🏠 HOME</span>
+    </li>
+
+    <!-- EXPORT -->
+    <li class="nav-item" id="ni-export">
+      <span class="nav-link" onclick="toggleDD('ni-export')">
+        📦 EXPORT <span class="nav-chevron">▾</span>
+      </span>
+      <div class="nav-dropdown">
+        <div class="dd-label">Export Modules</div>
+        <div class="dd-item" onclick="window.location.href='cbm.html'"><div class="dd-icon">📐</div>CBM Calculation</div>
+        <div class="dd-item" onclick="gotoLogin()"><div class="dd-icon">💰</div>Container Expenses FOB</div>
+        <div class="dd-item" onclick="gotoLogin()"><div class="dd-icon">🧮</div>Export Costing</div>
+        <div class="dd-item" onclick="gotoLogin()"><div class="dd-icon">📊</div>Export Costing 2</div>
+        <div class="dd-item" onclick="gotoLogin()"><div class="dd-icon">🔍</div>Export Data Filter Format</div>
+        <div class="dd-item" onclick="gotoLogin()"><div class="dd-icon">📄</div>Export Proforma Invoice</div>
+        <div class="dd-item" onclick="gotoLogin()"><div class="dd-icon">💬</div>Export Quotation</div>
+        <div class="dd-item" onclick="gotoLogin()"><div class="dd-icon">✈️</div>Export Sample Courier Invoice</div>
+      </div>
+    </li>
+
+    <!-- IMPORT -->
+    <li class="nav-item" id="ni-import">
+      <span class="nav-link" onclick="toggleDD('ni-import')">
+        🚢 IMPORT <span class="nav-chevron">▾</span>
+      </span>
+      <div class="nav-dropdown">
+        <div class="dd-label">Import Modules</div>
+        <div class="dd-item" onclick="gotoLogin()"><div class="dd-icon">📩</div>Import Letter For Inquiry</div>
+        <div class="dd-item" onclick="gotoLogin()"><div class="dd-icon">🛒</div>Import Purchase Order</div>
+      </div>
+    </li>
+
+    <!-- EXIM MARKETING -->
+    <li class="nav-item" id="ni-exim">
+      <span class="nav-link" onclick="toggleDD('ni-exim')">
+        🌐 EXIM MARKETING <span class="nav-chevron">▾</span>
+      </span>
+      <div class="nav-dropdown">
+        <div class="dd-label">Marketing Modules</div>
+        <div class="dd-item" onclick="gotoLogin()"><div class="dd-icon">📈</div>Export Follow Up Mail</div>
+        <div class="dd-item" onclick="gotoLogin()"><div class="dd-icon">🎯</div>Export Marketing ( Buyers Intro Letter )</div>
+      </div>
+    </li>
+
+  </ul>
+
+  <div class="nav-auth">
+    <button class="btn-nav-login" onclick="window.location.href='login.html'">🔐 Login</button>
+    <div class="hamburger" id="ham" onclick="toggleMob()"><span></span><span></span><span></span></div>
+  </div>
+</nav>
+
+<!-- Mobile Nav -->
+<div class="nav-mobile" id="navMob">
+  <div class="mob-link" onclick="window.location.href='index.html'">🏠 HOME</div>
+
+  <div class="mob-link" onclick="toggleMobDD('mdd-export', this)">📦 EXPORT <span>▾</span></div>
+  <div class="mob-drop" id="mdd-export">
+    <div class="mob-dd-item" onclick="gotoLogin()">📐 CBM Calculation</div>
+    <div class="mob-dd-item" onclick="gotoLogin()">💰 Container Expenses FOB</div>
+    <div class="mob-dd-item" onclick="gotoLogin()">🧮 Export Costing</div>
+    <div class="mob-dd-item" onclick="gotoLogin()">📊 Export Costing 2</div>
+    <div class="mob-dd-item" onclick="gotoLogin()">🔍 Export Data Filter Format</div>
+    <div class="mob-dd-item" onclick="gotoLogin()">📄 Export Proforma Invoice</div>
+    <div class="mob-dd-item" onclick="gotoLogin()">💬 Export Quotation</div>
+    <div class="mob-dd-item" onclick="gotoLogin()">✈️ Export Sample Courier Invoice</div>
+  </div>
+
+  <div class="mob-link" onclick="toggleMobDD('mdd-import', this)">🚢 IMPORT <span>▾</span></div>
+  <div class="mob-drop" id="mdd-import">
+    <div class="mob-dd-item" onclick="gotoLogin()">📩 Import Letter For Inquiry</div>
+    <div class="mob-dd-item" onclick="gotoLogin()">🛒 Import Purchase Order</div>
+  </div>
+
+  <div class="mob-link" onclick="toggleMobDD('mdd-exim', this)">🌐 EXIM MARKETING <span>▾</span></div>
+  <div class="mob-drop" id="mdd-exim">
+    <div class="mob-dd-item" onclick="gotoLogin()">📈 06. Export Follow Up Mail</div>
+    <div class="mob-dd-item" onclick="gotoLogin()">🎯 Export Marketing ( Buyers Intro Letter )</div>
+  </div>
+
+  <div class="mob-auth">
+    <button class="btn-nav-login" onclick="window.location.href='login.html'">🔐 Login</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     HERO
+════════════════════════════════════════════ -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-noise"></div>
+  <div class="hero-lines"></div>
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+
+  <div class="hero-wrap">
+    <!-- Left -->
+    <div>
+      <div class="hero-eyebrow">
+        <span class="eyebrow-dot">✦</span>
+        India's Premier Trade Management Suite
+      </div>
+
+      <h1 class="hero-h1">
+        <span class="h1-italic">Simplify Your</span>
+        <span class="h1-line2"><span class="h1-underline">Export &amp; Import</span></span>
+        Operations
+      </h1>
+
+      <p class="hero-desc">
+        IMPEXIO is the all-in-one document management platform built for Indian traders. Generate invoices, calculate CBM, manage costing — with precision and elegance.
+      </p>
+
+      <div class="hero-btns">
+        <button class="btn-primary-hero" onclick="window.location.href='login.html'">
+          🚀 Get Started &nbsp;→
+        </button>
+        <a class="btn-ghost-hero" href="#features">
+          Explore Modules &nbsp;→
+        </a>
+      </div>
+
+      <div class="hero-metrics">
+        <div>
+          <div class="metric-val" data-target="10">0</div>
+          <div class="metric-label">Modules</div>
+        </div>
+        <div>
+          <div class="metric-val" data-target="100" data-suffix="%">0%</div>
+          <div class="metric-label">Cloud Ready</div>
+        </div>
+        <div>
+          <div class="metric-val">GST</div>
+          <div class="metric-label">Compliant</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right — Mockup -->
+    <div class="hero-right">
+      <div class="float-pill float-pill-1">✅ &nbsp;Invoice Generated</div>
+
+      <div class="hero-mockup">
+        <div class="mockup-bar">
+          <div class="mb-dot"></div><div class="mb-dot"></div><div class="mb-dot"></div>
+          <span class="mb-url">impexio.in/dashboard</span>
+        </div>
+        <div class="mockup-body">
+          <div class="mock-row">
+            <div class="mock-label"><div class="mock-ico">📐</div>Total CBM</div>
+            <div class="mock-val">48.5 m³</div>
+          </div>
+          <div class="mock-row">
+            <div class="mock-label"><div class="mock-ico">💰</div>FOB Value</div>
+            <div class="mock-val">₹12,48,000</div>
+          </div>
+          <div class="mock-sep"></div>
+          <div class="mock-row">
+            <div class="mock-label"><div class="mock-ico">📄</div>Proforma Invoice</div>
+            <span class="mock-badge badge-green">● Active</span>
+          </div>
+          <div class="mock-row">
+            <div class="mock-label"><div class="mock-ico">🚢</div>Container Type</div>
+            <div class="mock-val">40 HC</div>
+          </div>
+          <div class="mock-row">
+            <div class="mock-label"><div class="mock-ico">🌐</div>Destination</div>
+            <div class="mock-val">Dubai, UAE</div>
+          </div>
+          <div class="mock-sep"></div>
+          <div class="mock-row">
+            <div class="mock-label"><div class="mock-ico">📊</div>Export Costing</div>
+            <span class="mock-badge badge-amber">Pending</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="float-pill float-pill-2">📊 &nbsp;Costing Updated</div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════
+     FEATURES
+════════════════════════════════════════════ -->
+<section class="section features-bg" id="features">
+  <div class="section-inner">
+    <div class="s-kicker"><div class="kicker-bar"></div>Why IMPEXIO</div>
+    <h2 class="s-heading">Built for Global Trade</h2>
+    <p class="s-sub">Every tool an Indian exporter or importer needs — designed to save time, reduce errors, and grow your business.</p>
+
+    <div class="feat-grid">
+      <div class="feat-card">
+        <span class="feat-num">01</span>
+        <span class="feat-icon-big">📐</span>
+        <div class="feat-title">CBM Calculation</div>
+        <p class="feat-body">Instantly compute cubic meter volume for any container. Reduce shipping errors and maximize container utilization.</p>
+      </div>
+      <div class="feat-card">
+        <span class="feat-num">02</span>
+        <span class="feat-icon-big">💰</span>
+        <div class="feat-title">Export Costing</div>
+        <p class="feat-body">Accurately compute FOB, CIF, and EXW values. Margin analysis, freight, insurance — all in one workflow.</p>
+      </div>
+      <div class="feat-card">
+        <span class="feat-num">03</span>
+        <span class="feat-icon-big">📄</span>
+        <div class="feat-title">Document Generation</div>
+        <p class="feat-body">Generate Proforma Invoices, Quotations, and Courier invoices — beautifully formatted and ready to share instantly.</p>
+      </div>
+      <div class="feat-card">
+        <span class="feat-num">04</span>
+        <span class="feat-icon-big">🔍</span>
+        <div class="feat-title">Data Filter &amp; Reports</div>
+        <p class="feat-body">Filter export data by date, product, destination, buyer. Export to Excel or PDF in a single click.</p>
+      </div>
+      <div class="feat-card">
+        <span class="feat-num">05</span>
+        <span class="feat-icon-big">🌐</span>
+        <div class="feat-title">EXIM Marketing</div>
+        <p class="feat-body">Analyze target markets, track buyer inquiries, and manage marketing outreach for global expansion.</p>
+      </div>
+      <div class="feat-card">
+        <span class="feat-num">06</span>
+        <span class="feat-icon-big">🔐</span>
+        <div class="feat-title">Secure Multi-Company</div>
+        <p class="feat-body">Role-based access, GST compliance, client code authentication, and multi-year financial management built in.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════
+     STATS
+════════════════════════════════════════════ -->
+<div class="stats-band">
+  <div class="stats-inner">
+    <div><div class="stat-val">10+</div><div class="stat-label">Trade Modules</div></div>
+    <div><div class="stat-val">GST</div><div class="stat-label">Compliant</div></div>
+    <div><div class="stat-val">100%</div><div class="stat-label">Cloud Based</div></div>
+    <div><div class="stat-val">v1.0</div><div class="stat-label">Latest Version</div></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     ALL MODULES
+════════════════════════════════════════════ -->
+<section class="section" id="modules">
+  <div class="section-inner">
+    <div class="s-kicker"><div class="kicker-bar"></div>All Modules</div>
+    <h2 class="s-heading">One Platform, Every Document</h2>
+    <p class="s-sub">Access all your trade document tools from a single dashboard — no switching between apps.</p>
+
+    <div class="mods-grid">
+      <div class="mod-card" onclick="gotoLogin()"><div class="mod-emoji">📐</div><div class="mod-name">CBM Calculation</div><div class="mod-sect">Export</div></div>
+      <div class="mod-card" onclick="gotoLogin()"><div class="mod-emoji">💰</div><div class="mod-name">Container Expenses FOB</div><div class="mod-sect">Export</div></div>
+      <div class="mod-card" onclick="gotoLogin()"><div class="mod-emoji">🧮</div><div class="mod-name">Export Costing</div><div class="mod-sect">Export</div></div>
+      <div class="mod-card" onclick="gotoLogin()"><div class="mod-emoji">📊</div><div class="mod-name">Export Costing 2</div><div class="mod-sect">Export</div></div>
+      <div class="mod-card" onclick="gotoLogin()"><div class="mod-emoji">🔍</div><div class="mod-name">Export Data Filter Format</div><div class="mod-sect">Export</div></div>
+      <div class="mod-card" onclick="gotoLogin()"><div class="mod-emoji">📄</div><div class="mod-name">Export Proforma Invoice</div><div class="mod-sect">Export</div></div>
+      <div class="mod-card" onclick="gotoLogin()"><div class="mod-emoji">💬</div><div class="mod-name">Export Quotation</div><div class="mod-sect">Export</div></div>
+      <div class="mod-card" onclick="gotoLogin()"><div class="mod-emoji">✈️</div><div class="mod-name">Export Courier Invoice</div><div class="mod-sect">Export</div></div>
+      <div class="mod-card" onclick="gotoLogin()"><div class="mod-emoji">📩</div><div class="mod-name">Import Letter For Inquiry</div><div class="mod-sect">Import</div></div>
+      <div class="mod-card" onclick="gotoLogin()"><div class="mod-emoji">🛒</div><div class="mod-name">Import Purchase Order</div><div class="mod-sect">Import</div></div>
+      <div class="mod-card" onclick="gotoLogin()"><div class="mod-emoji">📈</div><div class="mod-name">06. Export Follow Up Mail</div><div class="mod-sect">EXIM</div></div>
+      <div class="mod-card" onclick="gotoLogin()"><div class="mod-emoji">🎯</div><div class="mod-name">07. Export Marketing ( Buyers Intro Letter )</div><div class="mod-sect">EXIM</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════
+     FOOTER
+════════════════════════════════════════════ -->
+<footer class="footer">
+  <div class="footer-top">
+    <!-- Brand -->
+    <div>
+      <div class="footer-logo-wrap">
+        <img src="impexio_logo.png" alt="IMPEXIO" class="footer-logo"/>
+      </div>
+      <div class="footer-name">IMPEXIO</div>
+      <p class="footer-tagline">India's premier Export-Import Document Management System. Streamline your trade operations with precision and elegance.</p>
+      <div class="footer-socials">
+        <a href="#" class="soc-btn">📧</a>
+        <a href="#" class="soc-btn">💼</a>
+        <a href="#" class="soc-btn">🌐</a>
+        <a href="#" class="soc-btn">📱</a>
+      </div>
+    </div>
+
+    <!-- Export -->
+    <div>
+      <div class="footer-col-head">📦 Export</div>
+      <a class="footer-lnk" onclick="gotoLogin()">CBM Calculation</a>
+      <a class="footer-lnk" onclick="gotoLogin()">Container Expenses FOB</a>
+      <a class="footer-lnk" onclick="gotoLogin()">Export Costing</a>
+      <a class="footer-lnk" onclick="gotoLogin()">Proforma Invoice</a>
+      <a class="footer-lnk" onclick="gotoLogin()">Export Quotation</a>
+      <a class="footer-lnk" onclick="gotoLogin()">Courier Invoice</a>
+    </div>
+
+    <!-- Import + EXIM -->
+    <div>
+      <div class="footer-col-head">🚢 Import</div>
+      <a class="footer-lnk" onclick="gotoLogin()">Letter For Inquiry</a>
+      <a class="footer-lnk" onclick="gotoLogin()">Purchase Order</a>
+      <br/>
+      <div class="footer-col-head" style="margin-top:1.2rem;">🌐 EXIM Marketing</div>
+      <a class="footer-lnk" onclick="gotoLogin()">Export Follow Up Mail</a>
+      <a class="footer-lnk" onclick="gotoLogin()">Export Marketing ( Buyers Intro Letter )</a>
+    </div>
+
+    <!-- Contact -->
+    <div>
+      <div class="footer-col-head">🏢 Contact</div>
+      <a href="#" class="footer-lnk">About IMPEXIO</a>
+      <a href="#" class="footer-lnk">Privacy Policy</a>
+      <a href="#" class="footer-lnk">Terms of Service</a>
+      <div style="margin-top:1.2rem;">
+        <div class="footer-contact-line">📍 Gujarat</div>
+        <div class="footer-contact-line">📧 support@impexio.in</div>
+        <div class="footer-contact-line">📞 +91 00000-00000</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <span>© 2026 <strong>IMPEXIO</strong>. All rights reserved. Powered by IMPEXIO Trade Suite v1.0</span>
+    <span>Made with ❤️ for Indian Exporters &amp; Importers</span>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

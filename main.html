@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IMPEXIO — Dashboard</title>
+  <link rel="stylesheet" href="styles.css"/>
+  <link rel="icon" href="impexio_logo.png" type="image/png"/>
+</head>
+<body class="dash-body">
+
+<!-- TOP BAR -->
+<div class="dash-topbar">
+  <div class="dtb-brand">
+    <div class="dtb-logo-box">
+      <img src="impexio_logo.png" alt="IMPEXIO" class="dtb-logo"/>
+    </div>
+    <div class="dtb-name">IMPEXIO</div>
+  </div>
+
+  <div class="dtb-meta" id="dtbMeta">
+    <!-- filled by JS -->
+  </div>
+
+  <div class="dtb-right">
+    <div class="dtb-user" id="dtbUser">
+      <div class="dtb-avatar" id="dtbAv">A</div>
+      <div>
+        <div class="dtb-uname" id="dtbUname">Admin</div>
+        <div class="dtb-role" id="dtbRole">Administrator</div>
+      </div>
+    </div>
+    <button class="btn-logout" onclick="doLogout()">⏻ Logout</button>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="dash-content">
+
+  <!-- Info Strip -->
+  <div class="dash-strip">
+    <div><div class="ds-label">Client Code</div><div class="ds-val gold" id="ds-client">—</div></div>
+    <div><div class="ds-label">Company</div><div class="ds-val" id="ds-company">—</div></div>
+    <div><div class="ds-label">Financial Year</div><div class="ds-val" id="ds-year">—</div></div>
+    <div><div class="ds-label">Login User</div><div class="ds-val" id="ds-user">—</div></div>
+    <div><div class="ds-label">Role</div><div class="ds-val gold" id="ds-role">—</div></div>
+  </div>
+
+  <!-- Menu -->
+  <div class="dash-menu-head">Main Menu</div>
+  <div class="dash-menu-sub">Select a module below to get started</div>
+
+  <div class="menu-sect">
+    <div class="msect-lbl">📦 Export Modules</div>
+    <div class="menu-tiles">
+      <div class="m-tile" onclick="window.location.href='cbm.html'"><div class="m-tile-icon">📐</div><div class="m-tile-name">CBM Calculation</div></div>
+      <div class="m-tile" onclick="openMod('Container Expenses FOB')"><div class="m-tile-icon">💰</div><div class="m-tile-name">Container Expenses FOB</div></div>
+      <div class="m-tile" onclick="openMod('Export Costing')"><div class="m-tile-icon">🧮</div><div class="m-tile-name">Export Costing</div></div>
+      <div class="m-tile" onclick="openMod('Export Costing 2')"><div class="m-tile-icon">📊</div><div class="m-tile-name">Export Costing 2</div></div>
+      <div class="m-tile" onclick="openMod('Export Data Filter Format')"><div class="m-tile-icon">🔍</div><div class="m-tile-name">Export Data Filter Format</div></div>
+      <div class="m-tile" onclick="openMod('Export Proforma Invoice')"><div class="m-tile-icon">📄</div><div class="m-tile-name">Export Proforma Invoice</div></div>
+      <div class="m-tile" onclick="openMod('Export Quotation')"><div class="m-tile-icon">💬</div><div class="m-tile-name">Export Quotation</div></div>
+      <div class="m-tile" onclick="openMod('Export Sample Courier Invoice')"><div class="m-tile-icon">✈️</div><div class="m-tile-name">Courier Invoice</div></div>
+    </div>
+  </div>
+
+  <div class="menu-sect">
+    <div class="msect-lbl">🚢 Import Modules</div>
+    <div class="menu-tiles">
+      <div class="m-tile" onclick="openMod('Import Letter For Inquiry')"><div class="m-tile-icon">📩</div><div class="m-tile-name">Import Letter For Inquiry</div></div>
+      <div class="m-tile" onclick="openMod('Import Purchase Order')"><div class="m-tile-icon">🛒</div><div class="m-tile-name">Import Purchase Order</div></div>
+    </div>
+  </div>
+
+  <div class="menu-sect">
+    <div class="msect-lbl">🌐 EXIM Marketing</div>
+    <div class="menu-tiles">
+      <div class="m-tile" onclick="openMod('Marketing Analysis')"><div class="m-tile-icon">📈</div><div class="m-tile-name">Marketing Analysis</div></div>
+      <div class="m-tile" onclick="openMod('Target Markets')"><div class="m-tile-icon">🎯</div><div class="m-tile-name">Target Markets</div></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div id="toast">
+  <span id="toastIcon">🚀</span>
+  <span id="toastMsg">Opening module...</span>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

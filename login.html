@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IMPEXIO — Login</title>
+  <link rel="stylesheet" href="styles.css"/>
+  <link rel="icon" href="impexio_logo.png" type="image/png"/>
+</head>
+<body class="login-body">
+
+<div class="login-shell">
+
+  <!-- ══ LEFT ══ -->
+  <div class="login-left">
+    <div class="ll-grid"></div>
+    <div class="ll-blob1"></div>
+    <div class="ll-blob2"></div>
+
+    <div class="ll-inner">
+      <div class="ll-logo-box">
+        <img src="impexio_logo.png" alt="IMPEXIO" class="ll-logo"/>
+      </div>
+      <div class="ll-name">IMPEXIO</div>
+      <div class="ll-sub">Export · Import · Document Suite</div>
+
+      <div class="ll-perks">
+        <div class="ll-perk"><span class="ll-perk-ico">📦</span><span class="ll-perk-txt">Complete Export Document Management</span></div>
+        <div class="ll-perk"><span class="ll-perk-ico">🚢</span><span class="ll-perk-txt">Import Purchase &amp; Inquiry System</span></div>
+        <div class="ll-perk"><span class="ll-perk-ico">🌐</span><span class="ll-perk-txt">EXIM Marketing &amp; Analysis Tools</span></div>
+        <div class="ll-perk"><span class="ll-perk-ico">🔐</span><span class="ll-perk-txt">Secure Multi-Company Access</span></div>
+        <div class="ll-perk"><span class="ll-perk-ico">📊</span><span class="ll-perk-txt">GST Compliant Reports &amp; Invoices</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ RIGHT ══ -->
+  <div class="login-right">
+
+    <div class="login-card">
+      <!-- Progress -->
+      <div class="step-progress">
+        <div class="sp-dot active" id="dot0"></div>
+        <div class="sp-dot" id="dot1"></div>
+        <div class="sp-dot" id="dot2"></div>
+        <div class="sp-dot" id="dot3"></div>
+      </div>
+
+      <!-- STEP 0: CLIENT CODE -->
+      <div class="login-step active" id="step0">
+        <div class="step-hd">
+          <div class="step-ico-wrap">🔑</div>
+          <div class="step-title">Client Verification</div>
+          <div class="step-sub">Enter your client code to begin</div>
+        </div>
+
+        <div class="ferr" id="err0"><span>⚠️</span><span id="err0msg">Invalid client code.</span></div>
+
+        <div class="fgroup">
+          <label class="flabel">Client Code</label>
+          <div class="finput-wrap">
+            <span class="finput-ico">🏷️</span>
+            <input type="text" class="finput" id="clientCode" placeholder="e.g. Demo001" autocomplete="off"/>
+          </div>
+          <div class="fhint">Contact your administrator for your client code.</div>
+        </div>
+
+        <button class="btn-step" onclick="verifyClient()">Continue &nbsp;→</button>
+      </div>
+
+      <!-- STEP 1: LOGIN -->
+      <div class="login-step" id="step1">
+        <div class="step-hd">
+          <div class="step-ico-wrap">🔐</div>
+          <div class="step-title">Welcome Back</div>
+          <div class="step-sub">Login to your IMPEXIO account</div>
+        </div>
+
+        <div class="ferr" id="err1"><span>⚠️</span><span id="err1msg">Invalid credentials.</span></div>
+
+        <div class="fgroup">
+          <label class="flabel">Username</label>
+          <div class="finput-wrap">
+            <span class="finput-ico">👤</span>
+            <input type="text" class="finput" id="username" placeholder="Enter username" autocomplete="username"/>
+          </div>
+        </div>
+
+        <div class="fgroup">
+          <label class="flabel">Password</label>
+          <div class="finput-wrap">
+            <span class="finput-ico">🔒</span>
+            <input type="password" class="finput" id="password" placeholder="Enter password" autocomplete="current-password"/>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.8rem;margin-bottom:0.5rem;">
+          <label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;color:var(--text-soft);">
+            <input type="checkbox" id="stayIn" style="accent-color:var(--navy)"/> Stay signed in
+          </label>
+          <a href="#" style="color:var(--navy);font-weight:600;font-size:0.8rem;">Forgot Password?</a>
+        </div>
+
+        <button class="btn-step" onclick="verifyLogin()">Login &nbsp;→</button>
+        <button class="btn-back-step" onclick="goBack(1)">← Back</button>
+      </div>
+
+      <!-- STEP 2: COMPANY -->
+      <div class="login-step" id="step2">
+        <div class="step-hd">
+          <div class="step-ico-wrap">🏢</div>
+          <div class="step-title">Select Company</div>
+          <div class="step-sub">Choose the company to work with</div>
+        </div>
+
+        <div class="sel-list" id="compList"></div>
+
+        <button class="btn-step" onclick="pickCompany()">Continue &nbsp;→</button>
+        <button class="btn-back-step" onclick="goBack(2)">← Back</button>
+      </div>
+
+      <!-- STEP 3: YEAR -->
+      <div class="login-step" id="step3">
+        <div class="step-hd">
+          <div class="step-ico-wrap">📅</div>
+          <div class="step-title">Financial Year</div>
+          <div class="step-sub">Select the year to operate in</div>
+        </div>
+
+        <div class="sel-list" id="yearList"></div>
+
+        <button class="btn-step" onclick="pickYear()">Enter System &nbsp;→</button>
+        <button class="btn-back-step" onclick="goBack(3)">← Back</button>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
