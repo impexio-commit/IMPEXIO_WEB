@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IMPEXIO — Container Expenses FOB</title>
+  <link rel="stylesheet" href="styles.css"/>
+  <link rel="stylesheet" href="fob.css"/>
+  <link rel="icon" href="impexio_logo.png" type="image/png"/>
+</head>
+<body class="dash-body fob-body">
+
+<!-- TOP BAR -->
+<div class="dash-topbar">
+  <div class="dtb-brand">
+    <div class="dtb-logo-box"><img src="impexio_logo.png" alt="IMPEXIO" class="dtb-logo"/></div>
+    <div class="dtb-name">IMPEXIO</div>
+  </div>
+  <div class="dtb-meta" id="dtbMeta"></div>
+  <div class="dtb-right">
+    <div class="dtb-user">
+      <div class="dtb-avatar" id="dtbAv">A</div>
+      <div>
+        <div class="dtb-uname" id="dtbUname">Admin</div>
+        <div class="dtb-role"  id="dtbRole">Administrator</div>
+      </div>
+    </div>
+    <button class="btn-logout" onclick="doLogout()">⏻ Logout</button>
+  </div>
+</div>
+
+<!-- PAGE SHELL: Left list | Right wizard -->
+<div class="fob-shell">
+
+  <!-- ═══ LEFT: Records ═══ -->
+  <div class="fob-left">
+    <div class="fl-header">
+      <div class="fl-title">🚢 FOB Records</div>
+      <button class="fl-new-btn" onclick="newEntry()">＋ New</button>
+    </div>
+    <div class="fl-search-wrap">
+      <span>🔍</span>
+      <input type="text" id="searchInput" class="fl-search" placeholder="Search..." oninput="filterRecords()"/>
+    </div>
+    <div class="fl-list" id="recordsList">
+      <div class="fl-empty">
+        <div style="font-size:1.6rem;opacity:0.35;">🚢</div>
+        <div class="fl-empty-txt">No records yet</div>
+        <div class="fl-empty-sub">Click + New to begin</div>
+      </div>
+    </div>
+    <a href="main.html" class="fl-back">← Back to Menu</a>
+  </div>
+
+  <!-- ═══ RIGHT: Step Wizard ═══ -->
+  <div class="fob-right">
+
+    <!-- Step Progress Bar -->
+    <div class="fob-progress-bar">
+      <div class="fpb-left">
+        <div class="fpb-title" id="formTitle">New FOB Entry</div>
+        <div class="fpb-sub" id="formSub">Step 1 of 3</div>
+      </div>
+      <div class="fpb-steps">
+        <div class="fpb-step active" id="pstep_1" onclick="goToStep(1)">
+          <div class="fpb-step-num">1</div>
+          <div class="fpb-step-lbl">Document Info</div>
+        </div>
+        <div class="fpb-connector"></div>
+        <div class="fpb-step" id="pstep_2" onclick="goToStep(2)">
+          <div class="fpb-step-num">2</div>
+          <div class="fpb-step-lbl">Charges</div>
+        </div>
+        <div class="fpb-connector"></div>
+        <div class="fpb-step" id="pstep_3" onclick="goToStep(3)">
+          <div class="fpb-step-num">3</div>
+          <div class="fpb-step-lbl">Remarks &amp; Auth</div>
+        </div>
+      </div>
+      <div class="fpb-actions">
+        <button class="fa fa-clear" onclick="clearForm()">🗑 Clear</button>
+        <button class="fa fa-save"  onclick="saveRecord()">💾 Save</button>
+        <button class="fa fa-print" onclick="printRecord()">🖨 Print</button>
+      </div>
+    </div>
+
+    <!-- ══ STEP 1: Document Info ══ -->
+    <div class="fob-step" id="step_1">
+      <div class="fob-step-inner">
+        <div class="fob-step-header">
+          <div class="fob-step-icon">📋</div>
+          <div>
+            <div class="fob-step-title">Document Information</div>
+            <div class="fob-step-desc">Enter the basic document details for this FOB entry</div>
+          </div>
+        </div>
+
+        <div class="fob-card">
+          <div class="fob-card-hd"><span class="fob-badge">A</span> FOB Document Details</div>
+          <div class="fob-grid-2x2">
+            <div class="ff">
+              <label class="fl2">Company Name <span class="req">*</span></label>
+              <input type="text" class="fi" id="f_company" placeholder="Enter company name"/>
+            </div>
+            <div class="ff">
+              <label class="fl2">Port of Loading</label>
+              <input type="text" class="fi" id="f_pol" placeholder="e.g. Mundra, JNPT, Pipavav"/>
+            </div>
+            <div class="ff">
+              <label class="fl2">FOB Ref. No. <span class="req">*</span></label>
+              <input type="text" class="fi" id="f_fobno" placeholder="FOB/2026/0001"/>
+            </div>
+            <div class="ff">
+              <label class="fl2">FOB Date <span class="req">*</span></label>
+              <input type="date" class="fi" id="f_fobdate"/>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary preview (visible from step 2 onwards) -->
+        <div class="fob-info-strip" id="infoStrip" style="display:none;">
+          <span id="strip_company"></span>
+          <span class="fob-strip-sep">|</span>
+          <span id="strip_fobno"></span>
+          <span class="fob-strip-sep">|</span>
+          <span id="strip_date"></span>
+        </div>
+
+      </div>
+      <div class="fob-step-footer">
+        <div></div>
+        <button class="fnav fnav-next" onclick="nextStep(1)">Next: Charges →</button>
+      </div>
+    </div>
+
+    <!-- ══ STEP 2: Charges ══ -->
+    <div class="fob-step hidden" id="step_2">
+      <div class="fob-step-inner fob-step-inner-table">
+
+        <div class="fob-info-strip">
+          <span id="strip2_company"></span>
+          <span class="fob-strip-sep">|</span>
+          <span id="strip2_fobno"></span>
+          <span class="fob-strip-sep">|</span>
+          <span id="strip2_date"></span>
+        </div>
+
+        <div class="fob-card fob-card-full">
+          <div class="fob-card-hd">
+            <span class="fob-badge">B</span> Docs Stuffing — Charges INR
+            <span class="fob-card-note">Enter amounts in Indian Rupees. Totals calculate live.</span>
+          </div>
+          <div class="fob-charges-wrap">
+            <table class="fob-tbl">
+              <thead>
+                <tr>
+                  <th rowspan="2" class="fth-desc">Expense Item</th>
+                  <th colspan="2" class="fth-group">Charges INR</th>
+                  <th colspan="2" class="fth-group">Charges INR</th>
+                </tr>
+                <tr>
+                  <th class="fth-sub">20' Container</th>
+                  <th class="fth-sub">40' Container</th>
+                  <th class="fth-sub">40' HQ Container</th>
+                  <th class="fth-sub">LCL / Per CBM</th>
+                </tr>
+              </thead>
+              <tbody id="chargesBody"></tbody>
+              <tfoot>
+                <tr class="fob-total-row">
+                  <td>Total Expenses</td>
+                  <td id="tot_20"   class="ftot">0</td>
+                  <td id="tot_40"   class="ftot">0</td>
+                  <td id="tot_40hq" class="ftot">0</td>
+                  <td id="tot_lcl"  class="ftot">0</td>
+                </tr>
+                <tr class="fob-cbm-row">
+                  <td>CBM</td>
+                  <td><input type="number" class="fob-ci fob-cbm-inp" id="cbm_20"   step="0.001" placeholder="0.000" oninput="calcPerCbm()"/></td>
+                  <td><input type="number" class="fob-ci fob-cbm-inp" id="cbm_40"   step="0.001" placeholder="0.000" oninput="calcPerCbm()"/></td>
+                  <td><input type="number" class="fob-ci fob-cbm-inp" id="cbm_40hq" step="0.001" placeholder="0.000" oninput="calcPerCbm()"/></td>
+                  <td><input type="number" class="fob-ci fob-cbm-inp" id="cbm_lcl"  step="0.001" placeholder="0.000" oninput="calcPerCbm()"/></td>
+                </tr>
+                <tr class="fob-percbm-row">
+                  <td>Per CBM Cost</td>
+                  <td id="pc_20"   class="fpc">0</td>
+                  <td id="pc_40"   class="fpc">0</td>
+                  <td id="pc_40hq" class="fpc">0</td>
+                  <td id="pc_lcl"  class="fpc">0</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+      </div>
+      <div class="fob-step-footer">
+        <button class="fnav fnav-back" onclick="prevStep(2)">← Back</button>
+        <button class="fnav fnav-next" onclick="nextStep(2)">Next: Remarks →</button>
+      </div>
+    </div>
+
+    <!-- ══ STEP 3: Remarks & Auth ══ -->
+    <div class="fob-step hidden" id="step_3">
+      <div class="fob-step-inner">
+
+        <div class="fob-info-strip">
+          <span id="strip3_company"></span>
+          <span class="fob-strip-sep">|</span>
+          <span id="strip3_fobno"></span>
+          <span class="fob-strip-sep">|</span>
+          <span id="strip3_date"></span>
+        </div>
+
+        <div class="fob-card">
+          <div class="fob-card-hd"><span class="fob-badge">C</span> Remarks &amp; Authorization</div>
+          <div class="fob-rem-grid">
+            <div class="ff" style="grid-column:1/-1;">
+              <label class="fl2">Remarks</label>
+              <textarea class="fi fi-ta" id="f_remarks" placeholder="Additional notes or remarks..."></textarea>
+            </div>
+            <div class="ff">
+              <label class="fl2">Prepared By</label>
+              <input type="text" class="fi" id="f_preparedby" placeholder="Full name of preparer"/>
+            </div>
+            <div class="ff">
+              <label class="fl2">Authorised Signatory</label>
+              <input type="text" class="fi" id="f_signatory" placeholder="Authorised signatory name"/>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary card -->
+        <div class="fob-summary-card">
+          <div class="fob-card-hd"><span class="fob-badge">D</span> Charges Summary</div>
+          <div class="fob-sum-grid">
+            <div class="fob-sum-item">
+              <div class="fob-sum-lbl">20' Container Total</div>
+              <div class="fob-sum-val" id="sum_20">₹ 0</div>
+            </div>
+            <div class="fob-sum-item">
+              <div class="fob-sum-lbl">40' Container Total</div>
+              <div class="fob-sum-val" id="sum_40">₹ 0</div>
+            </div>
+            <div class="fob-sum-item">
+              <div class="fob-sum-lbl">40' HQ Container Total</div>
+              <div class="fob-sum-val" id="sum_40hq">₹ 0</div>
+            </div>
+            <div class="fob-sum-item">
+              <div class="fob-sum-lbl">LCL / Per CBM Total</div>
+              <div class="fob-sum-val" id="sum_lcl">₹ 0</div>
+            </div>
+            <div class="fob-sum-item">
+              <div class="fob-sum-lbl">Per CBM Cost (20')</div>
+              <div class="fob-sum-val" id="sum_pc20">₹ 0</div>
+            </div>
+            <div class="fob-sum-item">
+              <div class="fob-sum-lbl">Per CBM Cost (40')</div>
+              <div class="fob-sum-val" id="sum_pc40">₹ 0</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="fob-step-footer">
+        <button class="fnav fnav-back" onclick="prevStep(3)">← Back</button>
+        <div style="display:flex;gap:0.5rem;">
+          <button class="fnav fnav-save"  onclick="saveRecord()">💾 Save Record</button>
+          <button class="fnav fnav-print" onclick="printRecord()">🖨 Print</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /fob-right -->
+</div><!-- /fob-shell -->
+
+<div id="printArea" style="display:none;"></div>
+<script src="app.js"></script>
+<script src="fob.js"></script>
+</body>
+</html>
