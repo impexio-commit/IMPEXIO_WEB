@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IMPEXIO — Export Proforma Invoice</title>
+  <link rel="stylesheet" href="styles.css"/>
+  <link rel="stylesheet" href="pi.css"/>
+  <link rel="icon" href="impexio_logo.png" type="image/png"/>
+</head>
+<body class="dash-body pi-body">
+
+<!-- TOP BAR -->
+<div class="dash-topbar">
+  <div class="dtb-brand">
+    <div class="dtb-logo-box"><img src="impexio_logo.png" alt="IMPEXIO" class="dtb-logo"/></div>
+    <div class="dtb-name">IMPEXIO</div>
+  </div>
+  <div class="dtb-meta" id="dtbMeta"></div>
+  <div class="dtb-right">
+    <div class="dtb-user">
+      <div class="dtb-avatar" id="dtbAv">A</div>
+      <div>
+        <div class="dtb-uname" id="dtbUname">Admin</div>
+        <div class="dtb-role"  id="dtbRole">Administrator</div>
+      </div>
+    </div>
+    <button class="btn-logout" onclick="doLogout()">⏻ Logout</button>
+  </div>
+</div>
+
+<!-- PAGE SHELL -->
+<div class="pi-shell">
+
+  <!-- ═══ LEFT: Records ═══ -->
+  <div class="pi-left">
+    <div class="pl-header">
+      <div class="pl-title">📄 PI Records</div>
+      <button class="pl-new-btn" onclick="newEntry()">＋ New</button>
+    </div>
+    <div class="pl-search-wrap">
+      <span>🔍</span>
+      <input type="text" id="searchInput" class="pl-search" placeholder="Search..." oninput="filterRecords()"/>
+    </div>
+    <div class="pl-list" id="recordsList">
+      <div class="pl-empty">
+        <div style="font-size:1.6rem;opacity:0.35;">📄</div>
+        <div class="pl-empty-txt">No records yet</div>
+        <div class="pl-empty-sub">Click + New to begin</div>
+      </div>
+    </div>
+    <a href="main.html" class="pl-back">← Back to Menu</a>
+  </div>
+
+  <!-- ═══ RIGHT: Step Wizard ═══ -->
+  <div class="pi-right">
+
+    <!-- Progress Bar -->
+    <div class="pi-progress-bar">
+      <div class="ppb-left">
+        <div class="ppb-title" id="formTitle">New Proforma Invoice</div>
+        <div class="ppb-sub"   id="formSub">Step 1 of 3</div>
+      </div>
+      <div class="ppb-steps">
+        <div class="ppb-step active" id="pstep_1" onclick="goToStep(1)">
+          <div class="ppb-step-num">1</div>
+          <div class="ppb-step-lbl">Header Info</div>
+        </div>
+        <div class="ppb-connector" id="conn_1"></div>
+        <div class="ppb-step" id="pstep_2" onclick="goToStep(2)">
+          <div class="ppb-step-num">2</div>
+          <div class="ppb-step-lbl">Product Lines</div>
+        </div>
+        <div class="ppb-connector" id="conn_2"></div>
+        <div class="ppb-step" id="pstep_3" onclick="goToStep(3)">
+          <div class="ppb-step-num">3</div>
+          <div class="ppb-step-lbl">Remarks &amp; Auth</div>
+        </div>
+      </div>
+      <div class="ppb-actions">
+        <button class="pa pa-clear" onclick="clearForm()">🗑 Clear</button>
+        <button class="pa pa-save"  onclick="saveRecord()">💾 Save</button>
+        <button class="pa pa-print" onclick="printRecord()">🖨 Print</button>
+      </div>
+    </div>
+
+    <!-- ══ STEP 1: Header Info ══ -->
+    <div class="pi-step" id="step_1">
+      <div class="pi-step-inner">
+
+        <div class="pi-step-header">
+          <div class="pi-step-icon">📋</div>
+          <div>
+            <div class="pi-step-title">Header Information</div>
+            <div class="pi-step-desc">Enter PI number, date, exporter and buyer details</div>
+          </div>
+        </div>
+
+        <!-- PI No & Date -->
+        <div class="pi-card">
+          <div class="pi-card-hd"><span class="pi-badge">A</span> Invoice Reference</div>
+          <div class="pi-grid-2col">
+            <div class="pf">
+              <label class="pl2">PI No. <span class="req">*</span></label>
+              <input type="text" class="pi-fi" id="f_pino" placeholder="PI/2026/0001"/>
+            </div>
+            <div class="pf">
+              <label class="pl2">Date <span class="req">*</span></label>
+              <input type="date" class="pi-fi" id="f_date"/>
+            </div>
+          </div>
+        </div>
+
+        <!-- Exporter / Buyer side by side -->
+        <div class="pi-two-col-cards">
+
+          <div class="pi-card">
+            <div class="pi-card-hd pi-card-hd-teal"><span class="pi-badge">B</span> Exporter / Seller</div>
+            <div class="pi-single-col">
+              <div class="pf">
+                <label class="pl2">Exporter Name</label>
+                <input type="text" class="pi-fi" id="f_exp_name" placeholder="Exporter / Seller name"/>
+              </div>
+              <div class="pf">
+                <label class="pl2">Address Line 1</label>
+                <input type="text" class="pi-fi" id="f_exp_addr1" placeholder="Street / Area"/>
+              </div>
+              <div class="pf">
+                <label class="pl2">Address Line 2</label>
+                <input type="text" class="pi-fi" id="f_exp_addr2" placeholder="City, State, PIN"/>
+              </div>
+              <div class="pf">
+                <label class="pl2">Address Line 3</label>
+                <input type="text" class="pi-fi" id="f_exp_addr3" placeholder="Country"/>
+              </div>
+            </div>
+          </div>
+
+          <div class="pi-card">
+            <div class="pi-card-hd pi-card-hd-teal"><span class="pi-badge">C</span> Buyer / Importer / Consignee</div>
+            <div class="pi-single-col">
+              <div class="pf">
+                <label class="pl2">Buyer Name</label>
+                <input type="text" class="pi-fi" id="f_buy_name" placeholder="Buyer / Importer name"/>
+              </div>
+              <div class="pf">
+                <label class="pl2">Address Line 1</label>
+                <input type="text" class="pi-fi" id="f_buy_addr1" placeholder="Street / Area"/>
+              </div>
+              <div class="pf">
+                <label class="pl2">Address Line 2</label>
+                <input type="text" class="pi-fi" id="f_buy_addr2" placeholder="City, State, PIN"/>
+              </div>
+              <div class="pf">
+                <label class="pl2">Address Line 3</label>
+                <input type="text" class="pi-fi" id="f_buy_addr3" placeholder="Country"/>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Shipment Details -->
+        <div class="pi-card">
+          <div class="pi-card-hd"><span class="pi-badge">D</span> Shipment Details</div>
+          <div class="pi-grid-4col">
+            <div class="pf">
+              <label class="pl2">Country of Origin</label>
+              <input type="text" class="pi-fi" id="f_country_origin" placeholder="e.g. India"/>
+            </div>
+            <div class="pf">
+              <label class="pl2">Country of Final Destination</label>
+              <input type="text" class="pi-fi" id="f_country_dest" placeholder="e.g. USA"/>
+            </div>
+            <div class="pf">
+              <label class="pl2">Port of Loading</label>
+              <input type="text" class="pi-fi" id="f_pol" placeholder="e.g. Mundra"/>
+            </div>
+            <div class="pf">
+              <label class="pl2">Port of Discharge</label>
+              <input type="text" class="pi-fi" id="f_pod" placeholder="e.g. Hamburg"/>
+            </div>
+            <div class="pf">
+              <label class="pl2">Pre-carriage By</label>
+              <input type="text" class="pi-fi" id="f_precarriage" placeholder="e.g. Road / Rail"/>
+            </div>
+            <div class="pf">
+              <label class="pl2">Vessel / Flight No.</label>
+              <input type="text" class="pi-fi" id="f_vessel" placeholder="Vessel / Flight No."/>
+            </div>
+            <div class="pf">
+              <label class="pl2">IncoTerms</label>
+              <input type="text" class="pi-fi" id="f_incoterms" placeholder="e.g. FOB / CIF / EXW"/>
+            </div>
+            <div class="pf">
+              <label class="pl2">Final Destination</label>
+              <input type="text" class="pi-fi" id="f_final_dest" placeholder="Final destination"/>
+            </div>
+            <div class="pf">
+              <label class="pl2">Payment Terms</label>
+              <input type="text" class="pi-fi" id="f_payment_terms" placeholder="e.g. 30% advance"/>
+            </div>
+            <div class="pf">
+              <label class="pl2">Delivery Terms</label>
+              <input type="text" class="pi-fi" id="f_delivery_terms" placeholder="e.g. CIF Port"/>
+            </div>
+            <div class="pf">
+              <label class="pl2">Transhipment</label>
+              <input type="text" class="pi-fi" id="f_transhipment" placeholder="Allowed / Not Allowed"/>
+            </div>
+            <div class="pf">
+              <label class="pl2">Partial Shipment</label>
+              <input type="text" class="pi-fi" id="f_partial_shipment" placeholder="Allowed / Not Allowed"/>
+            </div>
+            <div class="pf">
+              <label class="pl2">Lead Delivery Time</label>
+              <input type="text" class="pi-fi" id="f_lead_time" placeholder="e.g. 30 Days"/>
+            </div>
+            <div class="pf">
+              <label class="pl2">Validity P.I.</label>
+              <input type="text" class="pi-fi" id="f_validity" placeholder="e.g. 15 Days"/>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="pi-step-footer">
+        <div></div>
+        <button class="pnav pnav-next" onclick="nextStep(1)">Next: Product Lines →</button>
+      </div>
+    </div>
+
+    <!-- ══ STEP 2: Product Lines ══ -->
+    <div class="pi-step hidden" id="step_2">
+      <div class="pi-step-inner pi-step-inner-tbl">
+
+        <div class="pi-info-strip">
+          <span id="s2_pino"></span>
+          <span class="pi-strip-sep">|</span>
+          <span id="s2_date"></span>
+          <span class="pi-strip-sep">|</span>
+          <span id="s2_buyer"></span>
+        </div>
+
+        <div class="pi-card pi-card-full">
+          <div class="pi-card-hd">
+            <span class="pi-badge">E</span> Product Description &amp; Line Items
+            <span class="pi-card-note">Rate × Qty = Amount (auto-calculated)</span>
+            <button class="pi-add-row-btn" onclick="addRow()">＋ Add Row</button>
+          </div>
+          <div class="pi-prod-wrap">
+            <table class="pi-tbl">
+              <thead>
+                <tr>
+                  <th class="pth-desc">Product Description</th>
+                  <th class="pth-hs">HS Code</th>
+                  <th class="pth-qty">Qty</th>
+                  <th class="pth-box">Boxes</th>
+                  <th class="pth-rate">Rate</th>
+                  <th class="pth-amt">Amount</th>
+                  <th class="pth-del"></th>
+                </tr>
+              </thead>
+              <tbody id="productBody">
+                <!-- rows rendered by JS -->
+              </tbody>
+              <tfoot>
+                <tr class="pi-total-row">
+                  <td colspan="2" class="pi-total-label">TOTAL</td>
+                  <td id="tot_qty"  class="pi-tot-cell">0</td>
+                  <td id="tot_box"  class="pi-tot-cell">0</td>
+                  <td></td>
+                  <td id="tot_amt"  class="pi-tot-cell pi-tot-gold">0.00</td>
+                  <td></td>
+                </tr>
+                <tr class="pi-words-row">
+                  <td colspan="2" class="pi-words-lbl">Amount in Words:</td>
+                  <td colspan="5" id="amt_words" class="pi-words-val">—</td>
+                </tr>
+                <tr class="pi-wt-row">
+                  <td class="pi-wt-lbl">Net/Gross Wt:</td>
+                  <td colspan="2"><input type="text" class="pi-fi pi-fi-sm" id="f_netgross_wt" placeholder="e.g. 1000 KGS / 1050 KGS"/></td>
+                  <td class="pi-wt-lbl" style="text-align:right;padding-right:0.5rem;">Total CBM:</td>
+                  <td colspan="3"><input type="text" class="pi-fi pi-fi-sm" id="f_total_cbm" placeholder="e.g. 12.500 CBM"/></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+      </div>
+      <div class="pi-step-footer">
+        <button class="pnav pnav-back" onclick="prevStep(2)">← Back</button>
+        <button class="pnav pnav-next" onclick="nextStep(2)">Next: Remarks →</button>
+      </div>
+    </div>
+
+    <!-- ══ STEP 3: Remarks & Auth ══ -->
+    <div class="pi-step hidden" id="step_3">
+      <div class="pi-step-inner">
+
+        <div class="pi-info-strip">
+          <span id="s3_pino"></span>
+          <span class="pi-strip-sep">|</span>
+          <span id="s3_date"></span>
+          <span class="pi-strip-sep">|</span>
+          <span id="s3_buyer"></span>
+        </div>
+
+        <!-- Summary -->
+        <div class="pi-card">
+          <div class="pi-card-hd"><span class="pi-badge">F</span> Invoice Summary</div>
+          <div class="pi-sum-grid">
+            <div class="pi-sum-item">
+              <div class="pi-sum-lbl">Total Qty</div>
+              <div class="pi-sum-val" id="sum_qty">0</div>
+            </div>
+            <div class="pi-sum-item">
+              <div class="pi-sum-lbl">Total Boxes</div>
+              <div class="pi-sum-val" id="sum_box">0</div>
+            </div>
+            <div class="pi-sum-item pi-sum-gold">
+              <div class="pi-sum-lbl">Total Amount</div>
+              <div class="pi-sum-val" id="sum_amt">0.00</div>
+            </div>
+            <div class="pi-sum-item">
+              <div class="pi-sum-lbl">Net/Gross Wt</div>
+              <div class="pi-sum-val" id="sum_wt">—</div>
+            </div>
+            <div class="pi-sum-item">
+              <div class="pi-sum-lbl">Total CBM</div>
+              <div class="pi-sum-val" id="sum_cbm">—</div>
+            </div>
+            <div class="pi-sum-item">
+              <div class="pi-sum-lbl">Amount in Words</div>
+              <div class="pi-sum-val pi-sum-words" id="sum_words">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Remarks -->
+        <div class="pi-card">
+          <div class="pi-card-hd"><span class="pi-badge">G</span> Remarks &amp; Authorization</div>
+          <div class="pi-rem-grid">
+            <div class="pf" style="grid-column:1/-1;">
+              <label class="pl2">Remarks</label>
+              <textarea class="pi-fi pi-fi-ta" id="f_remarks" placeholder="Additional notes, terms, conditions..."></textarea>
+            </div>
+            <div class="pf">
+              <label class="pl2">Prepared By</label>
+              <input type="text" class="pi-fi" id="f_preparedby" placeholder="Full name"/>
+            </div>
+            <div class="pf">
+              <label class="pl2">For IMPEXIO / Authorised Signatory</label>
+              <input type="text" class="pi-fi" id="f_signatory" placeholder="Authorised signatory"/>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="pi-step-footer">
+        <button class="pnav pnav-back" onclick="prevStep(3)">← Back</button>
+        <div style="display:flex;gap:0.5rem;">
+          <button class="pnav pnav-save"  onclick="saveRecord()">💾 Save Record</button>
+          <button class="pnav pnav-print" onclick="printRecord()">🖨 Print</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /pi-right -->
+</div><!-- /pi-shell -->
+
+<div id="printArea" style="display:none;"></div>
+<script src="app.js"></script>
+<script src="pi.js"></script>
+</body>
+</html>
