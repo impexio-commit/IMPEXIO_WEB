@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IMPEXIO — Sample Courier Invoice</title>
+  <link rel="stylesheet" href="styles.css"/>
+  <link rel="stylesheet" href="sci.css"/>
+  <link rel="icon" href="impexio_logo.png" type="image/png"/>
+</head>
+<body class="dash-body sci-body">
+
+<!-- TOP BAR -->
+<div class="dash-topbar">
+  <div class="dtb-brand">
+    <div class="dtb-logo-box"><img src="impexio_logo.png" alt="IMPEXIO" class="dtb-logo"/></div>
+    <div class="dtb-name">IMPEXIO</div>
+  </div>
+  <div class="dtb-meta" id="dtbMeta"></div>
+  <div class="dtb-right">
+    <div class="dtb-user">
+      <div class="dtb-avatar" id="dtbAv">A</div>
+      <div>
+        <div class="dtb-uname" id="dtbUname">Admin</div>
+        <div class="dtb-role"  id="dtbRole">Administrator</div>
+      </div>
+    </div>
+    <button class="btn-logout" onclick="doLogout()">⏻ Logout</button>
+  </div>
+</div>
+
+<!-- PAGE SHELL -->
+<div class="sci-shell">
+
+  <!-- ═══ LEFT: Records ═══ -->
+  <div class="sci-left">
+    <div class="sl-header">
+      <div class="sl-title">📦 SCI Records</div>
+      <button class="sl-new-btn" onclick="newEntry()">＋ New</button>
+    </div>
+    <div class="sl-search-wrap">
+      <span>🔍</span>
+      <input type="text" id="searchInput" class="sl-search" placeholder="Search..." oninput="filterRecords()"/>
+    </div>
+    <div class="sl-list" id="recordsList">
+      <div class="sl-empty">
+        <div style="font-size:1.6rem;opacity:0.35;">📦</div>
+        <div class="sl-empty-txt">No records yet</div>
+        <div class="sl-empty-sub">Click + New to begin</div>
+      </div>
+    </div>
+    <a href="main.html" class="sl-back">← Back to Menu</a>
+  </div>
+
+  <!-- ═══ RIGHT: Step Wizard ═══ -->
+  <div class="sci-right">
+
+    <!-- Progress Bar -->
+    <div class="sci-progress-bar">
+      <div class="spb-left">
+        <div class="spb-title" id="formTitle">New Courier Invoice</div>
+        <div class="spb-sub"   id="formSub">Step 1 of 3</div>
+      </div>
+      <div class="spb-steps">
+        <div class="spb-step active" id="pstep_1" onclick="goToStep(1)">
+          <div class="spb-step-num">1</div>
+          <div class="spb-step-lbl">Header Info</div>
+        </div>
+        <div class="spb-connector" id="conn_1"></div>
+        <div class="spb-step" id="pstep_2" onclick="goToStep(2)">
+          <div class="spb-step-num">2</div>
+          <div class="spb-step-lbl">Product Lines</div>
+        </div>
+        <div class="spb-connector" id="conn_2"></div>
+        <div class="spb-step" id="pstep_3" onclick="goToStep(3)">
+          <div class="spb-step-num">3</div>
+          <div class="spb-step-lbl">Remarks &amp; Auth</div>
+        </div>
+      </div>
+      <div class="spb-actions">
+        <button class="sa sa-clear" onclick="clearForm()">🗑 Clear</button>
+        <button class="sa sa-save"  onclick="saveRecord()">💾 Save</button>
+        <button class="sa sa-print" onclick="printRecord()">🖨 Print</button>
+      </div>
+    </div>
+
+    <!-- ══ STEP 1: Header Info ══ -->
+    <div class="sci-step" id="step_1">
+      <div class="sci-step-inner">
+
+        <div class="sci-step-header">
+          <div class="sci-step-icon">📦</div>
+          <div>
+            <div class="sci-step-title">Header Information</div>
+            <div class="sci-step-desc">Enter invoice number, date, consignee and shipment details</div>
+          </div>
+        </div>
+
+        <!-- Invoice Ref -->
+        <div class="sci-card">
+          <div class="sci-card-hd"><span class="sci-badge">A</span> Invoice Reference</div>
+          <div class="sci-grid-2col">
+            <div class="sf">
+              <label class="sl2">Invoice No. <span class="req">*</span></label>
+              <input type="text" class="si" id="f_invno" placeholder="SCI/2026/0001"/>
+            </div>
+            <div class="sf">
+              <label class="sl2">Invoice Date <span class="req">*</span></label>
+              <input type="date" class="si" id="f_date"/>
+            </div>
+          </div>
+        </div>
+
+        <!-- Consignee / Notify Party side by side -->
+        <div class="sci-two-col-cards">
+          <div class="sci-card">
+            <div class="sci-card-hd sci-card-hd-teal"><span class="sci-badge">B</span> Consignee</div>
+            <div class="sci-single-col">
+              <div class="sf">
+                <label class="sl2">Consignee Name</label>
+                <input type="text" class="si" id="f_con_name"  placeholder="Consignee name"/>
+              </div>
+              <div class="sf">
+                <label class="sl2">Address Line 1</label>
+                <input type="text" class="si" id="f_con_addr1" placeholder="Street / Area"/>
+              </div>
+              <div class="sf">
+                <label class="sl2">Address Line 2</label>
+                <input type="text" class="si" id="f_con_addr2" placeholder="City, State, PIN"/>
+              </div>
+              <div class="sf">
+                <label class="sl2">Address Line 3</label>
+                <input type="text" class="si" id="f_con_addr3" placeholder="Country"/>
+              </div>
+            </div>
+          </div>
+
+          <div class="sci-card">
+            <div class="sci-card-hd sci-card-hd-teal"><span class="sci-badge">C</span> Notify Party</div>
+            <div class="sci-single-col">
+              <div class="sf">
+                <label class="sl2">Notify Party Name</label>
+                <input type="text" class="si" id="f_not_name"  placeholder="Notify party name"/>
+              </div>
+              <div class="sf">
+                <label class="sl2">Address Line 1</label>
+                <input type="text" class="si" id="f_not_addr1" placeholder="Street / Area"/>
+              </div>
+              <div class="sf">
+                <label class="sl2">Address Line 2</label>
+                <input type="text" class="si" id="f_not_addr2" placeholder="City, State, PIN"/>
+              </div>
+              <div class="sf">
+                <label class="sl2">Address Line 3</label>
+                <input type="text" class="si" id="f_not_addr3" placeholder="Country"/>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Shipment Details -->
+        <div class="sci-card">
+          <div class="sci-card-hd"><span class="sci-badge">D</span> Shipment Details</div>
+          <div class="sci-grid-4col">
+            <div class="sf">
+              <label class="sl2">Country of Origin</label>
+              <input type="text" class="si" id="f_country_origin" placeholder="e.g. India"/>
+            </div>
+            <div class="sf">
+              <label class="sl2">Country of Final Destination</label>
+              <input type="text" class="si" id="f_country_dest" placeholder="e.g. USA"/>
+            </div>
+            <div class="sf">
+              <label class="sl2">Port of Loading</label>
+              <input type="text" class="si" id="f_pol" placeholder="e.g. Mundra"/>
+            </div>
+            <div class="sf">
+              <label class="sl2">Port of Discharge</label>
+              <input type="text" class="si" id="f_pod" placeholder="e.g. Hamburg"/>
+            </div>
+            <div class="sf">
+              <label class="sl2">Final Destination</label>
+              <input type="text" class="si" id="f_final_dest" placeholder="Final destination"/>
+            </div>
+            <div class="sf">
+              <label class="sl2">Vessel / Flight No.</label>
+              <input type="text" class="si" id="f_vessel" placeholder="Vessel / Flight No."/>
+            </div>
+            <div class="sf">
+              <label class="sl2">Pre-carriage By</label>
+              <input type="text" class="si" id="f_precarriage" placeholder="e.g. Road / Rail"/>
+            </div>
+            <div class="sf">
+              <label class="sl2">Place of Receipt by Pre-carriage</label>
+              <input type="text" class="si" id="f_place_receipt" placeholder="Place of receipt"/>
+            </div>
+          </div>
+        </div>
+
+        <!-- Terms of Delivery & Payment -->
+        <div class="sci-card">
+          <div class="sci-card-hd sci-card-hd-teal"><span class="sci-badge">E</span> Terms of Delivery and Payment</div>
+          <div class="sci-grid-4col">
+            <div class="sf">
+              <label class="sl2">Delivery Terms</label>
+              <input type="text" class="si" id="f_delivery_terms" placeholder="e.g. CIF Port"/>
+            </div>
+            <div class="sf">
+              <label class="sl2">Payment Terms</label>
+              <input type="text" class="si" id="f_payment_terms" placeholder="e.g. 30% advance"/>
+            </div>
+            <div class="sf">
+              <label class="sl2">Inco Terms</label>
+              <input type="text" class="si" id="f_incoterms" placeholder="e.g. FOB / CIF / EXW"/>
+            </div>
+            <div class="sf">
+              <label class="sl2">Other Terms</label>
+              <input type="text" class="si" id="f_other_terms" placeholder="Any other terms"/>
+            </div>
+            <div class="sf">
+              <label class="sl2">Marks &amp; Nos. / Kind of Pkgs.</label>
+              <input type="text" class="si" id="f_marks_nos" placeholder="Marks & Nos."/>
+            </div>
+            <div class="sf">
+              <label class="sl2">GRS.WT. / NET WT.</label>
+              <input type="text" class="si" id="f_gross_net_wt" placeholder="e.g. 1000 / 950 KGS"/>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="sci-step-footer">
+        <div></div>
+        <button class="snav snav-next" onclick="nextStep(1)">Next: Product Lines →</button>
+      </div>
+    </div>
+
+    <!-- ══ STEP 2: Product Lines ══ -->
+    <div class="sci-step hidden" id="step_2">
+      <div class="sci-step-inner sci-step-inner-tbl">
+
+        <div class="sci-info-strip">
+          <span id="s2_invno"></span>
+          <span class="sci-strip-sep">|</span>
+          <span id="s2_date"></span>
+          <span class="sci-strip-sep">|</span>
+          <span id="s2_consignee"></span>
+        </div>
+
+        <div class="sci-card sci-card-full">
+          <div class="sci-card-hd">
+            <span class="sci-badge">F</span> Product Description &amp; Line Items
+            <span class="sci-card-note">Rate × Qty = Amount (auto-calculated)</span>
+            <button class="sci-add-row-btn" onclick="addRow()">＋ Add Row</button>
+          </div>
+          <div class="sci-prod-wrap">
+            <table class="sci-tbl">
+              <thead>
+                <tr>
+                  <th class="sth-desc">Product Description</th>
+                  <th class="sth-hs">HS Code</th>
+                  <th class="sth-qty">Qty</th>
+                  <th class="sth-rate">Rate</th>
+                  <th class="sth-amt">Amount</th>
+                  <th class="sth-del"></th>
+                </tr>
+              </thead>
+              <tbody id="productBody"></tbody>
+              <tfoot>
+                <tr class="sci-total-row">
+                  <td colspan="2" class="sci-total-label">TOTAL</td>
+                  <td id="tot_qty" class="sci-tot-cell">0</td>
+                  <td></td>
+                  <td id="tot_amt" class="sci-tot-gold">0.00</td>
+                  <td></td>
+                </tr>
+                <tr class="sci-words-row">
+                  <td colspan="2" class="sci-words-lbl">Amount in Words:</td>
+                  <td colspan="4" id="amt_words" class="sci-words-val">—</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+      </div>
+      <div class="sci-step-footer">
+        <button class="snav snav-back" onclick="prevStep(2)">← Back</button>
+        <button class="snav snav-next" onclick="nextStep(2)">Next: Remarks →</button>
+      </div>
+    </div>
+
+    <!-- ══ STEP 3: Remarks & Auth ══ -->
+    <div class="sci-step hidden" id="step_3">
+      <div class="sci-step-inner">
+
+        <div class="sci-info-strip">
+          <span id="s3_invno"></span>
+          <span class="sci-strip-sep">|</span>
+          <span id="s3_date"></span>
+          <span class="sci-strip-sep">|</span>
+          <span>Total: <strong id="s3_total"></strong></span>
+        </div>
+
+        <!-- Summary -->
+        <div class="sci-card">
+          <div class="sci-card-hd"><span class="sci-badge">G</span> Invoice Summary</div>
+          <div class="sci-sum-grid">
+            <div class="sci-sum-item">
+              <div class="sci-sum-lbl">Total Qty</div>
+              <div class="sci-sum-val" id="sum_qty">0</div>
+            </div>
+            <div class="sci-sum-item sci-sum-gold">
+              <div class="sci-sum-lbl">Total Amount</div>
+              <div class="sci-sum-val" id="sum_amt">0.00</div>
+            </div>
+            <div class="sci-sum-item">
+              <div class="sci-sum-lbl">Amount in Words</div>
+              <div class="sci-sum-val sci-sum-words" id="sum_words">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Other Ref & Remarks -->
+        <div class="sci-card">
+          <div class="sci-card-hd"><span class="sci-badge">H</span> Other Reference &amp; Remarks</div>
+          <div class="sci-rem-grid">
+            <div class="sf">
+              <label class="sl2">Other Ref.</label>
+              <input type="text" class="si" id="f_other_ref" placeholder="Other reference number / details"/>
+            </div>
+            <div class="sf" style="grid-column:1/-1;">
+              <label class="sl2">Remarks</label>
+              <textarea class="si si-ta" id="f_remarks" placeholder="Additional remarks, notes or conditions..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Authorization -->
+        <div class="sci-card">
+          <div class="sci-card-hd"><span class="sci-badge">I</span> Authorization</div>
+          <div class="sci-auth-grid">
+            <div class="sf">
+              <label class="sl2">Prepared By</label>
+              <input type="text" class="si" id="f_preparedby" placeholder="Full name of preparer"/>
+            </div>
+            <div class="sf">
+              <label class="sl2">For IMPEXIO / Authorised Signatory</label>
+              <input type="text" class="si" id="f_signatory" placeholder="Authorised signatory name"/>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="sci-step-footer">
+        <button class="snav snav-back" onclick="prevStep(3)">← Back</button>
+        <div style="display:flex;gap:0.5rem;">
+          <button class="snav snav-save"  onclick="saveRecord()">💾 Save Record</button>
+          <button class="snav snav-print" onclick="printRecord()">🖨 Print</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /sci-right -->
+</div><!-- /sci-shell -->
+
+<div id="printArea" style="display:none;"></div>
+<script src="app.js"></script>
+<script src="sci.js"></script>
+</body>
+</html>
