@@ -56,7 +56,8 @@ window.addEventListener('scroll', () => {
   if (n) n.classList.toggle('scrolled', scrollY > 20);
 });
 
-function toggleDD(id) {
+function toggleDD(id, event) {
+  if (event) event.stopPropagation();
   const el = document.getElementById(id);
   if (!el) return;
   const isOpen = el.classList.contains('open');
