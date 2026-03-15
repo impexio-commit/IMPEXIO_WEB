@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IMPEXIO — Export Proforma Invoice Module</title>
+  <link rel="stylesheet" href="../styles.css"/>
+  <link rel="icon" href="../impexio_logo.png" type="image/png"/>
+  <style>
+    .info-page { padding-top: var(--nav-h); }
+
+    /* HERO */
+    .mod-hero {
+      background: linear-gradient(135deg, #0f2540 0%, #1a3a5c 50%, #2a1a5c 100%);
+      padding: 5rem 2.5rem 4rem; position: relative; overflow: hidden;
+    }
+    .mod-hero::before { content:''; position:absolute; top:-80px; right:-80px; width:420px; height:420px; background:radial-gradient(circle,rgba(201,168,76,0.12) 0%,transparent 65%); border-radius:50%; filter:blur(50px); pointer-events:none; }
+    .mod-hero::after  { content:''; position:absolute; bottom:-60px; left:10%; width:300px; height:300px; background:radial-gradient(circle,rgba(42,82,152,0.15) 0%,transparent 65%); border-radius:50%; filter:blur(40px); pointer-events:none; }
+
+    .mod-hero-inner { max-width:1100px; margin:0 auto; display:grid; grid-template-columns:1fr 420px; align-items:center; gap:4rem; position:relative; z-index:2; }
+    .mod-hero-badge { display:inline-flex; align-items:center; gap:0.5rem; background:rgba(201,168,76,0.15); border:1px solid rgba(201,168,76,0.3); border-radius:50px; padding:0.35rem 1rem; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:var(--gold-light); margin-bottom:1.5rem; }
+    .mod-hero-title { font-family:var(--font-display); font-size:clamp(2.2rem,4vw,3.5rem); font-weight:700; color:#fff; line-height:1.15; margin-bottom:1.2rem; }
+    .mod-hero-title span { color:var(--gold-light); font-style:italic; }
+    .mod-hero-desc { font-size:1.05rem; color:rgba(255,255,255,0.72); line-height:1.75; margin-bottom:2.2rem; max-width:500px; }
+    .mod-hero-btns { display:flex; gap:1rem; flex-wrap:wrap; }
+    .btn-hero-primary { display:inline-flex; align-items:center; gap:0.5rem; padding:0.85rem 2rem; background:var(--gold); color:var(--navy); border-radius:50px; font-size:0.95rem; font-weight:700; box-shadow:0 6px 24px rgba(201,168,76,0.35); transition:all 0.28s; border:none; cursor:pointer; }
+    .btn-hero-primary:hover { background:var(--gold-light); transform:translateY(-3px); }
+    .btn-hero-ghost { display:inline-flex; align-items:center; gap:0.5rem; padding:0.85rem 2rem; border:1.5px solid rgba(255,255,255,0.25); border-radius:50px; font-size:0.95rem; font-weight:600; color:rgba(255,255,255,0.85); transition:all 0.28s; cursor:pointer; background:none; }
+    .btn-hero-ghost:hover { border-color:#fff; color:#fff; }
+    .mod-hero-stats { display:flex; gap:2.5rem; margin-top:2.5rem; padding-top:2rem; border-top:1px solid rgba(255,255,255,0.1); }
+    .mhs-val { font-family:var(--font-display); font-size:1.8rem; font-weight:700; color:var(--gold-light); }
+    .mhs-lbl { font-size:0.72rem; color:rgba(255,255,255,0.45); text-transform:uppercase; letter-spacing:0.08em; margin-top:0.1rem; }
+
+    /* Hero Visual — Invoice Preview */
+    .mod-hero-visual { background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:20px; padding:1.5rem; backdrop-filter:blur(10px); }
+    .inv-preview-hdr { background:rgba(15,37,64,0.6); border-radius:10px; padding:0.85rem 1rem; margin-bottom:1rem; text-align:center; }
+    .inv-preview-title { font-family:var(--font-display); font-size:1rem; font-weight:700; color:#fff; letter-spacing:0.08em; }
+    .inv-preview-sub   { font-size:0.62rem; color:rgba(255,255,255,0.45); margin-top:0.15rem; }
+    .inv-meta-row { display:flex; justify-content:space-between; margin-bottom:0.5rem; }
+    .inv-meta-item { font-size:0.72rem; color:rgba(255,255,255,0.6); }
+    .inv-meta-item strong { color:rgba(255,255,255,0.9); }
+    .inv-parties { display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; margin-bottom:0.75rem; }
+    .inv-party { background:rgba(255,255,255,0.06); border-radius:7px; padding:0.55rem 0.65rem; }
+    .inv-party-lbl { font-size:0.55rem; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:rgba(255,255,255,0.4); margin-bottom:0.2rem; }
+    .inv-party-val { font-size:0.72rem; color:#fff; font-weight:600; }
+    .inv-party-addr{ font-size:0.62rem; color:rgba(255,255,255,0.5); }
+    .inv-tbl { width:100%; border-collapse:collapse; margin-bottom:0.6rem; }
+    .inv-tbl th { font-size:0.55rem; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:rgba(255,255,255,0.45); padding:0.28rem 0.3rem; border-bottom:1px solid rgba(255,255,255,0.1); text-align:right; }
+    .inv-tbl th:first-child { text-align:left; }
+    .inv-tbl td { font-size:0.68rem; padding:0.3rem 0.3rem; color:rgba(255,255,255,0.75); text-align:right; border-bottom:1px solid rgba(255,255,255,0.05); font-family:var(--font-mono); }
+    .inv-tbl td:first-child { text-align:left; font-family:var(--font-body); color:rgba(255,255,255,0.8); }
+    .inv-tbl tr.tot-row td { color:var(--gold-light); font-weight:700; border-top:1px solid rgba(255,255,255,0.15); }
+
+    /* BREADCRUMB */
+    .mod-breadcrumb { background:var(--white); border-bottom:1px solid var(--border); padding:0.7rem 2.5rem; }
+    .mod-breadcrumb-inner { max-width:1100px; margin:0 auto; display:flex; align-items:center; gap:0.5rem; font-size:0.78rem; color:var(--text-soft); }
+    .mod-breadcrumb a { color:var(--navy-light); font-weight:600; cursor:pointer; }
+    .mod-breadcrumb a:hover { text-decoration:underline; }
+    .mod-breadcrumb-sep { color:var(--border); }
+
+    /* SECTION NAV */
+    .mod-nav-bar { background:var(--white); border-bottom:1px solid var(--border); position:sticky; top:var(--nav-h); z-index:90; }
+    .mod-nav-bar-inner { max-width:1100px; margin:0 auto; display:flex; align-items:center; padding:0 2.5rem; }
+    .mod-nav-link { padding:0.9rem 1.1rem; font-size:0.82rem; font-weight:600; color:var(--text-soft); border-bottom:2px solid transparent; cursor:pointer; transition:var(--transition); white-space:nowrap; }
+    .mod-nav-link:hover { color:var(--navy); }
+    .mod-nav-link.active { color:var(--navy); border-bottom-color:var(--gold); }
+
+    /* SECTIONS */
+    .info-section { padding:5rem 2.5rem; }
+    .info-section-inner { max-width:1100px; margin:0 auto; }
+    .info-section.alt { background:var(--ivory2); }
+    .info-kicker { display:inline-flex; align-items:center; gap:0.5rem; font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.14em; color:var(--navy-light); margin-bottom:0.85rem; }
+    .info-kicker-bar { width:24px; height:2px; background:var(--gold); border-radius:2px; }
+    .info-heading { font-family:var(--font-display); font-size:clamp(1.7rem,3vw,2.4rem); font-weight:700; color:var(--navy); line-height:1.2; margin-bottom:0.85rem; }
+    .info-sub { font-size:0.97rem; color:var(--text-mid); line-height:1.75; max-width:560px; margin-bottom:3rem; }
+
+    /* WHAT IS */
+    .what-grid { display:grid; grid-template-columns:1fr 1fr; gap:3rem; align-items:center; }
+    .what-text p { font-size:0.95rem; color:var(--text-mid); line-height:1.8; margin-bottom:1rem; }
+    .what-text p:last-child { margin-bottom:0; }
+    .what-highlight { background:var(--navy); border-radius:var(--radius-lg); padding:2rem; color:#fff; position:relative; overflow:hidden; }
+    .what-highlight::before { content:'📄'; position:absolute; bottom:-10px; right:10px; font-size:5rem; opacity:0.08; }
+    .wh-title { font-family:var(--font-display); font-size:1.1rem; font-weight:700; color:var(--gold-light); margin-bottom:1rem; }
+    .wh-stat { display:flex; align-items:center; gap:0.75rem; padding:0.6rem 0; border-bottom:1px solid rgba(255,255,255,0.08); }
+    .wh-stat:last-child { border-bottom:none; }
+    .wh-stat-icon { font-size:1.1rem; }
+    .wh-stat-txt  { font-size:0.84rem; color:rgba(255,255,255,0.8); }
+    .wh-stat-val  { font-family:var(--font-mono); font-size:0.82rem; font-weight:700; color:var(--gold-light); margin-left:auto; }
+
+    /* FIELDS GRID */
+    .fields-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:1rem; }
+    .field-section-title { grid-column:1/-1; font-family:var(--font-display); font-size:1.1rem; font-weight:700; color:var(--navy); padding-bottom:0.5rem; border-bottom:2px solid var(--gold); margin-top:1rem; }
+    .field-section-title:first-child { margin-top:0; }
+    .field-card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); padding:1.1rem 1.25rem; display:flex; align-items:flex-start; gap:0.75rem; transition:var(--transition); }
+    .field-card:hover { border-color:var(--navy-light); box-shadow:var(--shadow-sm); transform:translateY(-2px); }
+    .field-icon { width:36px; height:36px; border-radius:9px; background:var(--navy); display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0; }
+    .field-title { font-weight:700; font-size:0.85rem; color:var(--navy); margin-bottom:0.2rem; }
+    .field-desc  { font-size:0.76rem; color:var(--text-mid); line-height:1.5; }
+    .field-req   { display:inline-block; font-size:0.58rem; font-weight:700; background:rgba(201,168,76,0.15); color:#7a5c10; border-radius:50px; padding:0.1rem 0.4rem; margin-left:0.3rem; text-transform:uppercase; letter-spacing:0.06em; }
+
+    /* STEPS */
+    .steps-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; position:relative; }
+    .steps-grid::before { content:''; position:absolute; top:28px; left:8%; right:8%; height:2px; background:linear-gradient(90deg,var(--navy),var(--gold),var(--navy)); z-index:0; }
+    .step-card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius-lg); padding:1.75rem 1.25rem; text-align:center; position:relative; z-index:1; transition:var(--transition); }
+    .step-card:hover { transform:translateY(-6px); box-shadow:var(--shadow-lg); border-color:rgba(201,168,76,0.4); }
+    .step-num { width:52px; height:52px; border-radius:50%; background:var(--navy); color:#fff; display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-size:1.1rem; font-weight:700; margin:0 auto 1.1rem; border:3px solid var(--gold); box-shadow:0 4px 14px rgba(15,37,64,0.2); }
+    .step-icon  { font-size:1.6rem; margin-bottom:0.65rem; }
+    .step-title { font-family:var(--font-display); font-size:1rem; font-weight:700; color:var(--navy); margin-bottom:0.5rem; }
+    .step-desc  { font-size:0.82rem; color:var(--text-mid); line-height:1.65; }
+
+    /* FEATURES */
+    .features-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.25rem; }
+    .feat-box { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); padding:1.5rem; transition:var(--transition); position:relative; overflow:hidden; }
+    .feat-box::after { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,var(--navy),var(--gold)); transform:scaleX(0); transform-origin:left; transition:transform 0.3s; }
+    .feat-box:hover { transform:translateY(-4px); box-shadow:var(--shadow-md); }
+    .feat-box:hover::after { transform:scaleX(1); }
+    .feat-box-icon  { font-size:1.75rem; margin-bottom:0.75rem; }
+    .feat-box-title { font-family:var(--font-display); font-size:1.05rem; font-weight:700; color:var(--navy); margin-bottom:0.45rem; }
+    .feat-box-desc  { font-size:0.83rem; color:var(--text-mid); line-height:1.65; }
+
+    /* USE CASES */
+    .usecases-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:1.25rem; }
+    .usecase-card { display:flex; align-items:flex-start; gap:1rem; background:var(--white); border:1px solid var(--border); border-radius:var(--radius); padding:1.35rem 1.5rem; transition:var(--transition); }
+    .usecase-card:hover { border-color:var(--navy-light); box-shadow:var(--shadow-sm); }
+    .uc-icon  { width:44px; height:44px; border-radius:12px; background:var(--navy); display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0; }
+    .uc-title { font-weight:700; font-size:0.92rem; color:var(--navy); margin-bottom:0.3rem; }
+    .uc-desc  { font-size:0.8rem; color:var(--text-mid); line-height:1.6; }
+
+    /* CTA */
+    .cta-banner { background:linear-gradient(135deg,var(--navy) 0%,#1a3a5c 50%,#0f5c52 100%); border-radius:var(--radius-xl); padding:3.5rem; text-align:center; position:relative; overflow:hidden; }
+    .cta-banner::before { content:''; position:absolute; top:-60px; right:-60px; width:300px; height:300px; background:rgba(201,168,76,0.1); border-radius:50%; filter:blur(50px); }
+    .cta-banner::after  { content:''; position:absolute; bottom:-50px; left:-50px; width:250px; height:250px; background:rgba(255,255,255,0.04); border-radius:50%; filter:blur(40px); }
+    .cta-inner { position:relative; z-index:2; }
+    .cta-icon  { font-size:2.8rem; margin-bottom:1rem; }
+    .cta-title { font-family:var(--font-display); font-size:clamp(1.6rem,3vw,2.4rem); font-weight:700; color:#fff; margin-bottom:0.75rem; }
+    .cta-sub   { font-size:1rem; color:rgba(255,255,255,0.65); margin-bottom:2.2rem; max-width:480px; margin-left:auto; margin-right:auto; line-height:1.7; }
+    .cta-btns  { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; }
+    .btn-cta-primary { display:inline-flex; align-items:center; gap:0.5rem; padding:1rem 2.5rem; background:var(--gold); color:var(--navy); border-radius:50px; font-size:1rem; font-weight:700; box-shadow:0 6px 24px rgba(201,168,76,0.4); transition:all 0.28s; border:none; cursor:pointer; }
+    .btn-cta-primary:hover { background:var(--gold-light); transform:translateY(-3px); }
+    .btn-cta-ghost { display:inline-flex; align-items:center; gap:0.5rem; padding:1rem 2.5rem; border:1.5px solid rgba(255,255,255,0.3); border-radius:50px; font-size:1rem; font-weight:600; color:rgba(255,255,255,0.85); transition:all 0.28s; cursor:pointer; background:none; }
+    .btn-cta-ghost:hover { border-color:#fff; color:#fff; }
+
+    /* Responsive */
+    @media (max-width:900px) {
+      .mod-hero-inner { grid-template-columns:1fr; }
+      .mod-hero-visual { display:none; }
+      .what-grid { grid-template-columns:1fr; }
+      .steps-grid { grid-template-columns:repeat(2,1fr); }
+      .steps-grid::before { display:none; }
+      .features-grid { grid-template-columns:repeat(2,1fr); }
+      .fields-grid   { grid-template-columns:1fr; }
+      .usecases-grid { grid-template-columns:1fr; }
+      .mod-hero { padding:3rem 1.5rem 2.5rem; }
+      .info-section { padding:3rem 1.5rem; }
+      .cta-banner { padding:2.5rem 1.5rem; }
+    }
+    @media (max-width:640px) {
+      .steps-grid    { grid-template-columns:1fr; }
+      .features-grid { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body class="info-page">
+
+<!-- NAVBAR -->
+<nav class="navbar" id="navbar">
+  <a href="../index.html" class="nav-brand">
+    <div class="nav-logo-wrap"><img src="../impexio_logo.png" alt="IMPEXIO" class="nav-logo"/></div>
+    <div>
+      <div class="nav-brand-name">IMPEXIO</div>
+      <div class="nav-brand-sub">Trade Document Suite</div>
+    </div>
+  </a>
+  <ul class="nav-menu">
+    <li class="nav-item"><span class="nav-link" onclick="window.location.href='../index.html'">🏠 HOME</span></li>
+    <li class="nav-item" id="ni-export">
+      <span class="nav-link" onclick="toggleDD('ni-export',event)">📦 EXPORT <span class="nav-chevron">▾</span></span>
+      <div class="nav-dropdown">
+        <div class="dd-label">Export Modules</div>
+        <div class="dd-item" onclick="window.location.href='cbm-info.html'"><div class="dd-icon">📐</div>CBM Calculation</div>
+        <div class="dd-item" onclick="window.location.href='fob-info.html'"><div class="dd-icon">💰</div>Container Expenses FOB</div>
+        <div class="dd-item" onclick="window.location.href='../login.html'"><div class="dd-icon">🧮</div>Export Costing</div>
+        <div class="dd-item" onclick="window.location.href='../login.html'"><div class="dd-icon">📊</div>Export Costing 2</div>
+        <div class="dd-item" onclick="window.location.href='../login.html'"><div class="dd-icon">🔍</div>Export Data Filter Format</div>
+        <div class="dd-item" onclick="window.location.href='pi-info.html'"><div class="dd-icon">📄</div>Export Proforma Invoice</div>
+        <div class="dd-item" onclick="window.location.href='../login.html'"><div class="dd-icon">📋</div>Export Quotation</div>
+        <div class="dd-item" onclick="window.location.href='../login.html'"><div class="dd-icon">✈️</div>Export Sample Courier Invoice</div>
+      </div>
+    </li>
+    <li class="nav-item" id="ni-import">
+      <span class="nav-link" onclick="toggleDD('ni-import',event)">🚢 IMPORT <span class="nav-chevron">▾</span></span>
+      <div class="nav-dropdown">
+        <div class="dd-label">Import Modules</div>
+        <div class="dd-item" onclick="window.location.href='../login.html'"><div class="dd-icon">📩</div>Import Letter For Inquiry</div>
+        <div class="dd-item" onclick="window.location.href='../login.html'"><div class="dd-icon">🛒</div>Import Purchase Order</div>
+      </div>
+    </li>
+    <li class="nav-item" id="ni-exim">
+      <span class="nav-link" onclick="toggleDD('ni-exim',event)">🌐 EXIM MARKETING <span class="nav-chevron">▾</span></span>
+      <div class="nav-dropdown">
+        <div class="dd-label">Marketing Modules</div>
+        <div class="dd-item" onclick="window.location.href='../login.html'"><div class="dd-icon">📈</div>Export Follow Up Mail</div>
+        <div class="dd-item" onclick="window.location.href='../login.html'"><div class="dd-icon">🎯</div>Export Marketing</div>
+      </div>
+    </li>
+  </ul>
+  <div class="nav-auth">
+    <button class="btn-nav-login" onclick="window.location.href='../login.html'">🔐 Login</button>
+    <div class="hamburger" id="ham" onclick="toggleMob()"><span></span><span></span><span></span></div>
+  </div>
+</nav>
+
+<!-- MOBILE NAV -->
+<div class="nav-mobile" id="navMob">
+  <div class="mob-link" onclick="window.location.href='../index.html'">🏠 HOME</div>
+  <div class="mob-link" onclick="toggleMobDD('mdd-export')">📦 EXPORT <span>▾</span></div>
+  <div class="mob-drop" id="mdd-export">
+    <div class="mob-dd-item" onclick="window.location.href='cbm-info.html'">📐 CBM Calculation</div>
+    <div class="mob-dd-item" onclick="window.location.href='fob-info.html'">💰 Container Expenses FOB</div>
+    <div class="mob-dd-item" onclick="window.location.href='../login.html'">🧮 Export Costing</div>
+    <div class="mob-dd-item" onclick="window.location.href='../login.html'">📊 Export Costing 2</div>
+    <div class="mob-dd-item" onclick="window.location.href='pi-info.html'">📄 Export Proforma Invoice</div>
+    <div class="mob-dd-item" onclick="window.location.href='../login.html'">📋 Export Quotation</div>
+    <div class="mob-dd-item" onclick="window.location.href='../login.html'">✈️ Sample Courier Invoice</div>
+  </div>
+  <div class="mob-auth">
+    <button class="btn-nav-login" onclick="window.location.href='../login.html'" style="width:100%;justify-content:center;">🔐 Login</button>
+  </div>
+</div>
+
+<!-- BREADCRUMB -->
+<div class="mod-breadcrumb">
+  <div class="mod-breadcrumb-inner">
+    <a onclick="window.location.href='../index.html'">🏠 Home</a>
+    <span class="mod-breadcrumb-sep">›</span>
+    <a onclick="window.location.href='../index.html'">Export Modules</a>
+    <span class="mod-breadcrumb-sep">›</span>
+    <span style="color:var(--navy);font-weight:600;">Export Proforma Invoice</span>
+  </div>
+</div>
+
+<!-- SECTION NAV -->
+<div class="mod-nav-bar">
+  <div class="mod-nav-bar-inner">
+    <span class="mod-nav-link active" onclick="scrollTo('sec-about')">About</span>
+    <span class="mod-nav-link" onclick="scrollTo('sec-fields')">All Fields</span>
+    <span class="mod-nav-link" onclick="scrollTo('sec-how')">How It Works</span>
+    <span class="mod-nav-link" onclick="scrollTo('sec-features')">Features</span>
+    <span class="mod-nav-link" onclick="scrollTo('sec-usecases')">Use Cases</span>
+    <span class="mod-nav-link" onclick="scrollTo('sec-cta')" style="margin-left:auto;color:var(--gold);font-weight:700;">🔐 Login to Use →</span>
+  </div>
+</div>
+
+<!-- ═══ HERO ═══ -->
+<div class="mod-hero" id="sec-about">
+  <div class="mod-hero-inner">
+    <div>
+      <div class="mod-hero-badge">📦 Export Module &nbsp;·&nbsp; Proforma Invoice</div>
+      <h1 class="mod-hero-title">
+        Create Professional<br/>
+        <span>Proforma Invoices</span><br/>in Minutes
+      </h1>
+      <p class="mod-hero-desc">
+        The Export Proforma Invoice module lets you generate a complete, legally-structured PI with all shipment details, product line items, buyer and exporter information, Incoterms, payment terms and more — ready to email or print instantly.
+      </p>
+      <div class="mod-hero-btns">
+        <button class="btn-hero-primary" onclick="window.location.href='../login.html'">🔐 Login to Use Module →</button>
+        <button class="btn-hero-ghost"   onclick="document.getElementById('sec-fields').scrollIntoView({behavior:'smooth'})">See All Fields ↓</button>
+      </div>
+      <div class="mod-hero-stats">
+        <div><div class="mhs-val">3</div><div class="mhs-lbl">Step Wizard</div></div>
+        <div><div class="mhs-val">30+</div><div class="mhs-lbl">Data Fields</div></div>
+        <div><div class="mhs-val">Auto</div><div class="mhs-lbl">Amount in Words</div></div>
+        <div><div class="mhs-val">A4</div><div class="mhs-lbl">Print Ready</div></div>
+      </div>
+    </div>
+
+    <!-- Invoice preview visual -->
+    <div class="mod-hero-visual">
+      <div class="inv-preview-hdr">
+        <div class="inv-preview-title">IMPEXIO — PROFORMA INVOICE</div>
+        <div class="inv-preview-sub">Export Proforma Invoice Preview</div>
+      </div>
+      <div class="inv-meta-row">
+        <div class="inv-meta-item">PI No: <strong>PI/2026/0042</strong></div>
+        <div class="inv-meta-item">Date: <strong>07/03/2026</strong></div>
+      </div>
+      <div class="inv-parties">
+        <div class="inv-party">
+          <div class="inv-party-lbl">Exporter / Seller</div>
+          <div class="inv-party-val">Impexio Trade Solutions</div>
+          <div class="inv-party-addr">GIFT City, Gandhinagar, Gujarat</div>
+        </div>
+        <div class="inv-party">
+          <div class="inv-party-lbl">Buyer / Consignee</div>
+          <div class="inv-party-val">Global Traders LLC</div>
+          <div class="inv-party-addr">Dubai, United Arab Emirates</div>
+        </div>
+      </div>
+      <table class="inv-tbl">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>HS Code</th>
+            <th>Qty</th>
+            <th>Rate</th>
+            <th>Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Ceramic Floor Tiles</td><td>6907.21</td><td>500</td><td>12.50</td><td>6,250.00</td></tr>
+          <tr><td>Wall Tiles 60×60</td><td>6907.22</td><td>300</td><td>14.00</td><td>4,200.00</td></tr>
+          <tr><td>Vitrified Tiles</td><td>6907.29</td><td>200</td><td>18.00</td><td>3,600.00</td></tr>
+          <tr class="tot-row"><td colspan="2">TOTAL</td><td>1,000</td><td></td><td>14,050.00</td></tr>
+        </tbody>
+      </table>
+      <div style="font-size:0.62rem;color:rgba(255,255,255,0.45);font-style:italic;">Amount in Words: Fourteen Thousand and Fifty US Dollars Only</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ WHAT IS PROFORMA INVOICE ═══ -->
+<div class="info-section" id="sec-about2">
+  <div class="info-section-inner">
+    <div class="info-kicker"><div class="info-kicker-bar"></div>What is a Proforma Invoice?</div>
+    <h2 class="info-heading">The First Step in Every Export Transaction</h2>
+    <div class="what-grid">
+      <div class="what-text">
+        <p>A <strong>Proforma Invoice (PI)</strong> is a preliminary invoice sent by an exporter to a prospective buyer before the actual shipment takes place. It is not a demand for payment — it is a formal quotation in invoice format that confirms the terms of the sale.</p>
+        <p>The PI includes the seller and buyer details, product descriptions, HS codes, quantities, unit rates, total amount, payment terms, shipment terms (Incoterms), port of loading, port of discharge, and validity period. The buyer uses it to open a Letter of Credit (L/C), arrange advance payment, or get import clearance approvals.</p>
+        <p>IMPEXIO's Proforma Invoice module guides you through a clean <strong>3-step wizard</strong> — Header Info, Product Lines, and Remarks & Auth — so you never miss a field. Dynamic product rows, auto Amount in Words calculation, and professional A4 print output make it the fastest way to issue a PI.</p>
+      </div>
+      <div class="what-highlight">
+        <div class="wh-title">📊 PI Quick Reference</div>
+        <div class="wh-stat"><span class="wh-stat-icon">📋</span><span class="wh-stat-txt">Document Type</span><span class="wh-stat-val">Pre-shipment</span></div>
+        <div class="wh-stat"><span class="wh-stat-icon">💳</span><span class="wh-stat-txt">Used For</span><span class="wh-stat-val">L/C, Advance Payment</span></div>
+        <div class="wh-stat"><span class="wh-stat-icon">🌍</span><span class="wh-stat-txt">Incoterms Supported</span><span class="wh-stat-val">FOB, CIF, EXW, CFR…</span></div>
+        <div class="wh-stat"><span class="wh-stat-icon">📦</span><span class="wh-stat-txt">Product Rows</span><span class="wh-stat-val">Unlimited</span></div>
+        <div class="wh-stat"><span class="wh-stat-icon">🔢</span><span class="wh-stat-txt">Amount in Words</span><span class="wh-stat-val">Auto (Indian system)</span></div>
+        <div class="wh-stat"><span class="wh-stat-icon">🖨️</span><span class="wh-stat-txt">Print Format</span><span class="wh-stat-val">A4 Landscape</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ALL FIELDS ═══ -->
+<div class="info-section alt" id="sec-fields">
+  <div class="info-section-inner">
+    <div class="info-kicker"><div class="info-kicker-bar"></div>All Fields</div>
+    <h2 class="info-heading">Every Field You Need — Nothing More, Nothing Less</h2>
+    <p class="info-sub">The module covers all standard Proforma Invoice fields required for international trade — organised into 3 clean sections.</p>
+    <div class="fields-grid">
+
+      <div class="field-section-title">📋 Step 1 — Header Information</div>
+
+      <div class="field-card"><div class="field-icon">🔢</div><div><div class="field-title">PI No. <span class="field-req">Required</span></div><p class="field-desc">Unique Proforma Invoice number. Auto-suggested as PI/2026/XXXX — editable to match your numbering system.</p></div></div>
+      <div class="field-card"><div class="field-icon">📅</div><div><div class="field-title">Date <span class="field-req">Required</span></div><p class="field-desc">Invoice date — auto-filled with today's date. Change as needed.</p></div></div>
+      <div class="field-card"><div class="field-icon">🏭</div><div><div class="field-title">Exporter / Seller (4 Address Lines)</div><p class="field-desc">Full name and address of the exporting company — shown on the left side of the printed invoice.</p></div></div>
+      <div class="field-card"><div class="field-icon">🌍</div><div><div class="field-title">Buyer / Importer / Consignee (4 Address Lines)</div><p class="field-desc">Full name and address of the overseas buyer or consignee — shown on the right side of the printed invoice.</p></div></div>
+      <div class="field-card"><div class="field-icon">🌏</div><div><div class="field-title">Country of Origin</div><p class="field-desc">Country where the goods are manufactured or produced. Required for preferential duty and certificate of origin.</p></div></div>
+      <div class="field-card"><div class="field-icon">🎯</div><div><div class="field-title">Country of Final Destination</div><p class="field-desc">The final country where goods will be delivered — may differ from the port of discharge.</p></div></div>
+      <div class="field-card"><div class="field-icon">⚓</div><div><div class="field-title">Port of Loading</div><p class="field-desc">The port from where goods will be shipped — e.g. Mundra, JNPT, Pipavav, Chennai.</p></div></div>
+      <div class="field-card"><div class="field-icon">🚢</div><div><div class="field-title">Port of Discharge</div><p class="field-desc">The destination port where goods will be unloaded — e.g. Hamburg, Jebel Ali, Singapore.</p></div></div>
+      <div class="field-card"><div class="field-icon">🚛</div><div><div class="field-title">Pre-carriage By</div><p class="field-desc">Mode of transport used to bring goods to the port — Road, Rail, or Inland Waterway.</p></div></div>
+      <div class="field-card"><div class="field-icon">✈️</div><div><div class="field-title">Vessel / Flight No.</div><p class="field-desc">Name of the vessel or flight number on which the goods will be shipped.</p></div></div>
+      <div class="field-card"><div class="field-icon">📜</div><div><div class="field-title">IncoTerms</div><p class="field-desc">Trade term defining buyer/seller responsibilities — FOB, CIF, CFR, EXW, DAP, DDP etc.</p></div></div>
+      <div class="field-card"><div class="field-icon">🏁</div><div><div class="field-title">Final Destination</div><p class="field-desc">The specific city or location within the destination country where goods are ultimately delivered.</p></div></div>
+      <div class="field-card"><div class="field-icon">💳</div><div><div class="field-title">Payment Terms</div><p class="field-desc">How payment will be made — e.g. 30% advance, balance against BL copy, LC at sight.</p></div></div>
+      <div class="field-card"><div class="field-icon">🚚</div><div><div class="field-title">Delivery Terms</div><p class="field-desc">Conditions of delivery — e.g. CIF Dubai Port, FOB Mundra, EXW Factory.</p></div></div>
+      <div class="field-card"><div class="field-icon">🔄</div><div><div class="field-title">Transhipment &amp; Partial Shipment</div><p class="field-desc">Whether transhipment and partial shipments are allowed or not allowed — important for L/C compliance.</p></div></div>
+      <div class="field-card"><div class="field-icon">⏱️</div><div><div class="field-title">Lead Delivery Time &amp; Validity P.I.</div><p class="field-desc">How long delivery takes and how long this Proforma Invoice is valid — e.g. 30 days delivery, 15 days validity.</p></div></div>
+
+      <div class="field-section-title">📦 Step 2 — Product Lines</div>
+
+      <div class="field-card"><div class="field-icon">📝</div><div><div class="field-title">Product Description</div><p class="field-desc">Full description of the product being exported. Can include grade, specification, brand name etc.</p></div></div>
+      <div class="field-card"><div class="field-icon">🔖</div><div><div class="field-title">HS Code</div><p class="field-desc">Harmonised System Code — the international product classification code required for customs clearance.</p></div></div>
+      <div class="field-card"><div class="field-icon">🔢</div><div><div class="field-title">Qty &amp; Boxes</div><p class="field-desc">Quantity of goods and number of cartons/boxes. Both columns are included as they may differ.</p></div></div>
+      <div class="field-card"><div class="field-icon">💲</div><div><div class="field-title">Rate &amp; Amount (Auto)</div><p class="field-desc">Unit rate per item. Amount = Rate × Qty, calculated automatically for every row. Add unlimited rows.</p></div></div>
+      <div class="field-card"><div class="field-icon">🔡</div><div><div class="field-title">Amount in Words (Auto)</div><p class="field-desc">Total invoice amount automatically converted to words in the Indian numbering system — Lakhs, Crores etc.</p></div></div>
+      <div class="field-card"><div class="field-icon">⚖️</div><div><div class="field-title">Net/Gross Weight &amp; Total CBM</div><p class="field-desc">Cargo weight and volume fields at the bottom of the product table — required for shipping documents.</p></div></div>
+
+      <div class="field-section-title">✍️ Step 3 — Remarks &amp; Authorization</div>
+
+      <div class="field-card"><div class="field-icon">📋</div><div><div class="field-title">Remarks</div><p class="field-desc">Any additional notes, special conditions, packing instructions or terms to include on the invoice.</p></div></div>
+      <div class="field-card"><div class="field-icon">👤</div><div><div class="field-title">Prepared By &amp; Authorised Signatory</div><p class="field-desc">Name of the person who prepared the invoice and the authorised signatory — both appear on the printout.</p></div></div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══ HOW IT WORKS ═══ -->
+<div class="info-section" id="sec-how">
+  <div class="info-section-inner">
+    <div class="info-kicker"><div class="info-kicker-bar"></div>How It Works</div>
+    <h2 class="info-heading">3-Step Wizard — Clean &amp; Fast</h2>
+    <p class="info-sub">A guided step-by-step flow means you never get lost. Each step focuses on one thing — fill it, move on.</p>
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <div class="step-icon">📋</div>
+        <div class="step-title">Header Info</div>
+        <p class="step-desc">Enter PI No., Date, Exporter details, Buyer details and all 14 shipment fields — Country of Origin, Ports, IncoTerms, Payment Terms, Validity and more.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <div class="step-icon">📦</div>
+        <div class="step-title">Product Lines</div>
+        <p class="step-desc">Add product rows with Description, HS Code, Qty, Boxes, Rate. Amount auto-calculates. TOTAL and Amount in Words update live. Add or delete rows freely.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <div class="step-icon">✍️</div>
+        <div class="step-title">Remarks &amp; Auth</div>
+        <p class="step-desc">Review the summary showing total Qty, Boxes, Amount, Weight and CBM. Add Remarks, Prepared By and Authorised Signatory. Save or Print in one click.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ FEATURES ═══ -->
+<div class="info-section alt" id="sec-features">
+  <div class="info-section-inner">
+    <div class="info-kicker"><div class="info-kicker-bar"></div>Features</div>
+    <h2 class="info-heading">Designed for Real Export Workflows</h2>
+    <p class="info-sub">Every feature is built around how Indian exporters actually create and use Proforma Invoices in daily trade operations.</p>
+    <div class="features-grid">
+      <div class="feat-box">
+        <div class="feat-box-icon">➕</div>
+        <div class="feat-box-title">Dynamic Product Rows</div>
+        <p class="feat-box-desc">Add as many product lines as your shipment requires. Each row has Description, HS Code, Qty, Boxes, Rate and auto-calculated Amount. Delete any row instantly.</p>
+      </div>
+      <div class="feat-box">
+        <div class="feat-box-icon">🔡</div>
+        <div class="feat-box-title">Auto Amount in Words</div>
+        <p class="feat-box-desc">The total invoice amount is automatically converted to words using the Indian numbering system (Lakhs, Crores) — no manual typing needed.</p>
+      </div>
+      <div class="feat-box">
+        <div class="feat-box-icon">📜</div>
+        <div class="feat-box-title">All Incoterms Supported</div>
+        <p class="feat-box-desc">FOB, CIF, CFR, EXW, DAP, DDP and all other Incoterms — enter any term freely. Payment terms, delivery terms and validity are all fully customisable.</p>
+      </div>
+      <div class="feat-box">
+        <div class="feat-box-icon">💾</div>
+        <div class="feat-box-title">Save &amp; Retrieve</div>
+        <p class="feat-box-desc">Every PI is saved and listed in the left panel with PI number, buyer name, date and total. Search, edit, reprint or delete any previous invoice anytime.</p>
+      </div>
+      <div class="feat-box">
+        <div class="feat-box-icon">🖨️</div>
+        <div class="feat-box-title">Professional A4 Print</div>
+        <p class="feat-box-desc">A4 Landscape printout with IMPEXIO branding, teal header bars, party boxes, shipment grid, product table with gold TOTAL row, Amount in Words, and signature lines.</p>
+      </div>
+      <div class="feat-box">
+        <div class="feat-box-icon">🧭</div>
+        <div class="feat-box-title">Progress Bar Navigation</div>
+        <p class="feat-box-desc">A clear 3-step progress bar at the top shows exactly where you are. Jump back to any previous step to edit without losing data.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ USE CASES ═══ -->
+<div class="info-section" id="sec-usecases">
+  <div class="info-section-inner">
+    <div class="info-kicker"><div class="info-kicker-bar"></div>Use Cases</div>
+    <h2 class="info-heading">Who Uses the Proforma Invoice Module?</h2>
+    <p class="info-sub">Anyone who exports goods internationally needs a professional Proforma Invoice before the shipment is confirmed.</p>
+    <div class="usecases-grid">
+      <div class="usecase-card">
+        <div class="uc-icon">🏭</div>
+        <div>
+          <div class="uc-title">Exporters &amp; Manufacturers</div>
+          <p class="uc-desc">Issue a formal PI to overseas buyers to confirm product specifications, price, payment terms and shipment schedule before production or dispatch begins.</p>
+        </div>
+      </div>
+      <div class="usecase-card">
+        <div class="uc-icon">💳</div>
+        <div>
+          <div class="uc-title">Letter of Credit (L/C) Transactions</div>
+          <p class="uc-desc">Banks require a Proforma Invoice to open an L/C. The PI must include all shipment terms, HS codes, port details and validity period for the L/C to be issued correctly.</p>
+        </div>
+      </div>
+      <div class="usecase-card">
+        <div class="uc-icon">📩</div>
+        <div>
+          <div class="uc-title">Advance Payment Requests</div>
+          <p class="uc-desc">Send a PI to request advance payment from the buyer before production. It serves as the formal confirmation of the commercial terms agreed between both parties.</p>
+        </div>
+      </div>
+      <div class="usecase-card">
+        <div class="uc-icon">🌐</div>
+        <div>
+          <div class="uc-title">Import Licence &amp; Clearance</div>
+          <p class="uc-desc">Many countries require a PI for the buyer to apply for an import licence or foreign exchange approval before the shipment is dispatched from India.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ CTA ═══ -->
+<div class="info-section alt" id="sec-cta">
+  <div class="info-section-inner">
+    <div class="cta-banner">
+      <div class="cta-inner">
+        <div class="cta-icon">📄</div>
+        <h2 class="cta-title">Create Your First Proforma Invoice in Minutes</h2>
+        <p class="cta-sub">Login to IMPEXIO and generate a professional, print-ready Proforma Invoice for your next export shipment — faster than any spreadsheet.</p>
+        <div class="cta-btns">
+          <button class="btn-cta-primary" onclick="window.location.href='../login.html'">🔐 Login &amp; Start Now →</button>
+          <button class="btn-cta-ghost"   onclick="window.location.href='../index.html'">← Back to Home</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-bottom" style="border-top:1px solid rgba(255,255,255,0.07);max-width:100%;padding:1.2rem 2.5rem;display:flex;justify-content:space-between;font-size:0.78rem;background:#091929;color:rgba(255,255,255,0.45);">
+    <span>© 2026 <strong style="color:rgba(255,255,255,0.8);">IMPEXIO</strong>. All rights reserved.</span>
+    <span>Export Proforma Invoice Module &nbsp;|&nbsp; Export Modules</span>
+  </div>
+</footer>
+
+<script>
+window.addEventListener('scroll', function() {
+  var n = document.getElementById('navbar');
+  if (n) n.classList.toggle('scrolled', window.scrollY > 20);
+  var sections = ['sec-about','sec-fields','sec-how','sec-features','sec-usecases','sec-cta'];
+  var links = document.querySelectorAll('.mod-nav-link');
+  sections.forEach(function(id, i) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var rect = el.getBoundingClientRect();
+    if (rect.top <= 160 && rect.bottom > 0) {
+      links.forEach(function(l){ l.classList.remove('active'); });
+      if (links[i]) links[i].classList.add('active');
+    }
+  });
+});
+function toggleDD(id, event) {
+  if (event) event.stopPropagation();
+  var el = document.getElementById(id);
+  if (!el) return;
+  var isOpen = el.classList.contains('open');
+  document.querySelectorAll('.nav-item.open').forEach(function(i){ i.classList.remove('open'); });
+  if (!isOpen) el.classList.add('open');
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.nav-item')) {
+    document.querySelectorAll('.nav-item.open').forEach(function(i){ i.classList.remove('open'); });
+  }
+});
+function toggleMob() {
+  var m = document.getElementById('navMob');
+  var h = document.getElementById('ham');
+  if (!m) return;
+  var o = m.classList.toggle('open');
+  if (h) h.classList.toggle('open', o);
+}
+function toggleMobDD(id) {
+  var el = document.getElementById(id);
+  if (el) el.classList.toggle('open');
+}
+function scrollTo(id) {
+  var el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth' });
+}
+var style = document.createElement('style');
+style.textContent = '@media(max-width:900px){.nav-auth .btn-nav-login{display:none}.nav-mobile{display:none}.nav-mobile.open{display:block}}@media(min-width:901px){.nav-mobile{display:none!important}.hamburger{display:none!important}}';
+document.head.appendChild(style);
+</script>
+</body>
+</html>
