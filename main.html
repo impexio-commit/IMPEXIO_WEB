@@ -3,91 +3,271 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>IMPEXIO — Dashboard</title>
+  <title>IMPEXIO — Main Menu</title>
   <link rel="stylesheet" href="styles.css"/>
   <link rel="icon" href="impexio_logo.png" type="image/png"/>
+  <style>
+    /* ── Buyer Directory Banner ── */
+    .master-banner {
+      background: linear-gradient(135deg, var(--navy) 0%, #1a3a5c 55%, #0f5c52 100%);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem 2rem;
+      margin-bottom: 1.8rem;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 1.5rem; position: relative; overflow: hidden;
+      box-shadow: var(--shadow-md);
+    }
+    .master-banner::before {
+      content: ''; position: absolute; top: -60px; right: -60px;
+      width: 220px; height: 220px;
+      background: rgba(201,168,76,0.1); border-radius: 50%; filter: blur(40px);
+    }
+    .mb-left   { display: flex; align-items: center; gap: 1.2rem; flex: 1; z-index: 2; }
+    .mb-icon   { width: 52px; height: 52px; background: rgba(201,168,76,0.18); border: 1.5px solid rgba(201,168,76,0.3); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.55rem; flex-shrink: 0; }
+    .mb-title  { font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; color: #fff; }
+    .mb-sub    { font-size: 0.76rem; color: rgba(255,255,255,0.58); margin-top: 0.15rem; }
+    .mb-stats  { display: flex; gap: 2rem; z-index: 2; flex-shrink: 0; }
+    .mb-stat-val { font-family: var(--font-mono); font-size: 1.1rem; font-weight: 700; color: var(--gold-light); text-align: center; }
+    .mb-stat-lbl { font-size: 0.58rem; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.08em; text-align: center; margin-top: 0.1rem; }
+    .mb-divider  { width: 1px; height: 36px; background: rgba(255,255,255,0.12); }
+    .mb-btn {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.65rem 1.6rem; background: var(--gold); color: var(--navy);
+      border-radius: 50px; font-size: 0.83rem; font-weight: 700;
+      transition: var(--transition); box-shadow: 0 4px 18px rgba(201,168,76,0.35);
+      z-index: 2; flex-shrink: 0; border: none; cursor: pointer;
+    }
+    .mb-btn:hover { background: var(--gold-light); transform: translateY(-2px); }
+
+    /* ── Export: all 8 in one row ── */
+    .tiles-row-8 {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 0.75rem;
+    }
+    .tiles-row-8 .m-tile { padding: 1.1rem 0.6rem 0.9rem; }
+    .tiles-row-8 .m-tile-icon { font-size: 1.75rem; margin-bottom: 0.5rem; }
+    .tiles-row-8 .m-tile-name { font-size: 0.7rem; line-height: 1.35; }
+
+    /* ── Import: 2 tiles ── */
+    .tiles-row-imp {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(140px, 200px));
+      gap: 0.85rem;
+    }
+
+    /* ── EXIM: 4 tiles ── */
+    .tiles-row-exim {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(140px, 210px));
+      gap: 0.85rem;
+    }
+
+    @media (max-width: 1280px) { .tiles-row-8 { grid-template-columns: repeat(4,1fr); } }
+    @media (max-width: 900px)  {
+      .tiles-row-8  { grid-template-columns: repeat(3,1fr); }
+      .tiles-row-exim { grid-template-columns: repeat(2,1fr); }
+      .master-banner { flex-direction: column; align-items: flex-start; }
+      .mb-stats { display: none; }
+    }
+    @media (max-width: 640px)  {
+      .tiles-row-8  { grid-template-columns: repeat(2,1fr); }
+      .tiles-row-imp { grid-template-columns: repeat(2,1fr); }
+    }
+  </style>
 </head>
 <body class="dash-body">
 
 <!-- TOP BAR -->
 <div class="dash-topbar">
   <div class="dtb-brand">
-    <div class="dtb-logo-box">
-      <img src="impexio_logo.png" alt="IMPEXIO" class="dtb-logo"/>
-    </div>
+    <div class="dtb-logo-box"><img src="impexio_logo.png" alt="IMPEXIO" class="dtb-logo"/></div>
     <div class="dtb-name">IMPEXIO</div>
   </div>
-
-  <div class="dtb-meta" id="dtbMeta">
-    <!-- filled by JS -->
-  </div>
-
+  <div class="dtb-meta" id="dtbMeta"></div>
   <div class="dtb-right">
-    <div class="dtb-user" id="dtbUser">
+    <div class="dtb-user">
       <div class="dtb-avatar" id="dtbAv">A</div>
       <div>
         <div class="dtb-uname" id="dtbUname">Admin</div>
-        <div class="dtb-role" id="dtbRole">Administrator</div>
+        <div class="dtb-role"  id="dtbRole">Administrator</div>
       </div>
     </div>
     <button class="btn-logout" onclick="doLogout()">⏻ Logout</button>
   </div>
 </div>
 
-<!-- MAIN CONTENT -->
+<!-- INFO STRIP 
+<div style="background:var(--navy);padding:0.6rem 2.5rem;display:flex;align-items:center;gap:2rem;flex-wrap:wrap;">
+  <div><div style="font-size:0.56rem;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.4);font-weight:700;">Client Code</div><div style="font-size:0.82rem;font-weight:700;color:var(--gold-light);" id="ds-client">—</div></div>
+  <div style="width:1px;height:26px;background:rgba(255,255,255,0.1);"></div>
+  <div><div style="font-size:0.56rem;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.4);font-weight:700;">Company</div><div style="font-size:0.82rem;font-weight:700;color:#fff;" id="ds-company">—</div></div>
+  <div style="width:1px;height:26px;background:rgba(255,255,255,0.1);"></div>
+  <div><div style="font-size:0.56rem;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.4);font-weight:700;">Financial Year</div><div style="font-size:0.82rem;font-weight:700;color:#fff;" id="ds-year">—</div></div>
+  <div style="width:1px;height:26px;background:rgba(255,255,255,0.1);"></div>
+  <div><div style="font-size:0.56rem;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.4);font-weight:700;">Login User</div><div style="font-size:0.82rem;font-weight:700;color:#fff;" id="ds-user">—</div></div>
+  <div style="width:1px;height:26px;background:rgba(255,255,255,0.1);"></div>
+  <div><div style="font-size:0.56rem;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.4);font-weight:700;">Role</div><div style="font-size:0.82rem;font-weight:700;color:#fff;" id="ds-role">—</div></div>
+</div>-->
+
+<!-- CONTENT -->
 <div class="dash-content">
 
-  <!-- Info Strip -->
-  <div class="dash-strip">
-    <div><div class="ds-label">Client Code</div><div class="ds-val gold" id="ds-client">—</div></div>
-    <div><div class="ds-label">Company</div><div class="ds-val" id="ds-company">—</div></div>
-    <div><div class="ds-label">Financial Year</div><div class="ds-val" id="ds-year">—</div></div>
-    <div><div class="ds-label">Login User</div><div class="ds-val" id="ds-user">—</div></div>
-    <div><div class="ds-label">Role</div><div class="ds-val gold" id="ds-role">—</div></div>
+  <!-- ══ BUYER DIRECTORY BANNER ══ -->
+  <div class="master-banner">
+    <div class="mb-left">
+      <div class="mb-icon">🌐</div>
+      <div>
+        <div class="mb-title">Buyer Directory</div>
+        <div class="mb-sub">Search &amp; filter your complete trade contact database by Country, State, City, Area or Pincode</div>
+      </div>
+    </div>
+    <div class="mb-stats">
+      <div class="mb-stat-val" id="bd-count" style="font-family:var(--font-mono);font-size:1.2rem;font-weight:700;color:var(--gold-light);">0</div>
+      <div class="mb-stat-lbl">Total Buyers</div>
+      <div class="mb-divider"></div>
+      <div>
+        <div class="mb-stat-val" id="bd-countries" style="font-family:var(--font-mono);font-size:1.2rem;font-weight:700;color:var(--gold-light);">0</div>
+        <div class="mb-stat-lbl">Countries</div>
+      </div>
+    </div>
+    <button class="mb-btn" onclick="window.location.href='buyers.html'">🔍 Open Buyer Directory</button>
   </div>
 
-  <!-- Menu -->
+  <!-- ══ HEADING ══ -->
   <div class="dash-menu-head">Main Menu</div>
   <div class="dash-menu-sub">Select a module below to get started</div>
 
+  <!-- ══ EXPORT MODULES — 8 in one row ══ -->
   <div class="menu-sect">
     <div class="msect-lbl">📦 Export Modules</div>
-    <div class="menu-tiles">
-      <div class="m-tile" onclick="window.location.href='cbm.html'"><div class="m-tile-icon">📐</div><div class="m-tile-name">CBM Calculation</div></div>
-      <div class="m-tile" onclick="window.location.href='fob.html'"><div class="m-tile-icon">💰</div><div class="m-tile-name">Container Expenses FOB</div></div>
-      <div class="m-tile" onclick="window.location.href='ec.html'"><div class="m-tile-icon">🧮</div><div class="m-tile-name">Export Costing</div></div>
-      <div class="m-tile" onclick="window.location.href='ec2.html'"><div class="m-tile-icon">📊</div><div class="m-tile-name">Export Costing 2</div></div>
-      <div class="m-tile" onclick="openMod('Export Data Filter Format')"><div class="m-tile-icon">🔍</div><div class="m-tile-name">Export Data Filter Format</div></div>
-      <div class="m-tile"onclick="window.location.href='pi.html'"><div class="m-tile-icon">📄</div><div class="m-tile-name">Export Proforma Invoice</div></div>
-      <div class="m-tile" onclick="window.location.href='eq.html'"><div class="m-tile-icon">💬</div><div class="m-tile-name">Export Quotation</div></div>
-      <div class="m-tile" onclick="window.location.href='sci.html'"><div class="m-tile-icon">✈️</div><div class="m-tile-name">Courier Invoice</div></div>
+    <div class="tiles-row-8">
+
+      <div class="m-tile" onclick="window.location.href='cbm.html'">
+        <div class="m-tile-icon">📐</div>
+        <div class="m-tile-name">CBM Calculation</div>
+      </div>
+      <div class="m-tile" onclick="window.location.href='fob.html'">
+        <div class="m-tile-icon">💰</div>
+        <div class="m-tile-name">Container Expenses FOB</div>
+      </div>
+      <div class="m-tile" onclick="window.location.href='ec.html'">
+        <div class="m-tile-icon">🧮</div>
+        <div class="m-tile-name">Export Costing</div>
+      </div>
+      <div class="m-tile" onclick="window.location.href='ec2.html'">
+        <div class="m-tile-icon">📊</div>
+        <div class="m-tile-name">Export Costing 2</div>
+      </div>
+      <div class="m-tile" onclick="openMod('Export Data Filter Format')">
+        <div class="m-tile-icon">🔍</div>
+        <div class="m-tile-name">Export Data Filter Format</div>
+      </div>
+      <div class="m-tile" onclick="window.location.href='pi.html'">
+        <div class="m-tile-icon">📄</div>
+        <div class="m-tile-name">Export Proforma Invoice</div>
+      </div>
+      <div class="m-tile" onclick="window.location.href='eq.html'">
+        <div class="m-tile-icon">📋</div>
+        <div class="m-tile-name">Export Quotation</div>
+      </div>
+      <div class="m-tile" onclick="window.location.href='sci.html'">
+        <div class="m-tile-icon">✈️</div>
+        <div class="m-tile-name">Sample Courier Invoice</div>
+      </div>
+
     </div>
   </div>
 
+  <!-- ══ IMPORT MODULES ══ -->
   <div class="menu-sect">
     <div class="msect-lbl">🚢 Import Modules</div>
-    <div class="menu-tiles">
-      <div class="m-tile" onclick="openMod('Import Letter For Inquiry')"><div class="m-tile-icon">📩</div><div class="m-tile-name">Import Letter For Inquiry</div></div>
-      <div class="m-tile" onclick="openMod('Import Purchase Order')"><div class="m-tile-icon">🛒</div><div class="m-tile-name">Import Purchase Order</div></div>
+    <div class="tiles-row-imp">
+      <div class="m-tile" onclick="openMod('Import Letter For Inquiry')">
+        <div class="m-tile-icon">📩</div>
+        <div class="m-tile-name">Import Letter For Inquiry</div>
+      </div>
+      <div class="m-tile" onclick="openMod('Import Purchase Order')">
+        <div class="m-tile-icon">🛒</div>
+        <div class="m-tile-name">Import Purchase Order</div>
+      </div>
     </div>
   </div>
 
+  <!-- ══ EXIM MARKETING — 4 tiles ══ -->
   <div class="menu-sect">
     <div class="msect-lbl">🌐 EXIM Marketing</div>
-    <div class="menu-tiles">
-      <div class="m-tile" onclick="openMod('Marketing Analysis')"><div class="m-tile-icon">📈</div><div class="m-tile-name">Marketing Analysis</div></div>
-      <div class="m-tile" onclick="openMod('Target Markets')"><div class="m-tile-icon">🎯</div><div class="m-tile-name">Target Markets</div></div>
+    <div class="tiles-row-exim">
+      <div class="m-tile" onclick="openMod('Marketing Analysis')">
+        <div class="m-tile-icon">📈</div>
+        <div class="m-tile-name">Marketing Analysis</div>
+      </div>
+      <div class="m-tile" onclick="openMod('Target Markets')">
+        <div class="m-tile-icon">🎯</div>
+        <div class="m-tile-name">Target Markets</div>
+      </div>
+      <div class="m-tile" onclick="openMod('Export Supplier')">
+        <div class="m-tile-icon">🏭</div>
+        <div class="m-tile-name">Export Supplier</div>
+      </div>
+      <div class="m-tile" onclick="openMod('Import Supplier')">
+        <div class="m-tile-icon">🌏</div>
+        <div class="m-tile-name">Import Supplier</div>
+      </div>
     </div>
   </div>
 
 </div>
 
 <!-- Toast -->
-<div id="toast">
-  <span id="toastIcon">🚀</span>
-  <span id="toastMsg">Opening module...</span>
-</div>
+<div id="toast"><span id="toastIcon">🚀</span><span id="toastMsg">Opening module…</span></div>
 
 <script src="app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  loadSess();
+  if (!sess.username || !sess.year) { window.location.href = 'login.html'; return; }
+  const c = sess.company, y = sess.year;
+  const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+  set('ds-client',  sess.clientCode || '—');
+  set('ds-company', c ? c.name : '—');
+  set('ds-year',    y ? `FY ${y.label}` : '—');
+  set('ds-user',    sess.username || '—');
+  set('ds-role',    sess.role || '—');
+  set('dtbUname',   sess.username || 'Admin');
+  set('dtbRole',    sess.role || 'Administrator');
+  const av = document.getElementById('dtbAv');
+  if (av) av.textContent = (sess.username||'A')[0].toUpperCase();
+  const meta = document.getElementById('dtbMeta');
+  if (meta && c && y) {
+    meta.innerHTML = `<div class="dtb-chip">🏷️ <strong>${sess.clientCode||''}</strong></div><div class="dtb-chip">🏢 <strong>${c.name.split(' ').slice(0,3).join(' ')}</strong></div><div class="dtb-chip">📅 <strong>FY ${y.label}</strong></div>`;
+  }
+  // Buyer stats
+  try {
+    const buyers = JSON.parse(localStorage.getItem('impexio_buyers')||'[]');
+    const ctrs = [...new Set(buyers.map(b=>b.country).filter(Boolean))].length;
+    set('bd-count',     buyers.length);
+    set('bd-countries', ctrs);
+  } catch(e) {}
+  // Tile animation
+  document.querySelectorAll('.m-tile').forEach((el,i) => {
+    el.style.opacity='0'; el.style.transform='translateY(16px)';
+    el.style.transition=`opacity 0.35s ${i*0.04}s ease,transform 0.35s ${i*0.04}s ease`;
+    requestAnimationFrame(()=>{ el.style.opacity='1'; el.style.transform='translateY(0)'; });
+  });
+});
+
+function openMod(name) {
+  const t=document.getElementById('toast');
+  document.getElementById('toastIcon').textContent='🚀';
+  document.getElementById('toastMsg').textContent=`Opening: ${name}`;
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t=setTimeout(()=>t.classList.remove('show'),3000);
+}
+function doLogout() {
+  if(confirm('Logout from IMPEXIO?')){ sessionStorage.removeItem('impexio'); window.location.href='index.html'; }
+}
+</script>
 </body>
 </html>
