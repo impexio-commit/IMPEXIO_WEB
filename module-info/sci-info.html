@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IMPEXIO — Sample Courier Invoice Module</title>
+  <link rel="stylesheet" href="../styles.css"/>
+  <link rel="icon" href="../impexio_logo.png" type="image/png"/>
+  <style>
+    .info-page { padding-top: var(--nav-h); }
+
+    /* HERO */
+    .mod-hero {
+      background: linear-gradient(135deg, #091929 0%, #0f2540 40%, #0f5c52 100%);
+      padding: 5rem 2.5rem 4rem; position: relative; overflow: hidden;
+    }
+    .mod-hero::before { content:''; position:absolute; top:-80px; right:-80px; width:420px; height:420px; background:radial-gradient(circle,rgba(201,168,76,0.12) 0%,transparent 65%); border-radius:50%; filter:blur(50px); pointer-events:none; }
+    .mod-hero::after  { content:''; position:absolute; bottom:-60px; left:10%; width:300px; height:300px; background:radial-gradient(circle,rgba(15,92,82,0.2) 0%,transparent 65%); border-radius:50%; filter:blur(40px); pointer-events:none; }
+
+    .mod-hero-inner { max-width:1100px; margin:0 auto; display:grid; grid-template-columns:1fr 420px; align-items:center; gap:4rem; position:relative; z-index:2; }
+    .mod-hero-badge { display:inline-flex; align-items:center; gap:0.5rem; background:rgba(201,168,76,0.15); border:1px solid rgba(201,168,76,0.3); border-radius:50px; padding:0.35rem 1rem; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:var(--gold-light); margin-bottom:1.5rem; }
+    .mod-hero-title { font-family:var(--font-display); font-size:clamp(2.2rem,4vw,3.5rem); font-weight:700; color:#fff; line-height:1.15; margin-bottom:1.2rem; }
+    .mod-hero-title span { color:var(--gold-light); font-style:italic; }
+    .mod-hero-desc { font-size:1.05rem; color:rgba(255,255,255,0.72); line-height:1.75; margin-bottom:2.2rem; max-width:500px; }
+    .mod-hero-btns { display:flex; gap:1rem; flex-wrap:wrap; }
+    .btn-hero-primary { display:inline-flex; align-items:center; gap:0.5rem; padding:0.85rem 2rem; background:var(--gold); color:var(--navy); border-radius:50px; font-size:0.95rem; font-weight:700; box-shadow:0 6px 24px rgba(201,168,76,0.35); transition:all 0.28s; border:none; cursor:pointer; }
+    .btn-hero-primary:hover { background:var(--gold-light); transform:translateY(-3px); }
+    .btn-hero-ghost { display:inline-flex; align-items:center; gap:0.5rem; padding:0.85rem 2rem; border:1.5px solid rgba(255,255,255,0.25); border-radius:50px; font-size:0.95rem; font-weight:600; color:rgba(255,255,255,0.85); transition:all 0.28s; cursor:pointer; background:none; }
+    .btn-hero-ghost:hover { border-color:#fff; color:#fff; }
+    .mod-hero-stats { display:flex; gap:2.5rem; margin-top:2.5rem; padding-top:2rem; border-top:1px solid rgba(255,255,255,0.1); }
+    .mhs-val { font-family:var(--font-display); font-size:1.8rem; font-weight:700; color:var(--gold-light); }
+    .mhs-lbl { font-size:0.72rem; color:rgba(255,255,255,0.45); text-transform:uppercase; letter-spacing:0.08em; margin-top:0.1rem; }
+
+    /* Hero Visual */
+    .mod-hero-visual { background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:20px; padding:1.5rem; backdrop-filter:blur(10px); }
+    .cv-logo { font-size:1.2rem; font-weight:900; color:#fff; letter-spacing:0.05em; margin-bottom:0.2rem; }
+    .cv-teal  { background:#0f5c52; height:4px; border-radius:2px; margin-bottom:0.3rem; }
+    .cv-sub   { font-size:0.62rem; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:var(--gold-light); margin-bottom:0.85rem; }
+    .cv-meta  { display:flex; justify-content:space-between; margin-bottom:0.75rem; padding-bottom:0.5rem; border-bottom:1px solid rgba(255,255,255,0.1); }
+    .cv-meta-item { font-size:0.7rem; color:rgba(255,255,255,0.6); }
+    .cv-meta-item strong { color:#fff; }
+    .cv-parties { display:grid; grid-template-columns:1fr 1fr; gap:0.4rem; margin-bottom:0.75rem; }
+    .cv-party { background:rgba(15,92,82,0.3); border-radius:6px; padding:0.45rem 0.6rem; border:1px solid rgba(15,92,82,0.5); }
+    .cv-party-lbl { font-size:0.55rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:rgba(255,255,255,0.45); margin-bottom:0.15rem; }
+    .cv-party-val { font-size:0.72rem; color:#fff; font-weight:600; }
+    .cv-party-addr{ font-size:0.6rem; color:rgba(255,255,255,0.5); }
+    .cv-tbl { width:100%; border-collapse:collapse; margin-bottom:0.6rem; }
+    .cv-tbl th { font-size:0.55rem; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:rgba(255,255,255,0.45); padding:0.25rem 0.3rem; border-bottom:1px solid rgba(255,255,255,0.1); text-align:right; }
+    .cv-tbl th:first-child { text-align:left; }
+    .cv-tbl td { font-size:0.68rem; padding:0.28rem 0.3rem; color:rgba(255,255,255,0.75); text-align:right; border-bottom:1px solid rgba(255,255,255,0.05); font-family:var(--font-mono); }
+    .cv-tbl td:first-child { text-align:left; font-family:var(--font-body); color:rgba(255,255,255,0.85); }
+    .cv-tbl tr.tot-row td { color:var(--gold-light); font-weight:700; border-top:1px solid rgba(255,255,255,0.15); }
+    .cv-tbl tr.words-row td { color:rgba(255,255,255,0.6); font-size:0.6rem; font-style:italic; }
+
+    /* BREADCRUMB */
+    .mod-breadcrumb { background:var(--white); border-bottom:1px solid var(--border); padding:0.7rem 2.5rem; }
+    .mod-breadcrumb-inner { max-width:1100px; margin:0 auto; display:flex; align-items:center; gap:0.5rem; font-size:0.78rem; color:var(--text-soft); }
+    .mod-breadcrumb a { color:var(--navy-light); font-weight:600; cursor:pointer; }
+    .mod-breadcrumb a:hover { text-decoration:underline; }
+    .mod-breadcrumb-sep { color:var(--border); }
+
+    /* SECTION NAV */
+    .mod-nav-bar { background:var(--white); border-bottom:1px solid var(--border); position:sticky; top:var(--nav-h); z-index:90; }
+    .mod-nav-bar-inner { max-width:1100px; margin:0 auto; display:flex; align-items:center; padding:0 2.5rem; }
+    .mod-nav-link { padding:0.9rem 1.1rem; font-size:0.82rem; font-weight:600; color:var(--text-soft); border-bottom:2px solid transparent; cursor:pointer; transition:var(--transition); white-space:nowrap; }
+    .mod-nav-link:hover { color:var(--navy); }
+    .mod-nav-link.active { color:var(--navy); border-bottom-color:var(--gold); }
+
+    /* SECTIONS */
+    .info-section { padding:5rem 2.5rem; }
+    .info-section-inner { max-width:1100px; margin:0 auto; }
+    .info-section.alt { background:var(--ivory2); }
+    .info-kicker { display:inline-flex; align-items:center; gap:0.5rem; font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.14em; color:var(--navy-light); margin-bottom:0.85rem; }
+    .info-kicker-bar { width:24px; height:2px; background:var(--gold); border-radius:2px; }
+    .info-heading { font-family:var(--font-display); font-size:clamp(1.7rem,3vw,2.4rem); font-weight:700; color:var(--navy); line-height:1.2; margin-bottom:0.85rem; }
+    .info-sub { font-size:0.97rem; color:var(--text-mid); line-height:1.75; max-width:560px; margin-bottom:3rem; }
+
+    /* WHAT IS */
+    .what-grid { display:grid; grid-template-columns:1fr 1fr; gap:3rem; align-items:center; }
+    .what-text p { font-size:0.95rem; color:var(--text-mid); line-height:1.8; margin-bottom:1rem; }
+    .what-text p:last-child { margin-bottom:0; }
+    .what-highlight { background:var(--navy); border-radius:var(--radius-lg); padding:2rem; color:#fff; position:relative; overflow:hidden; }
+    .what-highlight::before { content:'✈️'; position:absolute; bottom:-10px; right:10px; font-size:5rem; opacity:0.08; }
+    .wh-title { font-family:var(--font-display); font-size:1.1rem; font-weight:700; color:var(--gold-light); margin-bottom:1rem; }
+    .wh-stat { display:flex; align-items:center; gap:0.75rem; padding:0.6rem 0; border-bottom:1px solid rgba(255,255,255,0.08); }
+    .wh-stat:last-child { border-bottom:none; }
+    .wh-stat-icon { font-size:1.1rem; }
+    .wh-stat-txt  { font-size:0.84rem; color:rgba(255,255,255,0.8); }
+    .wh-stat-val  { font-family:var(--font-mono); font-size:0.82rem; font-weight:700; color:var(--gold-light); margin-left:auto; }
+
+    /* FIELDS */
+    .fields-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:1rem; }
+    .field-section-title { grid-column:1/-1; font-family:var(--font-display); font-size:1.1rem; font-weight:700; color:var(--navy); padding-bottom:0.5rem; border-bottom:2px solid var(--gold); margin-top:1rem; }
+    .field-section-title:first-child { margin-top:0; }
+    .field-card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); padding:1.1rem 1.25rem; display:flex; align-items:flex-start; gap:0.75rem; transition:var(--transition); }
+    .field-card:hover { border-color:var(--navy-light); box-shadow:var(--shadow-sm); transform:translateY(-2px); }
+    .field-icon  { width:36px; height:36px; border-radius:9px; background:var(--navy); display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0; }
+    .field-title { font-weight:700; font-size:0.85rem; color:var(--navy); margin-bottom:0.2rem; }
+    .field-desc  { font-size:0.76rem; color:var(--text-mid); line-height:1.5; }
+    .field-req   { display:inline-block; font-size:0.58rem; font-weight:700; background:rgba(201,168,76,0.15); color:#7a5c10; border-radius:50px; padding:0.1rem 0.4rem; margin-left:0.3rem; text-transform:uppercase; }
+
+    /* STEPS */
+    .steps-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; position:relative; }
+    .steps-grid::before { content:''; position:absolute; top:28px; left:8%; right:8%; height:2px; background:linear-gradient(90deg,var(--navy),var(--gold),var(--navy)); z-index:0; }
+    .step-card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius-lg); padding:1.75rem 1.25rem; text-align:center; position:relative; z-index:1; transition:var(--transition); }
+    .step-card:hover { transform:translateY(-6px); box-shadow:var(--shadow-lg); border-color:rgba(201,168,76,0.4); }
+    .step-num { width:52px; height:52px; border-radius:50%; background:var(--navy); color:#fff; display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-size:1.1rem; font-weight:700; margin:0 auto 1.1rem; border:3px solid var(--gold); box-shadow:0 4px 14px rgba(15,37,64,0.2); }
+    .step-icon  { font-size:1.6rem; margin-bottom:0.65rem; }
+    .step-title { font-family:var(--font-display); font-size:1rem; font-weight:700; color:var(--navy); margin-bottom:0.5rem; }
+    .step-desc  { font-size:0.82rem; color:var(--text-mid); line-height:1.65; }
+
+    /* FEATURES */
+    .features-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.25rem; }
+    .feat-box { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); padding:1.5rem; transition:var(--transition); position:relative; overflow:hidden; }
+    .feat-box::after { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,var(--navy),var(--gold)); transform:scaleX(0); transform-origin:left; transition:transform 0.3s; }
+    .feat-box:hover { transform:translateY(-4px); box-shadow:var(--shadow-md); }
+    .feat-box:hover::after { transform:scaleX(1); }
+    .feat-box-icon  { font-size:1.75rem; margin-bottom:0.75rem; }
+    .feat-box-title { font-family:var(--font-display); font-size:1.05rem; font-weight:700; color:var(--navy); margin-bottom:0.45rem; }
+    .feat-box-desc  { font-size:0.83rem; color:var(--text-mid); line-height:1.65; }
+
+    /* REGULATIONS BOX */
+    .reg-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.25rem; }
+    .reg-card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); padding:1.35rem; border-top:3px solid var(--navy); transition:var(--transition); }
+    .reg-card:hover { box-shadow:var(--shadow-md); transform:translateY(-3px); }
+    .reg-flag  { font-size:1.6rem; margin-bottom:0.55rem; }
+    .reg-title { font-weight:700; font-size:0.88rem; color:var(--navy); margin-bottom:0.35rem; }
+    .reg-desc  { font-size:0.78rem; color:var(--text-mid); line-height:1.6; }
+    .reg-limit { display:inline-block; margin-top:0.5rem; font-family:var(--font-mono); font-size:0.8rem; font-weight:700; color:var(--navy); background:var(--gold-pale); border-radius:50px; padding:0.15rem 0.6rem; }
+
+    /* USE CASES */
+    .usecases-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:1.25rem; }
+    .usecase-card { display:flex; align-items:flex-start; gap:1rem; background:var(--white); border:1px solid var(--border); border-radius:var(--radius); padding:1.35rem 1.5rem; transition:var(--transition); }
+    .usecase-card:hover { border-color:var(--navy-light); box-shadow:var(--shadow-sm); }
+    .uc-icon  { width:44px; height:44px; border-radius:12px; background:var(--navy); display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0; }
+    .uc-title { font-weight:700; font-size:0.92rem; color:var(--navy); margin-bottom:0.3rem; }
+    .uc-desc  { font-size:0.8rem; color:var(--text-mid); line-height:1.6; }
+
+    /* CTA */
+    .cta-banner { background:linear-gradient(135deg,#091929 0%,var(--navy) 50%,#0f5c52 100%); border-radius:var(--radius-xl); padding:3.5rem; text-align:center; position:relative; overflow:hidden; }
+    .cta-banner::before { content:''; position:absolute; top:-60px; right:-60px; width:300px; height:300px; background:rgba(201,168,76,0.1); border-radius:50%; filter:blur(50px); }
+    .cta-banner::after  { content:''; position:absolute; bottom:-50px; left:-50px; width:250px; height:250px; background:rgba(255,255,255,0.04); border-radius:50%; filter:blur(40px); }
+    .cta-inner { position:relative; z-index:2; }
+    .cta-icon  { font-size:2.8rem; margin-bottom:1rem; }
+    .cta-title { font-family:var(--font-display); font-size:clamp(1.6rem,3vw,2.4rem); font-weight:700; color:#fff; margin-bottom:0.75rem; }
+    .cta-sub   { font-size:1rem; color:rgba(255,255,255,0.65); margin-bottom:2.2rem; max-width:480px; margin-left:auto; margin-right:auto; line-height:1.7; }
+    .cta-btns  { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; }
+    .btn-cta-primary { display:inline-flex; align-items:center; gap:0.5rem; padding:1rem 2.5rem; background:var(--gold); color:var(--navy); border-radius:50px; font-size:1rem; font-weight:700; box-shadow:0 6px 24px rgba(201,168,76,0.4); transition:all 0.28s; border:none; cursor:pointer; }
+    .btn-cta-primary:hover { background:var(--gold-light); transform:translateY(-3px); }
+    .btn-cta-ghost { display:inline-flex; align-items:center; gap:0.5rem; padding:1rem 2.5rem; border:1.5px solid rgba(255,255,255,0.3); border-radius:50px; font-size:1rem; font-weight:600; color:rgba(255,255,255,0.85); transition:all 0.28s; cursor:pointer; background:none; }
+    .btn-cta-ghost:hover { border-color:#fff; color:#fff; }
+
+    /* Responsive */
+    @media (max-width:900px) {
+      .mod-hero-inner { grid-template-columns:1fr; }
+      .mod-hero-visual { display:none; }
+      .what-grid { grid-template-columns:1fr; }
+      .steps-grid { grid-template-columns:repeat(2,1fr); }
+      .steps-grid::before { display:none; }
+      .features-grid,.reg-grid { grid-template-columns:repeat(2,1fr); }
+      .fields-grid { grid-template-columns:1fr; }
+      .usecases-grid { grid-template-columns:1fr; }
+      .mod-hero,.info-section { padding:3rem 1.5rem; }
+      .cta-banner { padding:2.5rem 1.5rem; }
+    }
+    @media (max-width:640px) {
+      .steps-grid,.features-grid,.reg-grid { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body class="info-page">
+
+<!-- NAVBAR -->
+<nav class="navbar" id="navbar">
+  <a href="../index.html" class="nav-brand">
+    <div class="nav-logo-wrap"><img src="../impexio_logo.png" alt="IMPEXIO" class="nav-logo"/></div>
+    <div>
+      <div class="nav-brand-name">IMPEXIO</div>
+      <div class="nav-brand-sub">Trade Document Suite</div>
+    </div>
+  </a>
+  <ul class="nav-menu">
+    <li class="nav-item"><span class="nav-link" onclick="window.location.href='../index.html'">🏠 HOME</span></li>
+    <li class="nav-item" id="ni-export">
+      <span class="nav-link" onclick="toggleDD('ni-export',event)">📦 EXPORT <span class="nav-chevron">▾</span></span>
+      <div class="nav-dropdown">
+        <div class="dd-label">Export Modules</div>
+        <div class="dd-item" onclick="window.location.href='cbm-info.html'"><div class="dd-icon">📐</div>CBM Calculation</div>
+        <div class="dd-item" onclick="window.location.href='fob-info.html'"><div class="dd-icon">💰</div>Container Expenses FOB</div>
+        <div class="dd-item" onclick="window.location.href='../login.html'"><div class="dd-icon">🧮</div>Export Costing</div>
+        <div class="dd-item" onclick="window.location.href='../login.html'"><div class="dd-icon">📊</div>Export Costing 2</div>
+        <div class="dd-item" onclick="window.location.href='../login.html'"><div class="dd-icon">🔍</div>Export Data Filter Format</div>
+        <div class="dd-item" onclick="window.location.href='pi-info.html'"><div class="dd-icon">📄</div>Export Proforma Invoice</div>
+        <div class="dd-item" onclick="window.location.href='eq-info.html'"><div class="dd-icon">📋</div>Export Quotation</div>
+        <div class="dd-item" onclick="window.location.href='sci-info.html'"><div class="dd-icon">✈️</div>Export Sample Courier Invoice</div>
+      </div>
+    </li>
+    <li class="nav-item" id="ni-import">
+      <span class="nav-link" onclick="toggleDD('ni-import',event)">🚢 IMPORT <span class="nav-chevron">▾</span></span>
+      <div class="nav-dropdown">
+        <div class="dd-label">Import Modules</div>
+        <div class="dd-item" onclick="window.location.href='../login.html'"><div class="dd-icon">📩</div>Import Letter For Inquiry</div>
+        <div class="dd-item" onclick="window.location.href='../login.html'"><div class="dd-icon">🛒</div>Import Purchase Order</div>
+      </div>
+    </li>
+    <li class="nav-item" id="ni-exim">
+      <span class="nav-link" onclick="toggleDD('ni-exim',event)">🌐 EXIM MARKETING <span class="nav-chevron">▾</span></span>
+      <div class="nav-dropdown">
+        <div class="dd-label">Marketing Modules</div>
+        <div class="dd-item" onclick="window.location.href='../login.html'"><div class="dd-icon">📈</div>Export Follow Up Mail</div>
+        <div class="dd-item" onclick="window.location.href='../login.html'"><div class="dd-icon">🎯</div>Export Marketing</div>
+      </div>
+    </li>
+  </ul>
+  <div class="nav-auth">
+    <button class="btn-nav-login" onclick="window.location.href='../login.html'">🔐 Login</button>
+    <div class="hamburger" id="ham" onclick="toggleMob()"><span></span><span></span><span></span></div>
+  </div>
+</nav>
+
+<!-- MOBILE NAV -->
+<div class="nav-mobile" id="navMob">
+  <div class="mob-link" onclick="window.location.href='../index.html'">🏠 HOME</div>
+  <div class="mob-link" onclick="toggleMobDD('mdd-export')">📦 EXPORT <span>▾</span></div>
+  <div class="mob-drop" id="mdd-export">
+    <div class="mob-dd-item" onclick="window.location.href='cbm-info.html'">📐 CBM Calculation</div>
+    <div class="mob-dd-item" onclick="window.location.href='fob-info.html'">💰 Container Expenses FOB</div>
+    <div class="mob-dd-item" onclick="window.location.href='../login.html'">🧮 Export Costing</div>
+    <div class="mob-dd-item" onclick="window.location.href='pi-info.html'">📄 Export Proforma Invoice</div>
+    <div class="mob-dd-item" onclick="window.location.href='eq-info.html'">📋 Export Quotation</div>
+    <div class="mob-dd-item" onclick="window.location.href='sci-info.html'">✈️ Sample Courier Invoice</div>
+  </div>
+  <div class="mob-auth">
+    <button class="btn-nav-login" onclick="window.location.href='../login.html'" style="width:100%;justify-content:center;">🔐 Login</button>
+  </div>
+</div>
+
+<!-- BREADCRUMB -->
+<div class="mod-breadcrumb">
+  <div class="mod-breadcrumb-inner">
+    <a onclick="window.location.href='../index.html'">🏠 Home</a>
+    <span class="mod-breadcrumb-sep">›</span>
+    <a onclick="window.location.href='../index.html'">Export Modules</a>
+    <span class="mod-breadcrumb-sep">›</span>
+    <span style="color:var(--navy);font-weight:600;">Sample Courier Invoice</span>
+  </div>
+</div>
+
+<!-- SECTION NAV -->
+<div class="mod-nav-bar">
+  <div class="mod-nav-bar-inner">
+    <span class="mod-nav-link active" onclick="scrollTo('sec-about')">About</span>
+    <span class="mod-nav-link" onclick="scrollTo('sec-fields')">All Fields</span>
+    <span class="mod-nav-link" onclick="scrollTo('sec-how')">How It Works</span>
+    <span class="mod-nav-link" onclick="scrollTo('sec-features')">Features</span>
+    <span class="mod-nav-link" onclick="scrollTo('sec-regulations')">Regulations</span>
+    <span class="mod-nav-link" onclick="scrollTo('sec-usecases')">Use Cases</span>
+    <span class="mod-nav-link" onclick="scrollTo('sec-cta')" style="margin-left:auto;color:var(--gold);font-weight:700;">🔐 Login to Use →</span>
+  </div>
+</div>
+
+<!-- ═══ HERO ═══ -->
+<div class="mod-hero" id="sec-about">
+  <div class="mod-hero-inner">
+    <div>
+      <div class="mod-hero-badge">📦 Export Module &nbsp;·&nbsp; Sample Courier Invoice</div>
+      <h1 class="mod-hero-title">
+        Ship Samples Globally<br/>
+        <span>Without the Paperwork Hassle</span>
+      </h1>
+      <p class="mod-hero-desc">
+        The Sample Courier Invoice module generates a complete, customs-compliant invoice for sending product samples internationally via courier. Covers Consignee, Notify Party, full shipment terms, product line items, amount in words — all in a clean 3-step wizard.
+      </p>
+      <div class="mod-hero-btns">
+        <button class="btn-hero-primary" onclick="window.location.href='../login.html'">🔐 Login to Use Module →</button>
+        <button class="btn-hero-ghost"   onclick="document.getElementById('sec-fields').scrollIntoView({behavior:'smooth'})">See All Fields ↓</button>
+      </div>
+      <div class="mod-hero-stats">
+        <div><div class="mhs-val">3</div><div class="mhs-lbl">Step Wizard</div></div>
+        <div><div class="mhs-val">30+</div><div class="mhs-lbl">Data Fields</div></div>
+        <div><div class="mhs-val">Auto</div><div class="mhs-lbl">Amount in Words</div></div>
+        <div><div class="mhs-val">A4</div><div class="mhs-lbl">Print Ready</div></div>
+      </div>
+    </div>
+
+    <!-- Visual -->
+    <div class="mod-hero-visual">
+      <div class="cv-logo">IMPEXIO</div>
+      <div class="cv-teal"></div>
+      <div class="cv-sub">Sample Courier Invoice</div>
+      <div class="cv-meta">
+        <div class="cv-meta-item">Invoice No: <strong>SCI/2026/0031</strong></div>
+        <div class="cv-meta-item">Date: <strong>07/03/2026</strong></div>
+      </div>
+      <div class="cv-parties">
+        <div class="cv-party">
+          <div class="cv-party-lbl">Consignee</div>
+          <div class="cv-party-val">Euro Ceramics Ltd.</div>
+          <div class="cv-party-addr">Frankfurt, Germany</div>
+        </div>
+        <div class="cv-party">
+          <div class="cv-party-lbl">Notify Party</div>
+          <div class="cv-party-val">Global Freight GmbH</div>
+          <div class="cv-party-addr">Hamburg, Germany</div>
+        </div>
+      </div>
+      <table class="cv-tbl">
+        <thead>
+          <tr><th>Product</th><th>HS Code</th><th>Qty</th><th>Rate</th><th>Amount</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Floor Tile Sample</td><td>6907.21</td><td>5</td><td>$2.00</td><td>$10.00</td></tr>
+          <tr><td>Wall Tile Sample</td><td>6907.22</td><td>5</td><td>$2.50</td><td>$12.50</td></tr>
+          <tr><td>Designer Tile</td><td>6907.29</td><td>3</td><td>$3.00</td><td>$9.00</td></tr>
+          <tr class="tot-row"><td colspan="3">TOTAL</td><td></td><td>$31.50</td></tr>
+          <tr class="words-row"><td colspan="5">Amount in Words: Thirty One US Dollars and Fifty Cents Only</td></tr>
+        </tbody>
+      </table>
+      <div style="font-size:0.62rem;color:rgba(255,255,255,0.45);">Port: Mundra → Frankfurt &nbsp;|&nbsp; Inco: CIF &nbsp;|&nbsp; For Sample Purpose Only – No Commercial Value</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ WHAT IS SCI ═══ -->
+<div class="info-section" id="sec-about2">
+  <div class="info-section-inner">
+    <div class="info-kicker"><div class="info-kicker-bar"></div>What is a Sample Courier Invoice?</div>
+    <h2 class="info-heading">The Essential Document for Every Sample Shipment</h2>
+    <div class="what-grid">
+      <div class="what-text">
+        <p>A <strong>Sample Courier Invoice</strong> is a commercial document required by customs authorities when sending product samples internationally via courier (DHL, FedEx, UPS, Aramex etc.). It declares the contents, their value, origin and destination — even if the samples are sent free of charge.</p>
+        <p>Without a proper Sample Courier Invoice, your sample shipment can be held at customs, returned, or attract unnecessary duties and penalties. Many exporters lose valuable business opportunities because their samples didn't reach the buyer on time due to incorrect or missing documentation.</p>
+        <p>IMPEXIO's Sample Courier Invoice module generates a <strong>fully compliant, professionally formatted invoice</strong> with all fields required by international couriers and customs — Consignee, Notify Party, Port of Loading, Port of Discharge, Vessel/Flight No., Pre-carriage, Delivery Terms, Payment Terms, Marks &amp; Nos., GRS/NET weight, and complete product line items with Amount in Words.</p>
+      </div>
+      <div class="what-highlight">
+        <div class="wh-title">📊 Sample Invoice Quick Reference</div>
+        <div class="wh-stat"><span class="wh-stat-icon">✈️</span><span class="wh-stat-txt">Used For</span><span class="wh-stat-val">Courier sample shipments</span></div>
+        <div class="wh-stat"><span class="wh-stat-icon">🛃</span><span class="wh-stat-txt">Required By</span><span class="wh-stat-val">Customs &amp; Courier companies</span></div>
+        <div class="wh-stat"><span class="wh-stat-icon">💲</span><span class="wh-stat-txt">Declared Value</span><span class="wh-stat-val">Nominal / Actual sample value</span></div>
+        <div class="wh-stat"><span class="wh-stat-icon">📦</span><span class="wh-stat-txt">Product Rows</span><span class="wh-stat-val">Unlimited</span></div>
+        <div class="wh-stat"><span class="wh-stat-icon">🔡</span><span class="wh-stat-txt">Amount in Words</span><span class="wh-stat-val">Auto-generated</span></div>
+        <div class="wh-stat"><span class="wh-stat-icon">🖨️</span><span class="wh-stat-txt">Print Format</span><span class="wh-stat-val">A4 Portrait</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ALL FIELDS ═══ -->
+<div class="info-section alt" id="sec-fields">
+  <div class="info-section-inner">
+    <div class="info-kicker"><div class="info-kicker-bar"></div>All Fields</div>
+    <h2 class="info-heading">Every Field — Explained</h2>
+    <p class="info-sub">30+ fields organised across 3 clear steps — all required for a customs-compliant sample courier invoice.</p>
+    <div class="fields-grid">
+
+      <div class="field-section-title">📋 Step 1 — Header Information</div>
+      <div class="field-card"><div class="field-icon">🔢</div><div><div class="field-title">Invoice No. <span class="field-req">Required</span></div><p class="field-desc">Unique invoice number auto-suggested as SCI/2026/XXXX. Required by couriers and customs for tracking and reference.</p></div></div>
+      <div class="field-card"><div class="field-icon">📅</div><div><div class="field-title">Invoice Date <span class="field-req">Required</span></div><p class="field-desc">Date of invoice issuance — auto-filled with today's date. Must match the courier booking date.</p></div></div>
+      <div class="field-card"><div class="field-icon">🏢</div><div><div class="field-title">Consignee (4 Address Lines)</div><p class="field-desc">Full name and address of the person or company receiving the samples. Courier delivers to this address. Shown in teal-bordered box on printout.</p></div></div>
+      <div class="field-card"><div class="field-icon">🔔</div><div><div class="field-title">Notify Party (4 Address Lines)</div><p class="field-desc">Party to be notified when the shipment arrives — often the buyer's customs agent, freight forwarder, or a different contact than the consignee.</p></div></div>
+      <div class="field-card"><div class="field-icon">🌏</div><div><div class="field-title">Country of Origin</div><p class="field-desc">Country where the sample products were manufactured. Required for customs to determine applicable duties and trade agreements.</p></div></div>
+      <div class="field-card"><div class="field-icon">🎯</div><div><div class="field-title">Country of Final Destination</div><p class="field-desc">The final country where samples will reach. May differ from the port of discharge if there is onward movement.</p></div></div>
+      <div class="field-card"><div class="field-icon">⚓</div><div><div class="field-title">Port of Loading</div><p class="field-desc">The airport or port from which the courier will depart India — e.g. Ahmedabad Airport, Mumbai Airport, NMIA.</p></div></div>
+      <div class="field-card"><div class="field-icon">🛬</div><div><div class="field-title">Port of Discharge</div><p class="field-desc">The destination airport or port — e.g. Frankfurt Airport, Dubai International, JFK New York.</p></div></div>
+      <div class="field-card"><div class="field-icon">🏁</div><div><div class="field-title">Final Destination</div><p class="field-desc">Specific city or address of final delivery if different from port of discharge.</p></div></div>
+      <div class="field-card"><div class="field-icon">✈️</div><div><div class="field-title">Vessel / Flight No.</div><p class="field-desc">Courier flight number or vessel name — provided by DHL, FedEx etc. at time of booking. Required for customs tracking.</p></div></div>
+      <div class="field-card"><div class="field-icon">🚛</div><div><div class="field-title">Pre-carriage By</div><p class="field-desc">Mode of transport used to bring samples to the airport or port — Road, Rail, or handed directly to courier.</p></div></div>
+      <div class="field-card"><div class="field-icon">📍</div><div><div class="field-title">Place of Receipt by Pre-carriage</div><p class="field-desc">The location from where the courier collected the samples — factory address, CFS or warehouse.</p></div></div>
+      <div class="field-card"><div class="field-icon">🚚</div><div><div class="field-title">Delivery Terms</div><p class="field-desc">Terms of delivery for the sample shipment — e.g. DDU (Delivered Duty Unpaid), DDP (Delivered Duty Paid), EXW.</p></div></div>
+      <div class="field-card"><div class="field-icon">💳</div><div><div class="field-title">Payment Terms</div><p class="field-desc">How the courier charges are paid — "Freight Prepaid", "Freight Collect" or "Account No. XXXXX".</p></div></div>
+      <div class="field-card"><div class="field-icon">📜</div><div><div class="field-title">Inco Terms</div><p class="field-desc">International trade term applicable to the sample shipment — CIF, FOB, EXW etc.</p></div></div>
+      <div class="field-card"><div class="field-icon">💬</div><div><div class="field-title">Other Terms</div><p class="field-desc">Any additional terms — e.g. "For Sample Purpose Only – No Commercial Value", "Not for Resale".</p></div></div>
+      <div class="field-card"><div class="field-icon">🏷️</div><div><div class="field-title">Marks &amp; Nos. / Kind of Pkgs.</div><p class="field-desc">Markings on the outer packaging — carton number, shipper's marks, handling instructions. Required by customs.</p></div></div>
+      <div class="field-card"><div class="field-icon">⚖️</div><div><div class="field-title">GRS. WT. / NET WT.</div><p class="field-desc">Gross weight and net weight of the sample shipment in KGS. Required by the courier for freight calculation.</p></div></div>
+
+      <div class="field-section-title">📦 Step 2 — Product Lines</div>
+      <div class="field-card"><div class="field-icon">📝</div><div><div class="field-title">Product Description</div><p class="field-desc">Description of each sample item being sent. Be specific — include material, size, colour if applicable.</p></div></div>
+      <div class="field-card"><div class="field-icon">🔖</div><div><div class="field-title">HS Code</div><p class="field-desc">Harmonised System tariff code for each sample product. Customs will use this to classify the goods.</p></div></div>
+      <div class="field-card"><div class="field-icon">🔢</div><div><div class="field-title">Qty &amp; Rate</div><p class="field-desc">Quantity of each sample and declared rate per unit. For samples, a nominal value is often declared — e.g. $2 per piece.</p></div></div>
+      <div class="field-card"><div class="field-icon">💲</div><div><div class="field-title">Amount (Auto)</div><p class="field-desc">Amount = Rate × Qty, automatically calculated for each row. TOTAL sums all line amounts at the bottom.</p></div></div>
+      <div class="field-card"><div class="field-icon">🔡</div><div><div class="field-title">Amount in Words (Auto)</div><p class="field-desc">Total invoice amount automatically converted to words. Required on courier invoices for customs — e.g. "Thirty One US Dollars and Fifty Cents Only".</p></div></div>
+
+      <div class="field-section-title">✍️ Step 3 — Remarks &amp; Authorization</div>
+      <div class="field-card"><div class="field-icon">🔗</div><div><div class="field-title">Other Ref.</div><p class="field-desc">Reference number linking this sample invoice to a quotation, purchase order or buyer inquiry — e.g. "Ref: EQ/2026/0018".</p></div></div>
+      <div class="field-card"><div class="field-icon">💬</div><div><div class="field-title">Remarks</div><p class="field-desc">Additional notes — e.g. "Samples sent against buyer request dated 01/03/2026", "No commercial value – for approval only".</p></div></div>
+      <div class="field-card"><div class="field-icon">👤</div><div><div class="field-title">Prepared By &amp; Authorised Signatory</div><p class="field-desc">Names that appear on the signature section — "For IMPEXIO / Authorised Signatory" format on the printed invoice.</p></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ HOW IT WORKS ═══ -->
+<div class="info-section" id="sec-how">
+  <div class="info-section-inner">
+    <div class="info-kicker"><div class="info-kicker-bar"></div>How It Works</div>
+    <h2 class="info-heading">3 Steps to a Courier-Ready Invoice</h2>
+    <p class="info-sub">From blank form to printed invoice in under 3 minutes — guided step by step, nothing missed.</p>
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <div class="step-icon">📋</div>
+        <div class="step-title">Header Info</div>
+        <p class="step-desc">Enter Invoice No., Date, Consignee details (4 lines), Notify Party details (4 lines), and all 12 shipment fields — ports, vessel, pre-carriage, delivery terms, payment terms, Inco Terms, marks &amp; weight.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <div class="step-icon">📦</div>
+        <div class="step-title">Product Lines</div>
+        <p class="step-desc">Add sample items with Product Description, HS Code, Qty and Rate. Amount auto-calculates per row. TOTAL and Amount in Words update live. Add or delete rows as needed — starts with 5 rows.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <div class="step-icon">✍️</div>
+        <div class="step-title">Remarks &amp; Auth</div>
+        <p class="step-desc">Review summary showing total Qty, Amount and Amount in Words. Add Other Ref., Remarks, Prepared By and Authorised Signatory. Save the record or Print the invoice immediately.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ FEATURES ═══ -->
+<div class="info-section alt" id="sec-features">
+  <div class="info-section-inner">
+    <div class="info-kicker"><div class="info-kicker-bar"></div>Features</div>
+    <h2 class="info-heading">Built for Fast, Compliant Sample Dispatch</h2>
+    <p class="info-sub">Every feature is designed around the real process of sending samples internationally via DHL, FedEx, UPS or Aramex.</p>
+    <div class="features-grid">
+      <div class="feat-box">
+        <div class="feat-box-icon">🏢</div>
+        <div class="feat-box-title">Consignee + Notify Party</div>
+        <p class="feat-box-desc">Separate fields for Consignee (receiver) and Notify Party (agent/broker) — both with 4 address lines each. Shown side-by-side in teal-bordered boxes on the printout, exactly as couriers require.</p>
+      </div>
+      <div class="feat-box">
+        <div class="feat-box-icon">🔡</div>
+        <div class="feat-box-title">Auto Amount in Words</div>
+        <p class="feat-box-desc">Total invoice value is automatically converted to words — "Thirty One US Dollars and Fifty Cents Only". Required on all courier invoices for customs clearance.</p>
+      </div>
+      <div class="feat-box">
+        <div class="feat-box-icon">📜</div>
+        <div class="feat-box-title">Full Shipment Terms</div>
+        <p class="feat-box-desc">Covers all 12 shipment detail fields including Port of Loading, Port of Discharge, Pre-carriage, Place of Receipt, Vessel/Flight No., Delivery Terms, Payment Terms, Inco Terms, Marks &amp; Nos., GRS/NET WT.</p>
+      </div>
+      <div class="feat-box">
+        <div class="feat-box-icon">🔗</div>
+        <div class="feat-box-title">Other Ref. Field</div>
+        <p class="feat-box-desc">Link the sample invoice to a quotation, inquiry or purchase order number. Helps both the exporter and buyer track which samples correspond to which business inquiry.</p>
+      </div>
+      <div class="feat-box">
+        <div class="feat-box-icon">💾</div>
+        <div class="feat-box-title">Save &amp; Retrieve</div>
+        <p class="feat-box-desc">All sample invoices are saved and searchable by Invoice No. or Consignee name. Reprint or edit any previous invoice — useful when resending samples or updating quantities.</p>
+      </div>
+      <div class="feat-box">
+        <div class="feat-box-icon">🖨️</div>
+        <div class="feat-box-title">Professional A4 Printout</div>
+        <p class="feat-box-desc">A4 Portrait print with IMPEXIO logo header, teal bars, party boxes side by side, shipment terms grid, product table with Amount in Words row, Other Ref., Remarks and signatories — accepted by all major couriers.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ REGULATIONS ═══ -->
+<div class="info-section" id="sec-regulations">
+  <div class="info-section-inner">
+    <div class="info-kicker"><div class="info-kicker-bar"></div>Regulations</div>
+    <h2 class="info-heading">Country-Wise Sample Import Regulations</h2>
+    <p class="info-sub">Different countries have different duty-free limits for sample imports. Know the rules before you ship.</p>
+    <div class="reg-grid">
+      <div class="reg-card">
+        <div class="reg-flag">🇺🇸</div>
+        <div class="reg-title">United States (USA)</div>
+        <p class="reg-desc">Samples with a declared value under $800 can enter duty-free under the De Minimis threshold. Above this, formal entry and duties apply. Always declare actual value.</p>
+        <span class="reg-limit">Duty-free: Under $800</span>
+      </div>
+      <div class="reg-card">
+        <div class="reg-flag">🇪🇺</div>
+        <div class="reg-title">European Union (EU)</div>
+        <p class="reg-desc">Samples with a value under €150 enter duty-free. Above €150, customs duties apply. VAT is charged regardless of value. Mark packages "Trade Samples – No Commercial Value".</p>
+        <span class="reg-limit">Duty-free: Under €150</span>
+      </div>
+      <div class="reg-card">
+        <div class="reg-flag">🇦🇪</div>
+        <div class="reg-title">UAE &amp; GCC Countries</div>
+        <p class="reg-desc">Samples of negligible value (AED 1,000 or less) are generally admitted duty-free if clearly marked as samples. Commercial samples require full documentation including an invoice.</p>
+        <span class="reg-limit">Duty-free: Under AED 1,000</span>
+      </div>
+      <div class="reg-card">
+        <div class="reg-flag">🇬🇧</div>
+        <div class="reg-title">United Kingdom (UK)</div>
+        <p class="reg-desc">Post-Brexit, the UK follows its own rules. Samples under £135 enter duty-free. Above £135, customs duty and VAT apply. A commercial invoice is required for all shipments.</p>
+        <span class="reg-limit">Duty-free: Under £135</span>
+      </div>
+      <div class="reg-card">
+        <div class="reg-flag">🇨🇳</div>
+        <div class="reg-title">China</div>
+        <p class="reg-desc">China has strict customs regulations. Samples must be declared at actual value. Items declared as "no commercial value" are often scrutinised. A proper invoice with HS codes is essential.</p>
+        <span class="reg-limit">Declare actual value always</span>
+      </div>
+      <div class="reg-card">
+        <div class="reg-flag">🌍</div>
+        <div class="reg-title">All Countries — General Rule</div>
+        <p class="reg-desc">Regardless of value, all international sample shipments require a commercial invoice with HS codes, declared value, country of origin, consignee details and shipper signature.</p>
+        <span class="reg-limit">Invoice always required</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ USE CASES ═══ -->
+<div class="info-section alt" id="sec-usecases">
+  <div class="info-section-inner">
+    <div class="info-kicker"><div class="info-kicker-bar"></div>Use Cases</div>
+    <h2 class="info-heading">Who Uses the Sample Courier Invoice Module?</h2>
+    <p class="info-sub">Any Indian exporter who sends product samples internationally needs a proper Sample Courier Invoice every time.</p>
+    <div class="usecases-grid">
+      <div class="usecase-card">
+        <div class="uc-icon">🏭</div>
+        <div>
+          <div class="uc-title">Manufacturers Sending Approval Samples</div>
+          <p class="uc-desc">Send product samples to overseas buyers for approval before placing a bulk order. A proper invoice ensures the sample clears customs quickly and reaches the buyer on time.</p>
+        </div>
+      </div>
+      <div class="usecase-card">
+        <div class="uc-icon">🎪</div>
+        <div>
+          <div class="uc-title">Trade Fair &amp; Exhibition Samples</div>
+          <p class="uc-desc">Send display samples to exhibition venues or distributors ahead of trade fairs like Ambiente, Canton Fair or India International Trade Fair. Customs-compliant invoices prevent delays.</p>
+        </div>
+      </div>
+      <div class="usecase-card">
+        <div class="uc-icon">🔬</div>
+        <div>
+          <div class="uc-title">Lab Testing &amp; Quality Approval</div>
+          <p class="uc-desc">Send samples to buyer-designated testing labs for quality certification. The invoice declares the value for insurance and customs, while clearly stating "For Testing Purpose Only".</p>
+        </div>
+      </div>
+      <div class="usecase-card">
+        <div class="uc-icon">🤝</div>
+        <div>
+          <div class="uc-title">New Buyer Development</div>
+          <p class="uc-desc">When developing new buyers through cold outreach, trade portals or referrals — send samples professionally. A proper SCI creates a strong first impression and shows operational maturity.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ CTA ═══ -->
+<div class="info-section" id="sec-cta">
+  <div class="info-section-inner">
+    <div class="cta-banner">
+      <div class="cta-inner">
+        <div class="cta-icon">✈️</div>
+        <h2 class="cta-title">Never Get Stuck at Customs Again</h2>
+        <p class="cta-sub">Login to IMPEXIO and generate a complete, courier-accepted Sample Invoice for your next sample shipment — in under 3 minutes.</p>
+        <div class="cta-btns">
+          <button class="btn-cta-primary" onclick="window.location.href='../login.html'">🔐 Login &amp; Start Now →</button>
+          <button class="btn-cta-ghost"   onclick="window.location.href='../index.html'">← Back to Home</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-bottom" style="border-top:1px solid rgba(255,255,255,0.07);max-width:100%;padding:1.2rem 2.5rem;display:flex;justify-content:space-between;font-size:0.78rem;background:#091929;color:rgba(255,255,255,0.45);">
+    <span>© 2026 <strong style="color:rgba(255,255,255,0.8);">IMPEXIO</strong>. All rights reserved.</span>
+    <span>Sample Courier Invoice Module &nbsp;|&nbsp; Export Modules</span>
+  </div>
+</footer>
+
+<script>
+window.addEventListener('scroll', function() {
+  var n = document.getElementById('navbar');
+  if (n) n.classList.toggle('scrolled', window.scrollY > 20);
+  var sections = ['sec-about','sec-fields','sec-how','sec-features','sec-regulations','sec-usecases','sec-cta'];
+  var links = document.querySelectorAll('.mod-nav-link');
+  sections.forEach(function(id, i) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var rect = el.getBoundingClientRect();
+    if (rect.top <= 160 && rect.bottom > 0) {
+      links.forEach(function(l){ l.classList.remove('active'); });
+      if (links[i]) links[i].classList.add('active');
+    }
+  });
+});
+function toggleDD(id, event) {
+  if (event) event.stopPropagation();
+  var el = document.getElementById(id);
+  if (!el) return;
+  var isOpen = el.classList.contains('open');
+  document.querySelectorAll('.nav-item.open').forEach(function(i){ i.classList.remove('open'); });
+  if (!isOpen) el.classList.add('open');
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.nav-item')) {
+    document.querySelectorAll('.nav-item.open').forEach(function(i){ i.classList.remove('open'); });
+  }
+});
+function toggleMob() {
+  var m = document.getElementById('navMob');
+  var h = document.getElementById('ham');
+  if (!m) return;
+  var o = m.classList.toggle('open');
+  if (h) h.classList.toggle('open', o);
+}
+function toggleMobDD(id) {
+  var el = document.getElementById(id);
+  if (el) el.classList.toggle('open');
+}
+function scrollTo(id) {
+  var el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth' });
+}
+var style = document.createElement('style');
+style.textContent = '@media(max-width:900px){.nav-auth .btn-nav-login{display:none}.nav-mobile{display:none}.nav-mobile.open{display:block}}@media(min-width:901px){.nav-mobile{display:none!important}.hamburger{display:none!important}}';
+document.head.appendChild(style);
+</script>
+</body>
+</html>
