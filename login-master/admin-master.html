@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IMPEXIO — Admin Master</title>
+  <link rel="stylesheet" href="../styles.css"/>
+  <link rel="icon" href="../impexio_logo.png" type="image/png"/>
+  <style>
+    /* ── Layout ── */
+    body { background: var(--ivory); min-height: 100vh; }
+    .am-shell { display: flex; min-height: 100vh; }
+
+    /* ── Sidebar ── */
+    .am-sidebar {
+      width: 260px; flex-shrink: 0;
+      background: var(--navy);
+      display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0; bottom: 0;
+      z-index: 100; transition: transform 0.3s;
+    }
+    .am-sidebar-head {
+      padding: 1.5rem 1.5rem 1.2rem;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      display: flex; align-items: center; gap: 0.75rem;
+    }
+    .am-logo-box {
+      width: 40px; height: 40px; background: rgba(201,168,76,0.15);
+      border: 1.5px solid rgba(201,168,76,0.3); border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;
+    }
+    .am-brand { font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; color: #fff; }
+    .am-brand-sub { font-size: 0.58rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.12em; }
+
+    .am-nav { padding: 1rem 0; flex: 1; overflow-y: auto; }
+    .am-nav-section { font-size: 0.58rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(255,255,255,0.3); padding: 0.8rem 1.5rem 0.4rem; }
+    .am-nav-item {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.7rem 1.5rem; font-size: 0.84rem; font-weight: 500;
+      color: rgba(255,255,255,0.65); cursor: pointer;
+      transition: all 0.2s; border-left: 3px solid transparent;
+    }
+    .am-nav-item:hover { color: #fff; background: rgba(255,255,255,0.06); }
+    .am-nav-item.active { color: var(--gold-light); background: rgba(201,168,76,0.1); border-left-color: var(--gold); }
+    .am-nav-icon { font-size: 1rem; width: 20px; text-align: center; flex-shrink: 0; }
+
+    .am-sidebar-foot {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    .am-back-btn {
+      display: flex; align-items: center; gap: 0.6rem;
+      padding: 0.65rem 1rem; background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12); border-radius: var(--radius-sm);
+      font-size: 0.8rem; font-weight: 600; color: rgba(255,255,255,0.7);
+      cursor: pointer; transition: all 0.2s; width: 100%;
+    }
+    .am-back-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+
+    /* ── Main Content ── */
+    .am-main { margin-left: 260px; flex: 1; display: flex; flex-direction: column; }
+
+    .am-topbar {
+      background: var(--white); border-bottom: 1px solid var(--border);
+      padding: 0 2rem; height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 50; box-shadow: var(--shadow-sm);
+    }
+    .am-topbar-title { font-family: var(--font-display); font-size: 1.25rem; font-weight: 700; color: var(--navy); }
+    .am-topbar-right { display: flex; align-items: center; gap: 0.75rem; }
+    .am-user-chip {
+      display: flex; align-items: center; gap: 0.5rem;
+      background: var(--ivory2); border: 1px solid var(--border);
+      border-radius: 50px; padding: 0.3rem 0.8rem 0.3rem 0.3rem;
+    }
+    .am-avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--navy); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; }
+    .am-uname { font-size: 0.8rem; font-weight: 600; color: var(--text); }
+    .am-role-badge { font-size: 0.62rem; background: rgba(201,168,76,0.15); color: #7a5c10; border-radius: 100px; padding: 0.1rem 0.45rem; font-weight: 700; }
+
+    /* Hamburger for mobile */
+    .am-hamburger { display: none; background: none; border: none; cursor: pointer; padding: 0.5rem; }
+    .am-hamburger span { display: block; width: 20px; height: 2px; background: var(--navy); margin: 4px 0; border-radius: 2px; transition: all 0.3s; }
+
+    .am-content { padding: 2rem; flex: 1; }
+
+    /* ── Section panels ── */
+    .am-panel { display: none; }
+    .am-panel.active { display: block; }
+
+    .am-panel-title {
+      font-family: var(--font-display); font-size: 1.6rem; font-weight: 700;
+      color: var(--navy); margin-bottom: 0.35rem;
+    }
+    .am-panel-sub { font-size: 0.875rem; color: var(--text-soft); margin-bottom: 2rem; }
+
+    /* ── Cards ── */
+    .am-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 1.5rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .am-card-head {
+      padding: 1rem 1.5rem; background: var(--navy);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .am-card-head-title { font-weight: 700; font-size: 0.9rem; color: #fff; display: flex; align-items: center; gap: 0.5rem; }
+    .am-card-body { padding: 1.5rem; }
+
+    /* ── Form styles ── */
+    .am-form-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 1rem; }
+    .am-form-grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; }
+    .am-form-full { grid-column: 1/-1; }
+    .am-fgroup { display: flex; flex-direction: column; gap: 0.35rem; }
+    .am-flabel { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-mid); }
+    .am-finput, .am-fselect {
+      padding: 0.7rem 0.9rem; border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm); font-size: 0.88rem; font-family: var(--font-body);
+      color: var(--text); background: var(--white); transition: var(--transition);
+      width: 100%;
+    }
+    .am-finput:focus, .am-fselect:focus { outline: none; border-color: var(--navy); box-shadow: 0 0 0 3px rgba(15,37,64,0.08); }
+    .am-finput::placeholder { color: rgba(107,127,163,0.5); }
+
+    /* Buttons */
+    .am-btn { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.6rem 1.25rem; border-radius: var(--radius-sm); font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: var(--transition); border: none; font-family: var(--font-body); }
+    .am-btn-primary { background: var(--navy); color: #fff; }
+    .am-btn-primary:hover { background: var(--navy-mid); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+    .am-btn-gold { background: var(--gold); color: var(--navy); }
+    .am-btn-gold:hover { background: var(--gold-light); }
+    .am-btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+    .am-btn-danger:hover { background: #dc2626; color: #fff; }
+    .am-btn-ghost { background: var(--ivory2); color: var(--text-mid); border: 1px solid var(--border); }
+    .am-btn-ghost:hover { border-color: var(--navy); color: var(--navy); }
+    .am-btn-sm { padding: 0.38rem 0.75rem; font-size: 0.75rem; }
+
+    /* ── Company cards list ── */
+    .company-list { display: flex; flex-direction: column; gap: 1rem; }
+    .company-item {
+      background: var(--white); border: 1.5px solid var(--border);
+      border-radius: var(--radius); padding: 1.25rem 1.5rem;
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem;
+      transition: var(--transition);
+    }
+    .company-item:hover { border-color: var(--navy-light); box-shadow: var(--shadow-sm); }
+    .company-item.active-company { border-color: var(--gold); background: var(--gold-pale); }
+    .ci-badge { width: 44px; height: 44px; border-radius: 11px; background: var(--navy); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; color: #fff; font-weight: 700; font-family: var(--font-display); font-size: 1.2rem; }
+    .ci-name { font-weight: 700; font-size: 0.92rem; color: var(--navy); margin-bottom: 0.2rem; }
+    .ci-meta { font-size: 0.76rem; color: var(--text-soft); }
+    .ci-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.4rem; }
+    .ci-tag { font-size: 0.68rem; background: var(--ivory2); color: var(--text-mid); border-radius: 50px; padding: 0.15rem 0.55rem; font-weight: 500; }
+    .ci-actions { display: flex; gap: 0.4rem; flex-shrink: 0; }
+
+    /* ── User table ── */
+    .am-table-wrap { overflow-x: auto; }
+    .am-table { width: 100%; border-collapse: collapse; }
+    .am-table th { background: var(--navy); color: rgba(255,255,255,0.8); padding: 0.7rem 1rem; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; text-align: left; }
+    .am-table td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-soft); font-size: 0.84rem; color: var(--text); vertical-align: middle; }
+    .am-table tr:hover td { background: var(--ivory2); }
+    .role-badge { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.2rem 0.65rem; border-radius: 50px; font-size: 0.7rem; font-weight: 700; }
+    .role-administrator { background: rgba(15,37,64,0.1); color: var(--navy); }
+    .role-admin         { background: rgba(42,82,152,0.1); color: var(--navy-light); }
+    .role-manager       { background: rgba(15,92,82,0.1); color: #0f5c52; }
+    .role-user          { background: rgba(201,168,76,0.15); color: #7a5c10; }
+    .status-badge { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
+    .status-active   { background: #22c55e; }
+    .status-inactive { background: #dc2626; }
+
+    /* ── Permission grid ── */
+    .perm-role-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .perm-tab { padding: 0.5rem 1.1rem; border-radius: 50px; font-size: 0.8rem; font-weight: 600; cursor: pointer; border: 1.5px solid var(--border); background: var(--white); color: var(--text-mid); transition: all 0.2s; }
+    .perm-tab.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+
+    .perm-section { margin-bottom: 1.5rem; }
+    .perm-section-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-soft); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
+    .perm-section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .perm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.6rem; }
+    .perm-item { display: flex; align-items: center; justify-content: space-between; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.6rem 0.9rem; }
+    .perm-item-name { font-size: 0.8rem; font-weight: 500; color: var(--text); }
+    .toggle-switch { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: var(--border); border-radius: 20px; transition: 0.3s; }
+    .toggle-slider:before { position: absolute; content: ''; height: 14px; width: 14px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.3s; }
+    input:checked + .toggle-slider { background: var(--navy); }
+    input:checked + .toggle-slider:before { transform: translateX(16px); }
+
+    /* ── Year Master ── */
+    .year-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap: 1rem; }
+    .year-card { background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 1.2rem 1.5rem; transition: var(--transition); cursor: pointer; position: relative; }
+    .year-card:hover { border-color: var(--navy-light); box-shadow: var(--shadow-sm); }
+    .year-card.selected { border-color: var(--gold); background: var(--gold-pale); }
+    .year-card-check { position: absolute; top: 0.85rem; right: 0.85rem; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: transparent; transition: all 0.2s; }
+    .year-card.selected .year-card-check { background: var(--gold); border-color: var(--gold); color: var(--navy); }
+    .year-label { font-family: var(--font-display); font-size: 1.3rem; font-weight: 700; color: var(--navy); margin-bottom: 0.25rem; }
+    .year-range { font-size: 0.78rem; color: var(--text-soft); }
+    .year-status { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.68rem; font-weight: 700; margin-top: 0.5rem; }
+    .year-status.current { color: #16a34a; }
+    .year-status.previous { color: var(--text-soft); }
+
+    /* ── Menu Selection ── */
+    .menu-sel-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.25rem; }
+    .menu-sel-card { background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; transition: var(--transition); }
+    .menu-sel-card:hover { box-shadow: var(--shadow-md); }
+    .menu-sel-head { padding: 0.85rem 1.25rem; display: flex; align-items: center; justify-content: space-between; }
+    .menu-sel-head.export { background: var(--navy); }
+    .menu-sel-head.import { background: #0f5c52; }
+    .menu-sel-head.exim   { background: #2a5298; }
+    .menu-sel-title { font-weight: 700; font-size: 0.88rem; color: #fff; display: flex; align-items: center; gap: 0.5rem; }
+    .menu-sel-items { padding: 0.75rem 1.25rem; display: flex; flex-direction: column; gap: 0.5rem; }
+    .menu-sel-item { display: flex; align-items: center; justify-content: space-between; padding: 0.45rem 0; border-bottom: 1px solid var(--border-soft); }
+    .menu-sel-item:last-child { border-bottom: none; }
+    .menu-sel-item-name { font-size: 0.8rem; color: var(--text); font-weight: 500; display: flex; align-items: center; gap: 0.5rem; }
+
+    /* ── Toast ── */
+    .am-toast { position: fixed; bottom: 2rem; right: 2rem; background: var(--navy); color: #fff; padding: 0.85rem 1.4rem; border-radius: var(--radius); font-size: 0.85rem; font-weight: 600; box-shadow: var(--shadow-xl); transform: translateY(80px); opacity: 0; transition: all 0.35s; z-index: 9999; border-left: 4px solid var(--gold); display: flex; align-items: center; gap: 0.5rem; }
+    .am-toast.show { transform: translateY(0); opacity: 1; }
+
+    /* ── Modal ── */
+    .am-modal-overlay { position: fixed; inset: 0; background: rgba(15,37,64,0.5); backdrop-filter: blur(4px); z-index: 200; display: none; align-items: center; justify-content: center; padding: 1rem; }
+    .am-modal-overlay.open { display: flex; }
+    .am-modal { background: var(--white); border-radius: var(--radius-lg); width: 100%; max-width: 560px; box-shadow: var(--shadow-xl); overflow: hidden; animation: riseIn 0.25s ease; }
+    @keyframes riseIn { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+    .am-modal-head { background: var(--navy); padding: 1.2rem 1.5rem; display: flex; align-items: center; justify-content: space-between; }
+    .am-modal-title { font-weight: 700; font-size: 1rem; color: #fff; }
+    .am-modal-close { color: rgba(255,255,255,0.6); font-size: 1.3rem; cursor: pointer; background: none; border: none; line-height: 1; padding: 0; }
+    .am-modal-close:hover { color: #fff; }
+    .am-modal-body { padding: 1.5rem; }
+    .am-modal-foot { padding: 1rem 1.5rem; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 0.5rem; }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      .am-sidebar { transform: translateX(-100%); }
+      .am-sidebar.open { transform: translateX(0); }
+      .am-main { margin-left: 0; }
+      .am-hamburger { display: block; }
+      .menu-sel-grid { grid-template-columns: 1fr; }
+      .am-form-grid, .am-form-grid-3 { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .am-content { padding: 1.2rem; }
+      .year-grid { grid-template-columns: 1fr; }
+      .perm-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="am-shell">
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <aside class="am-sidebar" id="amSidebar">
+    <div class="am-sidebar-head">
+      <div class="am-logo-box">⚙️</div>
+      <div>
+        <div class="am-brand">IMPEXIO</div>
+        <div class="am-brand-sub">Admin Master</div>
+      </div>
+    </div>
+
+    <nav class="am-nav">
+      <div class="am-nav-section">Master Settings</div>
+      <div class="am-nav-item active" onclick="showPanel('company')" id="nav-company">
+        <span class="am-nav-icon">🏢</span> Company Details
+      </div>
+      <div class="am-nav-item" onclick="showPanel('users')" id="nav-users">
+        <span class="am-nav-icon">👤</span> User Details
+      </div>
+      <div class="am-nav-item" onclick="showPanel('permissions')" id="nav-permissions">
+        <span class="am-nav-icon">🔐</span> User Permissions
+      </div>
+      <div class="am-nav-item" onclick="showPanel('years')" id="nav-years">
+        <span class="am-nav-icon">📅</span> Year Master
+      </div>
+      <div class="am-nav-item" onclick="showPanel('menu')" id="nav-menu">
+        <span class="am-nav-icon">📋</span> Menu Selection
+      </div>
+    </nav>
+
+    <div class="am-sidebar-foot">
+      <button class="am-back-btn" onclick="window.location.href='../main.html'">
+        ← Back to Main Menu
+      </button>
+    </div>
+  </aside>
+
+  <!-- ═══ MAIN ═══ -->
+  <div class="am-main">
+
+    <!-- Topbar -->
+    <div class="am-topbar">
+      <div style="display:flex;align-items:center;gap:1rem;">
+        <button class="am-hamburger" onclick="toggleSidebar()">
+          <span></span><span></span><span></span>
+        </button>
+        <div class="am-topbar-title" id="panelTitle">Company Details</div>
+      </div>
+      <div class="am-topbar-right">
+        <div class="am-user-chip">
+          <div class="am-avatar" id="amAv">A</div>
+          <div class="am-uname" id="amUname">Admin</div>
+          <div class="am-role-badge" id="amRole">Administrator</div>
+        </div>
+        <button class="am-btn am-btn-ghost am-btn-sm" onclick="window.location.href='../main.html'">← Main Menu</button>
+      </div>
+    </div>
+
+    <div class="am-content">
+
+      <!-- ═══════════════ COMPANY DETAILS ═══════════════ -->
+      <div class="am-panel active" id="panel-company">
+        <div class="am-panel-title">🏢 Company Details</div>
+        <div class="am-panel-sub">Manage your company profiles. Each company can have its own settings, users and financial years.</div>
+
+        <div style="display:flex;justify-content:flex-end;margin-bottom:1rem;">
+          <button class="am-btn am-btn-primary" onclick="openModal('addCompany')">+ Add Company</button>
+        </div>
+
+        <div class="company-list" id="companyList"></div>
+      </div>
+
+      <!-- ═══════════════ USER DETAILS ═══════════════ -->
+      <div class="am-panel" id="panel-users">
+        <div class="am-panel-title">👤 User Details</div>
+        <div class="am-panel-sub">Manage all system users. Assign roles to control access levels — Administrator has full access, while User has limited access based on permissions.</div>
+
+        <!-- Role explanation -->
+        <div class="am-card" style="margin-bottom:1.5rem;">
+          <div class="am-card-head">
+            <div class="am-card-head-title">📖 Role Hierarchy — How It Works</div>
+          </div>
+          <div class="am-card-body">
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;">
+              <div style="background:var(--ivory2);border-radius:var(--radius);padding:1rem;border-left:4px solid var(--navy);">
+                <div style="font-weight:700;font-size:0.88rem;color:var(--navy);margin-bottom:0.3rem;">👑 Administrator</div>
+                <div style="font-size:0.78rem;color:var(--text-mid);line-height:1.6;">Top level access. Can access ALL modules — Export, Import, EXIM Marketing, Admin Master, User Management, and all Settings. Like the CEO of the company who has access to everything.</div>
+              </div>
+              <div style="background:var(--ivory2);border-radius:var(--radius);padding:1rem;border-left:4px solid var(--navy-light);">
+                <div style="font-weight:700;font-size:0.88rem;color:var(--navy-light);margin-bottom:0.3rem;">🔑 Admin</div>
+                <div style="font-size:0.78rem;color:var(--text-mid);line-height:1.6;">Senior access. Can access most modules and manage users below their level. Cannot access Admin Master settings. Like an HR Manager who manages staff but doesn't control company policy.</div>
+              </div>
+              <div style="background:var(--ivory2);border-radius:var(--radius);padding:1rem;border-left:4px solid #0f5c52;">
+                <div style="font-weight:700;font-size:0.88rem;color:#0f5c52;margin-bottom:0.3rem;">📊 Manager</div>
+                <div style="font-size:0.78rem;color:var(--text-mid);line-height:1.6;">Department access. Can access modules assigned to their department. Can view reports but cannot create or delete master data. Like a department head who manages their team's work.</div>
+              </div>
+              <div style="background:var(--ivory2);border-radius:var(--radius);padding:1rem;border-left:4px solid var(--gold);">
+                <div style="font-weight:700;font-size:0.88rem;color:#7a5c10;margin-bottom:0.3rem;">👥 User</div>
+                <div style="font-size:0.78rem;color:var(--text-mid);line-height:1.6;">Basic access. Can only use modules specifically permitted to them. Cannot manage other users or access Admin settings. Like an employee who only does their assigned tasks.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;margin-bottom:1rem;">
+          <button class="am-btn am-btn-primary" onclick="openModal('addUser')">+ Add User</button>
+        </div>
+
+        <div class="am-card">
+          <div class="am-card-head">
+            <div class="am-card-head-title">👥 All Users</div>
+          </div>
+          <div class="am-card-body" style="padding:0;">
+            <div class="am-table-wrap">
+              <table class="am-table" id="usersTable">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Username</th>
+                    <th>Role</th>
+                    <th>Company</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="usersTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════ USER PERMISSIONS ═══════════════ -->
+      <div class="am-panel" id="panel-permissions">
+        <div class="am-panel-title">🔐 User Permissions</div>
+        <div class="am-panel-sub">Configure which modules each role can access. Toggle permissions per module for each role level.</div>
+
+        <div class="perm-role-tabs" id="permTabs">
+          <div class="perm-tab active" onclick="showPermRole('Administrator',this)">👑 Administrator</div>
+          <div class="perm-tab" onclick="showPermRole('Admin',this)">🔑 Admin</div>
+          <div class="perm-tab" onclick="showPermRole('Manager',this)">📊 Manager</div>
+          <div class="perm-tab" onclick="showPermRole('User',this)">👥 User</div>
+        </div>
+
+        <div class="am-card">
+          <div class="am-card-head">
+            <div class="am-card-head-title" id="permCardTitle">👑 Administrator — Full Access</div>
+          </div>
+          <div class="am-card-body" id="permCardBody"></div>
+        </div>
+      </div>
+
+      <!-- ═══════════════ YEAR MASTER ═══════════════ -->
+      <div class="am-panel" id="panel-years">
+        <div class="am-panel-title">📅 Year Master</div>
+        <div class="am-panel-sub">Manage financial years. Select the active year for your company. All transactions will be recorded under the selected year.</div>
+
+        <div style="display:flex;justify-content:flex-end;margin-bottom:1rem;">
+          <button class="am-btn am-btn-primary" onclick="openModal('addYear')">+ Add Year</button>
+        </div>
+
+        <div class="year-grid" id="yearGrid"></div>
+      </div>
+
+      <!-- ═══════════════ MENU SELECTION ═══════════════ -->
+      <div class="am-panel" id="panel-menu">
+        <div class="am-panel-title">📋 System Menu Selection</div>
+        <div class="am-panel-sub">Enable or disable entire module sections or individual modules. Disabled modules will not appear in the Main Menu for any user.</div>
+
+        <div class="menu-sel-grid" id="menuSelGrid"></div>
+
+        <div style="display:flex;justify-content:flex-end;margin-top:1.5rem;gap:0.75rem;">
+          <button class="am-btn am-btn-ghost" onclick="resetMenuSel()">Reset to Default</button>
+          <button class="am-btn am-btn-gold" onclick="saveMenuSel()">💾 Save Menu Settings</button>
+        </div>
+      </div>
+
+    </div><!-- /am-content -->
+  </div><!-- /am-main -->
+</div><!-- /am-shell -->
+
+<!-- ═══ ADD COMPANY MODAL ═══ -->
+<div class="am-modal-overlay" id="modal-addCompany">
+  <div class="am-modal">
+    <div class="am-modal-head">
+      <div class="am-modal-title" id="compModalTitle">🏢 Add New Company</div>
+      <button class="am-modal-close" onclick="closeModal('addCompany')">✕</button>
+    </div>
+    <div class="am-modal-body">
+      <input type="hidden" id="editCompanyId"/>
+      <div class="am-form-grid">
+        <div class="am-fgroup am-form-full">
+          <label class="am-flabel">Company Name *</label>
+          <input class="am-finput" id="cmp-name" placeholder="e.g. Impexio Trade Solutions Pvt. Ltd."/>
+        </div>
+        <div class="am-fgroup am-form-full">
+          <label class="am-flabel">Address Line 1 *</label>
+          <input class="am-finput" id="cmp-addr1" placeholder="Building, Street"/>
+        </div>
+        <div class="am-fgroup am-form-full">
+          <label class="am-flabel">Address Line 2</label>
+          <input class="am-finput" id="cmp-addr2" placeholder="Area, Landmark"/>
+        </div>
+        <div class="am-fgroup">
+          <label class="am-flabel">City</label>
+          <input class="am-finput" id="cmp-city" placeholder="e.g. Ahmedabad"/>
+        </div>
+        <div class="am-fgroup">
+          <label class="am-flabel">State</label>
+          <input class="am-finput" id="cmp-state" placeholder="e.g. Gujarat"/>
+        </div>
+        <div class="am-fgroup">
+          <label class="am-flabel">Contact 1 (Phone/Email)</label>
+          <input class="am-finput" id="cmp-contact1" placeholder="+91 98765 43210"/>
+        </div>
+        <div class="am-fgroup">
+          <label class="am-flabel">Contact 2 (Phone/Email)</label>
+          <input class="am-finput" id="cmp-contact2" placeholder="email@company.com"/>
+        </div>
+        <div class="am-fgroup">
+          <label class="am-flabel">GST Number</label>
+          <input class="am-finput" id="cmp-gst" placeholder="24AABCI1234A1Z5"/>
+        </div>
+        <div class="am-fgroup">
+          <label class="am-flabel">Version / Plan</label>
+          <select class="am-fselect" id="cmp-version">
+            <option>v1.0 Professional</option>
+            <option>v1.0 Standard</option>
+            <option>v1.0 Basic</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="am-modal-foot">
+      <button class="am-btn am-btn-ghost" onclick="closeModal('addCompany')">Cancel</button>
+      <button class="am-btn am-btn-primary" onclick="saveCompany()">💾 Save Company</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ADD USER MODAL ═══ -->
+<div class="am-modal-overlay" id="modal-addUser">
+  <div class="am-modal">
+    <div class="am-modal-head">
+      <div class="am-modal-title" id="userModalTitle">👤 Add New User</div>
+      <button class="am-modal-close" onclick="closeModal('addUser')">✕</button>
+    </div>
+    <div class="am-modal-body">
+      <input type="hidden" id="editUserId"/>
+      <div class="am-form-grid">
+        <div class="am-fgroup">
+          <label class="am-flabel">Full Name *</label>
+          <input class="am-finput" id="usr-name" placeholder="e.g. Rajesh Sharma"/>
+        </div>
+        <div class="am-fgroup">
+          <label class="am-flabel">Username *</label>
+          <input class="am-finput" id="usr-username" placeholder="e.g. rajesh.sharma"/>
+        </div>
+        <div class="am-fgroup">
+          <label class="am-flabel">Password *</label>
+          <input class="am-finput" type="password" id="usr-password" placeholder="Enter password"/>
+        </div>
+        <div class="am-fgroup">
+          <label class="am-flabel">Role *</label>
+          <select class="am-fselect" id="usr-role">
+            <option value="Administrator">👑 Administrator</option>
+            <option value="Admin">🔑 Admin</option>
+            <option value="Manager">📊 Manager</option>
+            <option value="User">👥 User</option>
+          </select>
+        </div>
+        <div class="am-fgroup">
+          <label class="am-flabel">Company</label>
+          <select class="am-fselect" id="usr-company"></select>
+        </div>
+        <div class="am-fgroup">
+          <label class="am-flabel">Status</label>
+          <select class="am-fselect" id="usr-status">
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+          </select>
+        </div>
+        <div class="am-fgroup am-form-full">
+          <label class="am-flabel">Email</label>
+          <input class="am-finput" id="usr-email" placeholder="user@company.com" type="email"/>
+        </div>
+      </div>
+    </div>
+    <div class="am-modal-foot">
+      <button class="am-btn am-btn-ghost" onclick="closeModal('addUser')">Cancel</button>
+      <button class="am-btn am-btn-primary" onclick="saveUser()">💾 Save User</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ADD YEAR MODAL ═══ -->
+<div class="am-modal-overlay" id="modal-addYear">
+  <div class="am-modal" style="max-width:420px;">
+    <div class="am-modal-head">
+      <div class="am-modal-title">📅 Add Financial Year</div>
+      <button class="am-modal-close" onclick="closeModal('addYear')">✕</button>
+    </div>
+    <div class="am-modal-body">
+      <div style="display:flex;flex-direction:column;gap:1rem;">
+        <div class="am-fgroup">
+          <label class="am-flabel">Year Label *</label>
+          <input class="am-finput" id="yr-label" placeholder="e.g. 2026-27"/>
+        </div>
+        <div class="am-fgroup">
+          <label class="am-flabel">Start Date *</label>
+          <input class="am-finput" id="yr-start" placeholder="01 Apr 2026"/>
+        </div>
+        <div class="am-fgroup">
+          <label class="am-flabel">End Date *</label>
+          <input class="am-finput" id="yr-end" placeholder="31 Mar 2027"/>
+        </div>
+      </div>
+    </div>
+    <div class="am-modal-foot">
+      <button class="am-btn am-btn-ghost" onclick="closeModal('addYear')">Cancel</button>
+      <button class="am-btn am-btn-primary" onclick="saveYear()">💾 Add Year</button>
+    </div>
+  </div>
+</div>
+
+<!-- Sidebar overlay for mobile -->
+<div id="sidebarOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99;" onclick="toggleSidebar()"></div>
+
+<!-- Toast -->
+<div class="am-toast" id="amToast">✅ <span id="amToastMsg">Saved successfully!</span></div>
+
+<script>
+// ══════════════════════════════════════════
+// DATA — localStorage keys
+// ══════════════════════════════════════════
+const KEYS = {
+  companies:   'impexio_master_companies',
+  users:       'impexio_master_users',
+  permissions: 'impexio_master_permissions',
+  years:       'impexio_master_years',
+  menu:        'impexio_master_menu'
+};
+
+function getData(key) {
+  try { return JSON.parse(localStorage.getItem(key) || 'null'); } catch { return null; }
+}
+function setData(key, val) {
+  localStorage.setItem(key, JSON.stringify(val));
+}
+
+// ══════════════════════════════════════════
+// DEFAULTS
+// ══════════════════════════════════════════
+const DEFAULT_COMPANIES = [
+  { id:'C001', name:'Impexio Trade Solutions Pvt. Ltd.', addr1:'401, Trade Tower', addr2:'GIFT City, Gandhinagar', city:'Gandhinagar', state:'Gujarat', contact1:'+91 79 1234 5678', contact2:'info@impexio.in', gst:'24AABCI1234A1Z5', version:'v1.0 Professional' },
+  { id:'C002', name:'Global Exim Enterprises', addr1:'12, Export House', addr2:'Ashram Road', city:'Ahmedabad', state:'Gujarat', contact1:'+91 79 8765 4321', contact2:'contact@globalexim.in', gst:'24BBCGE5678B2Y6', version:'v1.0 Standard' }
+];
+
+const DEFAULT_USERS = [
+  { id:'U001', name:'System Administrator', username:'Admin', password:'Admin', role:'Administrator', company:'C001', status:'Active', email:'admin@impexio.in' },
+  { id:'U002', name:'Priya Mehta',          username:'priya.mehta', password:'Priya@123', role:'Admin',          company:'C001', status:'Active', email:'priya@impexio.in' },
+  { id:'U003', name:'Rahul Shah',           username:'rahul.shah',  password:'Rahul@123', role:'Manager',       company:'C002', status:'Active', email:'rahul@globalexim.in' },
+  { id:'U004', name:'Sneha Patel',          username:'sneha.patel', password:'Sneha@123', role:'User',          company:'C001', status:'Active', email:'sneha@impexio.in' }
+];
+
+const DEFAULT_YEARS = [
+  { id:'Y1', label:'2025-26', start:'01 Apr 2025', end:'31 Mar 2026', current:true  },
+  { id:'Y2', label:'2024-25', start:'01 Apr 2024', end:'31 Mar 2025', current:false },
+  { id:'Y3', label:'2023-24', start:'01 Apr 2023', end:'31 Mar 2024', current:false }
+];
+
+const ALL_MODULES = {
+  export: [
+    { id:'cbm',    name:'CBM Calculation',           icon:'📐' },
+    { id:'fob',    name:'Container Expenses FOB',     icon:'💰' },
+    { id:'ec',     name:'Export Costing',             icon:'🧮' },
+    { id:'ec2',    name:'Export Costing 2',           icon:'📊' },
+    { id:'edf',    name:'Export Data Filter Format',  icon:'🔍' },
+    { id:'pi',     name:'Export Proforma Invoice',    icon:'📄' },
+    { id:'eq',     name:'Export Quotation',           icon:'📋' },
+    { id:'sci',    name:'Sample Courier Invoice',     icon:'✈️' }
+  ],
+  import: [
+    { id:'ili',    name:'Import Letter For Inquiry',  icon:'📩' },
+    { id:'ipo',    name:'Import Purchase Order',      icon:'🛒' }
+  ],
+  exim: [
+    { id:'efm',    name:'Export Follow Up Mail',      icon:'📈' },
+    { id:'emb',    name:'Export Marketing (Buyers)',  icon:'🎯' },
+    { id:'ma',     name:'Marketing Analysis',         icon:'📊' },
+    { id:'tm',     name:'Target Markets',             icon:'🎯' }
+  ]
+};
+
+const DEFAULT_PERMISSIONS = {
+  Administrator: { export:['cbm','fob','ec','ec2','edf','pi','eq','sci'], import:['ili','ipo'], exim:['efm','emb','ma','tm'] },
+  Admin:         { export:['cbm','fob','ec','ec2','pi','eq','sci'],       import:['ili','ipo'], exim:['efm','emb'] },
+  Manager:       { export:['cbm','fob','ec','pi','eq'],                   import:['ili'],       exim:['efm'] },
+  User:          { export:['cbm','pi','eq'],                              import:[],            exim:[] }
+};
+
+const DEFAULT_MENU = {
+  export: ['cbm','fob','ec','ec2','edf','pi','eq','sci'],
+  import: ['ili','ipo'],
+  exim:   ['efm','emb','ma','tm']
+};
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+function initData() {
+  if (!getData(KEYS.companies))   setData(KEYS.companies,   DEFAULT_COMPANIES);
+  if (!getData(KEYS.users))       setData(KEYS.users,       DEFAULT_USERS);
+  if (!getData(KEYS.permissions)) setData(KEYS.permissions, DEFAULT_PERMISSIONS);
+  if (!getData(KEYS.years))       setData(KEYS.years,       DEFAULT_YEARS);
+  if (!getData(KEYS.menu))        setData(KEYS.menu,        DEFAULT_MENU);
+}
+
+// ══════════════════════════════════════════
+// SESSION
+// ══════════════════════════════════════════
+function loadSession() {
+  try {
+    const s = JSON.parse(sessionStorage.getItem('impexio') || '{}');
+    const av = document.getElementById('amAv');
+    const un = document.getElementById('amUname');
+    const rl = document.getElementById('amRole');
+    if (av && s.username) av.textContent = s.username[0].toUpperCase();
+    if (un && s.username) un.textContent = s.username;
+    if (rl && s.role)     rl.textContent = s.role;
+    // Only Administrator can access admin master
+    if (s.role && s.role !== 'Administrator') {
+      document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:Outfit,sans-serif;flex-direction:column;gap:1rem;"><div style="font-size:3rem;">🚫</div><div style="font-size:1.2rem;font-weight:700;color:#0f2540;">Access Denied</div><div style="color:#6b7fa3;">Only Administrators can access this page.</div><a href="../main.html" style="color:#2a5298;font-weight:600;">← Back to Main Menu</a></div>';
+    }
+  } catch(e) {}
+}
+
+// ══════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════
+const PANEL_TITLES = {
+  company:'Company Details', users:'User Details',
+  permissions:'User Permissions', years:'Year Master', menu:'Menu Selection'
+};
+
+function showPanel(name) {
+  document.querySelectorAll('.am-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.am-nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  document.getElementById('panelTitle').textContent = PANEL_TITLES[name];
+  // close sidebar on mobile
+  const sb = document.getElementById('amSidebar');
+  if (window.innerWidth <= 900) { sb.classList.remove('open'); document.getElementById('sidebarOverlay').style.display='none'; }
+  // render panel
+  if (name === 'company')     renderCompanies();
+  if (name === 'users')       renderUsers();
+  if (name === 'permissions') renderPermissions('Administrator');
+  if (name === 'years')       renderYears();
+  if (name === 'menu')        renderMenu();
+}
+
+function toggleSidebar() {
+  const sb = document.getElementById('amSidebar');
+  const ov = document.getElementById('sidebarOverlay');
+  const open = sb.classList.toggle('open');
+  ov.style.display = open ? 'block' : 'none';
+}
+
+// ══════════════════════════════════════════
+// MODALS
+// ══════════════════════════════════════════
+function openModal(name) {
+  document.getElementById('modal-' + name).classList.add('open');
+  if (name === 'addUser') populateUserCompanySelect();
+}
+function closeModal(name) {
+  document.getElementById('modal-' + name).classList.remove('open');
+  clearForm(name);
+}
+function clearForm(name) {
+  if (name === 'addCompany') {
+    ['cmp-name','cmp-addr1','cmp-addr2','cmp-city','cmp-state','cmp-contact1','cmp-contact2','cmp-gst'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+    document.getElementById('editCompanyId').value = '';
+    document.getElementById('compModalTitle').textContent = '🏢 Add New Company';
+  }
+  if (name === 'addUser') {
+    ['usr-name','usr-username','usr-password','usr-email'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+    document.getElementById('editUserId').value = '';
+    document.getElementById('userModalTitle').textContent = '👤 Add New User';
+  }
+}
+
+// ══════════════════════════════════════════
+// COMPANIES
+// ══════════════════════════════════════════
+function renderCompanies() {
+  const companies = getData(KEYS.companies) || [];
+  const list = document.getElementById('companyList');
+  if (!companies.length) { list.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-soft);">No companies added yet. Click "+ Add Company" to begin.</div>'; return; }
+  list.innerHTML = companies.map((c, i) => `
+    <div class="company-item ${i===0?'active-company':''}">
+      <div style="display:flex;align-items:flex-start;gap:1rem;flex:1;">
+        <div class="ci-badge">${c.name[0]}</div>
+        <div style="flex:1;">
+          <div class="ci-name">${c.name}</div>
+          <div class="ci-meta">${c.addr1}${c.addr2?', '+c.addr2:''}, ${c.city||''}, ${c.state||''}</div>
+          <div class="ci-tags">
+            ${c.gst?`<span class="ci-tag">GST: ${c.gst}</span>`:''}
+            ${c.contact1?`<span class="ci-tag">📞 ${c.contact1}</span>`:''}
+            ${c.contact2?`<span class="ci-tag">📧 ${c.contact2}</span>`:''}
+            <span class="ci-tag">${c.version||'v1.0'}</span>
+          </div>
+        </div>
+      </div>
+      <div class="ci-actions">
+        <button class="am-btn am-btn-ghost am-btn-sm" onclick="editCompany('${c.id}')">✏️ Edit</button>
+        <button class="am-btn am-btn-danger am-btn-sm" onclick="deleteCompany('${c.id}')">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+
+function saveCompany() {
+  const name = document.getElementById('cmp-name').value.trim();
+  if (!name) { showToast('Company name is required!', true); return; }
+  const companies = getData(KEYS.companies) || [];
+  const editId = document.getElementById('editCompanyId').value;
+  const obj = {
+    id: editId || 'C' + Date.now(),
+    name, addr1: document.getElementById('cmp-addr1').value.trim(),
+    addr2: document.getElementById('cmp-addr2').value.trim(),
+    city:  document.getElementById('cmp-city').value.trim(),
+    state: document.getElementById('cmp-state').value.trim(),
+    contact1: document.getElementById('cmp-contact1').value.trim(),
+    contact2: document.getElementById('cmp-contact2').value.trim(),
+    gst:     document.getElementById('cmp-gst').value.trim(),
+    version: document.getElementById('cmp-version').value
+  };
+  if (editId) {
+    const idx = companies.findIndex(c => c.id === editId);
+    if (idx >= 0) companies[idx] = obj;
+  } else {
+    companies.push(obj);
+  }
+  setData(KEYS.companies, companies);
+  closeModal('addCompany');
+  renderCompanies();
+  showToast(editId ? 'Company updated!' : 'Company added!');
+}
+
+function editCompany(id) {
+  const companies = getData(KEYS.companies) || [];
+  const c = companies.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('editCompanyId').value = c.id;
+  document.getElementById('cmp-name').value     = c.name || '';
+  document.getElementById('cmp-addr1').value    = c.addr1 || '';
+  document.getElementById('cmp-addr2').value    = c.addr2 || '';
+  document.getElementById('cmp-city').value     = c.city || '';
+  document.getElementById('cmp-state').value    = c.state || '';
+  document.getElementById('cmp-contact1').value = c.contact1 || '';
+  document.getElementById('cmp-contact2').value = c.contact2 || '';
+  document.getElementById('cmp-gst').value      = c.gst || '';
+  document.getElementById('cmp-version').value  = c.version || 'v1.0 Professional';
+  document.getElementById('compModalTitle').textContent = '✏️ Edit Company';
+  openModal('addCompany');
+}
+
+function deleteCompany(id) {
+  if (!confirm('Delete this company? This cannot be undone.')) return;
+  const companies = (getData(KEYS.companies) || []).filter(c => c.id !== id);
+  setData(KEYS.companies, companies);
+  renderCompanies();
+  showToast('Company deleted.');
+}
+
+// ══════════════════════════════════════════
+// USERS
+// ══════════════════════════════════════════
+const ROLE_COLORS = { Administrator:'role-administrator', Admin:'role-admin', Manager:'role-manager', User:'role-user' };
+const ROLE_ICONS  = { Administrator:'👑', Admin:'🔑', Manager:'📊', User:'👥' };
+
+function renderUsers() {
+  const users = getData(KEYS.users) || [];
+  const companies = getData(KEYS.companies) || [];
+  const tbody = document.getElementById('usersTableBody');
+  if (!users.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text-soft);">No users found.</td></tr>'; return; }
+  tbody.innerHTML = users.map((u, i) => {
+    const comp = companies.find(c => c.id === u.company);
+    return `<tr>
+      <td>${i+1}</td>
+      <td><div style="font-weight:600;">${u.name}</div><div style="font-size:0.72rem;color:var(--text-soft);">${u.email||''}</div></td>
+      <td><code style="background:var(--ivory2);padding:0.2rem 0.5rem;border-radius:4px;font-size:0.8rem;">${u.username}</code></td>
+      <td><span class="role-badge ${ROLE_COLORS[u.role]||'role-user'}">${ROLE_ICONS[u.role]||'👥'} ${u.role}</span></td>
+      <td>${comp ? comp.name.split(' ').slice(0,3).join(' ') : '—'}</td>
+      <td><span class="status-badge ${u.status==='Active'?'status-active':'status-inactive'}"></span> ${u.status}</td>
+      <td style="display:flex;gap:0.4rem;">
+        <button class="am-btn am-btn-ghost am-btn-sm" onclick="editUser('${u.id}')">✏️</button>
+        <button class="am-btn am-btn-danger am-btn-sm" onclick="deleteUser('${u.id}')">🗑️</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function populateUserCompanySelect() {
+  const companies = getData(KEYS.companies) || [];
+  const sel = document.getElementById('usr-company');
+  sel.innerHTML = companies.map(c => `<option value="${c.id}">${c.name.split(' ').slice(0,4).join(' ')}</option>`).join('');
+}
+
+function saveUser() {
+  const name = document.getElementById('usr-name').value.trim();
+  const username = document.getElementById('usr-username').value.trim();
+  const password = document.getElementById('usr-password').value.trim();
+  if (!name || !username) { showToast('Name and Username are required!', true); return; }
+  const users = getData(KEYS.users) || [];
+  const editId = document.getElementById('editUserId').value;
+  if (!editId && users.find(u => u.username === username)) { showToast('Username already exists!', true); return; }
+  const obj = {
+    id: editId || 'U' + Date.now(),
+    name, username,
+    password: password || (users.find(u=>u.id===editId)?.password || 'User@123'),
+    role:    document.getElementById('usr-role').value,
+    company: document.getElementById('usr-company').value,
+    status:  document.getElementById('usr-status').value,
+    email:   document.getElementById('usr-email').value.trim()
+  };
+  if (editId) {
+    const idx = users.findIndex(u => u.id === editId);
+    if (idx >= 0) users[idx] = obj;
+  } else { users.push(obj); }
+  setData(KEYS.users, users);
+  closeModal('addUser');
+  renderUsers();
+  showToast(editId ? 'User updated!' : 'User added!');
+}
+
+function editUser(id) {
+  const users = getData(KEYS.users) || [];
+  const u = users.find(x => x.id === id);
+  if (!u) return;
+  populateUserCompanySelect();
+  document.getElementById('editUserId').value  = u.id;
+  document.getElementById('usr-name').value     = u.name || '';
+  document.getElementById('usr-username').value = u.username || '';
+  document.getElementById('usr-password').value = '';
+  document.getElementById('usr-role').value     = u.role || 'User';
+  document.getElementById('usr-company').value  = u.company || '';
+  document.getElementById('usr-status').value   = u.status || 'Active';
+  document.getElementById('usr-email').value    = u.email || '';
+  document.getElementById('userModalTitle').textContent = '✏️ Edit User';
+  openModal('addUser');
+}
+
+function deleteUser(id) {
+  const users = getData(KEYS.users) || [];
+  const u = users.find(x => x.id === id);
+  if (u && u.role === 'Administrator') { showToast('Cannot delete Administrator!', true); return; }
+  if (!confirm('Delete this user?')) return;
+  setData(KEYS.users, users.filter(x => x.id !== id));
+  renderUsers();
+  showToast('User deleted.');
+}
+
+// ══════════════════════════════════════════
+// PERMISSIONS
+// ══════════════════════════════════════════
+let currentPermRole = 'Administrator';
+
+function showPermRole(role, btn) {
+  currentPermRole = role;
+  document.querySelectorAll('.perm-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderPermissions(role);
+}
+
+function renderPermissions(role) {
+  const perms = getData(KEYS.permissions) || DEFAULT_PERMISSIONS;
+  const rolePerms = perms[role] || { export:[], import:[], exim:[] };
+  const titles = { Administrator:'👑 Administrator — Full System Access', Admin:'🔑 Admin — Senior Access', Manager:'📊 Manager — Department Access', User:'👥 User — Basic Access' };
+  document.getElementById('permCardTitle').textContent = titles[role] || role;
+  const isAdmin = role === 'Administrator';
+
+  const sections = [
+    { key:'export', label:'📦 Export Modules', color:'var(--navy)', modules: ALL_MODULES.export },
+    { key:'import', label:'🚢 Import Modules', color:'#0f5c52',     modules: ALL_MODULES.import },
+    { key:'exim',   label:'🌐 EXIM Marketing', color:'#2a5298',     modules: ALL_MODULES.exim }
+  ];
+
+  document.getElementById('permCardBody').innerHTML = sections.map(sec => `
+    <div class="perm-section">
+      <div class="perm-section-title">${sec.label}</div>
+      <div class="perm-grid">
+        ${sec.modules.map(mod => {
+          const checked = rolePerms[sec.key] && rolePerms[sec.key].includes(mod.id);
+          const disabled = isAdmin ? 'disabled' : '';
+          return `<div class="perm-item">
+            <div class="perm-item-name">${mod.icon} ${mod.name}</div>
+            <label class="toggle-switch">
+              <input type="checkbox" ${checked?'checked':''} ${disabled} onchange="togglePerm('${role}','${sec.key}','${mod.id}',this.checked)"/>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`).join('') + (isAdmin ? '<div style="background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.3);border-radius:8px;padding:0.75rem 1rem;font-size:0.8rem;color:#7a5c10;"><strong>Note:</strong> Administrator always has full access to all modules and cannot be restricted.</div>' : '');
+}
+
+function togglePerm(role, section, moduleId, checked) {
+  const perms = getData(KEYS.permissions) || DEFAULT_PERMISSIONS;
+  if (!perms[role]) perms[role] = { export:[], import:[], exim:[] };
+  if (!perms[role][section]) perms[role][section] = [];
+  if (checked) {
+    if (!perms[role][section].includes(moduleId)) perms[role][section].push(moduleId);
+  } else {
+    perms[role][section] = perms[role][section].filter(m => m !== moduleId);
+  }
+  setData(KEYS.permissions, perms);
+  showToast('Permission updated!');
+}
+
+// ══════════════════════════════════════════
+// YEARS
+// ══════════════════════════════════════════
+function renderYears() {
+  const years = getData(KEYS.years) || DEFAULT_YEARS;
+  document.getElementById('yearGrid').innerHTML = years.map(y => `
+    <div class="year-card ${y.current?'selected':''}" onclick="setCurrentYear('${y.id}')">
+      <div class="year-card-check">✓</div>
+      <div class="year-label">FY ${y.label}</div>
+      <div class="year-range">📅 ${y.start} — ${y.end}</div>
+      <div class="year-status ${y.current?'current':'previous'}">${y.current?'✅ Current Year':'⏳ Previous Year'}</div>
+      <div style="display:flex;gap:0.4rem;margin-top:0.75rem;">
+        <button class="am-btn am-btn-danger am-btn-sm" onclick="event.stopPropagation();deleteYear('${y.id}')">🗑️ Remove</button>
+      </div>
+    </div>`).join('');
+}
+
+function setCurrentYear(id) {
+  const years = getData(KEYS.years) || [];
+  years.forEach(y => y.current = (y.id === id));
+  setData(KEYS.years, years);
+  renderYears();
+  showToast('Active year updated!');
+}
+
+function saveYear() {
+  const label = document.getElementById('yr-label').value.trim();
+  const start = document.getElementById('yr-start').value.trim();
+  const end   = document.getElementById('yr-end').value.trim();
+  if (!label || !start || !end) { showToast('All year fields are required!', true); return; }
+  const years = getData(KEYS.years) || [];
+  years.push({ id:'Y'+Date.now(), label, start, end, current:false });
+  setData(KEYS.years, years);
+  closeModal('addYear');
+  renderYears();
+  showToast('Year added!');
+}
+
+function deleteYear(id) {
+  const years = getData(KEYS.years) || [];
+  const y = years.find(x => x.id === id);
+  if (y && y.current) { showToast('Cannot delete the active year!', true); return; }
+  if (!confirm('Remove this year?')) return;
+  setData(KEYS.years, years.filter(x => x.id !== id));
+  renderYears();
+  showToast('Year removed.');
+}
+
+// ══════════════════════════════════════════
+// MENU SELECTION
+// ══════════════════════════════════════════
+function renderMenu() {
+  const menuSel = getData(KEYS.menu) || DEFAULT_MENU;
+  const sections = [
+    { key:'export', label:'📦 Export Modules', cls:'export', modules: ALL_MODULES.export },
+    { key:'import', label:'🚢 Import Modules', cls:'import', modules: ALL_MODULES.import },
+    { key:'exim',   label:'🌐 EXIM Marketing', cls:'exim',   modules: ALL_MODULES.exim }
+  ];
+  document.getElementById('menuSelGrid').innerHTML = sections.map(sec => `
+    <div class="menu-sel-card">
+      <div class="menu-sel-head ${sec.cls}">
+        <div class="menu-sel-title">${sec.label}</div>
+        <label class="toggle-switch" title="Enable/Disable entire section">
+          <input type="checkbox" checked onchange="toggleSection('${sec.key}',this.checked)" id="sec-toggle-${sec.key}"/>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="menu-sel-items">
+        ${sec.modules.map(mod => {
+          const en = menuSel[sec.key] && menuSel[sec.key].includes(mod.id);
+          return `<div class="menu-sel-item">
+            <div class="menu-sel-item-name">${mod.icon} ${mod.name}</div>
+            <label class="toggle-switch">
+              <input type="checkbox" ${en?'checked':''} id="menu-${mod.id}" onchange="toggleMenuItem('${sec.key}','${mod.id}',this.checked)"/>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function toggleSection(sectionKey, enabled) {
+  const menuSel = getData(KEYS.menu) || DEFAULT_MENU;
+  if (enabled) {
+    menuSel[sectionKey] = ALL_MODULES[sectionKey].map(m => m.id);
+  } else {
+    menuSel[sectionKey] = [];
+    ALL_MODULES[sectionKey].forEach(mod => {
+      const el = document.getElementById('menu-' + mod.id);
+      if (el) el.checked = false;
+    });
+  }
+  setData(KEYS.menu, menuSel);
+}
+
+function toggleMenuItem(sectionKey, moduleId, enabled) {
+  const menuSel = getData(KEYS.menu) || DEFAULT_MENU;
+  if (!menuSel[sectionKey]) menuSel[sectionKey] = [];
+  if (enabled) { if (!menuSel[sectionKey].includes(moduleId)) menuSel[sectionKey].push(moduleId); }
+  else { menuSel[sectionKey] = menuSel[sectionKey].filter(m => m !== moduleId); }
+  setData(KEYS.menu, menuSel);
+}
+
+function saveMenuSel() { showToast('Menu settings saved!'); }
+function resetMenuSel() { setData(KEYS.menu, DEFAULT_MENU); renderMenu(); showToast('Menu reset to defaults.'); }
+
+// ══════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════
+function showToast(msg, isError) {
+  const t = document.getElementById('amToast');
+  const m = document.getElementById('amToastMsg');
+  m.textContent = msg;
+  t.style.borderLeftColor = isError ? '#dc2626' : 'var(--gold)';
+  t.innerHTML = (isError ? '❌ ' : '✅ ') + '<span>' + msg + '</span>';
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  initData();
+  loadSession();
+  renderCompanies();
+});
+</script>
+</body>
+</html>

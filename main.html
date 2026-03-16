@@ -86,7 +86,7 @@
   </div>
   <div class="dtb-meta" id="dtbMeta"></div>
   <div class="dtb-right">
-    <div class="dtb-user">
+    <div class="dtb-user" onclick="goToAdmin()" title="Click to open Admin Master" style="cursor:pointer;">
       <div class="dtb-avatar" id="dtbAv">A</div>
       <div>
         <div class="dtb-uname" id="dtbUname">Admin</div>
@@ -264,6 +264,14 @@ function openMod(name) {
   t.classList.add('show');
   clearTimeout(t._t);
   t._t=setTimeout(()=>t.classList.remove('show'),3000);
+}
+function goToAdmin() {
+  var s = JSON.parse(sessionStorage.getItem('impexio') || '{}');
+  if (s.role !== 'Administrator') {
+    alert('Access Denied. Only Administrators can access Admin Master.');
+    return;
+  }
+  window.location.href = 'login-master/admin-master.html';
 }
 function doLogout() {
   if(confirm('Logout from IMPEXIO?')){ sessionStorage.removeItem('impexio'); window.location.href='index.html'; }
