@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IMPEXIO — Export Costing Module</title>
+  <link rel="stylesheet" href="../styles.css"/>
+  <link rel="icon" href="../impexio_logo.png" type="image/png"/>
+  <style>
+    .info-page { padding-top: var(--nav-h); }
+
+    /* HERO */
+    .mod-hero {
+      background: linear-gradient(135deg, #0f2540 0%, #1a3a5c 45%, #2a5298 100%);
+      padding: 5rem 2.5rem 4rem; position: relative; overflow: hidden;
+    }
+    .mod-hero::before { content:''; position:absolute; top:-80px; right:-80px; width:420px; height:420px; background:radial-gradient(circle,rgba(201,168,76,0.14) 0%,transparent 65%); border-radius:50%; filter:blur(50px); pointer-events:none; }
+    .mod-hero::after  { content:''; position:absolute; bottom:-60px; left:10%; width:300px; height:300px; background:radial-gradient(circle,rgba(42,82,152,0.2) 0%,transparent 65%); border-radius:50%; filter:blur(40px); pointer-events:none; }
+
+    .mod-hero-inner { max-width:1100px; margin:0 auto; display:grid; grid-template-columns:1fr 420px; align-items:center; gap:4rem; position:relative; z-index:2; }
+    .mod-hero-badge { display:inline-flex; align-items:center; gap:0.5rem; background:rgba(201,168,76,0.15); border:1px solid rgba(201,168,76,0.3); border-radius:50px; padding:0.35rem 1rem; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:var(--gold-light); margin-bottom:1.5rem; }
+    .mod-hero-title { font-family:var(--font-display); font-size:clamp(2.2rem,4vw,3.5rem); font-weight:700; color:#fff; line-height:1.15; margin-bottom:1.2rem; }
+    .mod-hero-title span { color:var(--gold-light); font-style:italic; }
+    .mod-hero-desc { font-size:1.05rem; color:rgba(255,255,255,0.72); line-height:1.75; margin-bottom:2.2rem; max-width:500px; }
+    .mod-hero-btns { display:flex; gap:1rem; flex-wrap:wrap; }
+    .btn-hero-primary { display:inline-flex; align-items:center; gap:0.5rem; padding:0.85rem 2rem; background:var(--gold); color:var(--navy); border-radius:50px; font-size:0.95rem; font-weight:700; box-shadow:0 6px 24px rgba(201,168,76,0.35); transition:all 0.28s; border:none; cursor:pointer; }
+    .btn-hero-primary:hover { background:var(--gold-light); transform:translateY(-3px); }
+    .btn-hero-ghost { display:inline-flex; align-items:center; gap:0.5rem; padding:0.85rem 2rem; border:1.5px solid rgba(255,255,255,0.25); border-radius:50px; font-size:0.95rem; font-weight:600; color:rgba(255,255,255,0.85); transition:all 0.28s; cursor:pointer; background:none; }
+    .btn-hero-ghost:hover { border-color:#fff; color:#fff; }
+    .mod-hero-stats { display:flex; gap:2.5rem; margin-top:2.5rem; padding-top:2rem; border-top:1px solid rgba(255,255,255,0.1); }
+    .mhs-val { font-family:var(--font-display); font-size:1.8rem; font-weight:700; color:var(--gold-light); }
+    .mhs-lbl { font-size:0.72rem; color:rgba(255,255,255,0.45); text-transform:uppercase; letter-spacing:0.08em; margin-top:0.1rem; }
+
+    /* Hero Visual — costing sheet preview */
+    .mod-hero-visual { background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:20px; padding:1.4rem; backdrop-filter:blur(10px); }
+    .ec-hdr { background:rgba(15,37,64,0.6); border-radius:10px; padding:0.75rem 1rem; margin-bottom:1rem; text-align:center; }
+    .ec-hdr-title { font-family:var(--font-display); font-size:0.95rem; font-weight:700; color:#fff; letter-spacing:0.06em; }
+    .ec-hdr-sub   { font-size:0.6rem; color:rgba(255,255,255,0.45); margin-top:0.1rem; }
+    .ec-sheet-lbl { background:var(--gold); color:var(--navy); text-align:center; font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; padding:0.28rem; border-radius:4px; margin-bottom:0.7rem; }
+    .ec-tbl { width:100%; border-collapse:collapse; font-size:0.68rem; }
+    .ec-tbl th { background:rgba(15,37,64,0.8); color:rgba(255,255,255,0.7); padding:0.3rem 0.4rem; text-align:center; font-size:0.55rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; }
+    .ec-tbl th:first-child { text-align:left; min-width:110px; }
+    .ec-tbl td { padding:0.28rem 0.4rem; color:rgba(255,255,255,0.7); text-align:center; border-bottom:1px solid rgba(255,255,255,0.05); font-family:var(--font-mono); font-size:0.65rem; }
+    .ec-tbl td:first-child { text-align:left; font-family:var(--font-body); font-size:0.67rem; color:rgba(255,255,255,0.8); }
+    .ec-tbl tr.sec-row td { background:rgba(42,82,152,0.35); color:var(--gold-light); font-weight:700; font-size:0.6rem; text-transform:uppercase; letter-spacing:0.07em; }
+    .ec-tbl tr.tot-row td { background:rgba(15,37,64,0.8); color:#fff; font-weight:700; }
+    .ec-tbl tr.fob-row td { background:rgba(26,58,92,0.7); color:#fff; font-weight:700; }
+    .ec-tbl tr.cif-row td { background:rgba(201,168,76,0.3); color:var(--gold-light); font-weight:700; }
+
+    /* BREADCRUMB */
+    .mod-breadcrumb { background:var(--white); border-bottom:1px solid var(--border); padding:0.7rem 2.5rem; }
+    .mod-breadcrumb-inner { max-width:1100px; margin:0 auto; display:flex; align-items:center; gap:0.5rem; font-size:0.78rem; color:var(--text-soft); }
+    .mod-breadcrumb a { color:var(--navy-light); font-weight:600; cursor:pointer; }
+    .mod-breadcrumb a:hover { text-decoration:underline; }
+    .mod-breadcrumb-sep { color:var(--border); }
+
+    /* SECTION NAV */
+    .mod-nav-bar { background:var(--white); border-bottom:1px solid var(--border); position:sticky; top:var(--nav-h); z-index:90; }
+    .mod-nav-bar-inner { max-width:1100px; margin:0 auto; display:flex; align-items:center; padding:0 2.5rem; }
+    .mod-nav-link { padding:0.9rem 1.1rem; font-size:0.82rem; font-weight:600; color:var(--text-soft); border-bottom:2px solid transparent; cursor:pointer; transition:var(--transition); white-space:nowrap; }
+    .mod-nav-link:hover { color:var(--navy); }
+    .mod-nav-link.active { color:var(--navy); border-bottom-color:var(--gold); }
+
+    /* SECTIONS */
+    .info-section { padding:5rem 2.5rem; }
+    .info-section-inner { max-width:1100px; margin:0 auto; }
+    .info-section.alt { background:var(--ivory2); }
+    .info-kicker { display:inline-flex; align-items:center; gap:0.5rem; font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.14em; color:var(--navy-light); margin-bottom:0.85rem; }
+    .info-kicker-bar { width:24px; height:2px; background:var(--gold); border-radius:2px; }
+    .info-heading { font-family:var(--font-display); font-size:clamp(1.7rem,3vw,2.4rem); font-weight:700; color:var(--navy); line-height:1.2; margin-bottom:0.85rem; }
+    .info-sub { font-size:0.97rem; color:var(--text-mid); line-height:1.75; max-width:560px; margin-bottom:3rem; }
+
+    /* WHAT IS */
+    .what-grid { display:grid; grid-template-columns:1fr 1fr; gap:3rem; align-items:center; }
+    .what-text p { font-size:0.95rem; color:var(--text-mid); line-height:1.8; margin-bottom:1rem; }
+    .what-text p:last-child { margin-bottom:0; }
+    .what-highlight { background:var(--navy); border-radius:var(--radius-lg); padding:2rem; color:#fff; position:relative; overflow:hidden; }
+    .what-highlight::before { content:'🧮'; position:absolute; bottom:-10px; right:10px; font-size:5rem; opacity:0.08; }
+    .wh-title { font-family:var(--font-display); font-size:1.1rem; font-weight:700; color:var(--gold-light); margin-bottom:1rem; }
+    .wh-stat { display:flex; align-items:center; gap:0.75rem; padding:0.6rem 0; border-bottom:1px solid rgba(255,255,255,0.08); }
+    .wh-stat:last-child { border-bottom:none; }
+    .wh-stat-icon { font-size:1.1rem; }
+    .wh-stat-txt  { font-size:0.84rem; color:rgba(255,255,255,0.8); }
+    .wh-stat-val  { font-family:var(--font-mono); font-size:0.82rem; font-weight:700; color:var(--gold-light); margin-left:auto; }
+
+    /* COST SECTIONS */
+    .cost-sections { display:grid; grid-template-columns:repeat(2,1fr); gap:1.25rem; }
+    .cost-section-card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; transition:var(--transition); }
+    .cost-section-card:hover { box-shadow:var(--shadow-md); transform:translateY(-3px); }
+    .cs-header { padding:0.85rem 1.25rem; display:flex; align-items:center; gap:0.75rem; }
+    .cs-header.navy { background:var(--navy); color:#fff; }
+    .cs-header.teal { background:#0f5c52; color:#fff; }
+    .cs-header.gold { background:var(--gold); color:var(--navy); }
+    .cs-header.mid  { background:#1a3a5c; color:#fff; }
+    .cs-icon  { font-size:1.3rem; }
+    .cs-title { font-weight:700; font-size:0.9rem; }
+    .cs-sub   { font-size:0.65rem; opacity:0.7; }
+    .cs-items { padding:0.75rem 1.25rem; display:flex; flex-direction:column; gap:0.35rem; }
+    .cs-item  { display:flex; align-items:center; gap:0.5rem; font-size:0.8rem; color:var(--text-mid); }
+    .cs-item::before { content:'→'; color:var(--navy); font-weight:700; flex-shrink:0; }
+    .cs-item.auto { color:var(--navy); font-weight:600; }
+    .cs-item.auto::before { content:'⚡'; }
+
+    /* STEPS */
+    .steps-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; position:relative; }
+    .steps-grid::before { content:''; position:absolute; top:28px; left:8%; right:8%; height:2px; background:linear-gradient(90deg,var(--navy),var(--gold),var(--navy)); z-index:0; }
+    .step-card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius-lg); padding:1.75rem 1.25rem; text-align:center; position:relative; z-index:1; transition:var(--transition); }
+    .step-card:hover { transform:translateY(-6px); box-shadow:var(--shadow-lg); border-color:rgba(201,168,76,0.4); }
+    .step-num { width:52px; height:52px; border-radius:50%; background:var(--navy); color:#fff; display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-size:1.1rem; font-weight:700; margin:0 auto 1.1rem; border:3px solid var(--gold); box-shadow:0 4px 14px rgba(15,37,64,0.2); }
+    .step-icon  { font-size:1.6rem; margin-bottom:0.65rem; }
+    .step-title { font-family:var(--font-display); font-size:1rem; font-weight:700; color:var(--navy); margin-bottom:0.5rem; }
+    .step-desc  { font-size:0.82rem; color:var(--text-mid); line-height:1.65; }
+
+    /* FEATURES */
+    .features-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.25rem; }
+    .feat-box { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); padding:1.5rem; transition:var(--transition); position:relative; overflow:hidden; }
+    .feat-box::after { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,var(--navy),var(--gold)); transform:scaleX(0); transform-origin:left; transition:transform 0.3s; }
+    .feat-box:hover { transform:translateY(-4px); box-shadow:var(--shadow-md); }
+    .feat-box:hover::after { transform:scaleX(1); }
+    .feat-box-icon  { font-size:1.75rem; margin-bottom:0.75rem; }
+    .feat-box-title { font-family:var(--font-display); font-size:1.05rem; font-weight:700; color:var(--navy); margin-bottom:0.45rem; }
+    .feat-box-desc  { font-size:0.83rem; color:var(--text-mid); line-height:1.65; }
+
+    /* USE CASES */
+    .usecases-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:1.25rem; }
+    .usecase-card { display:flex; align-items:flex-start; gap:1rem; background:var(--white); border:1px solid var(--border); border-radius:var(--radius); padding:1.35rem 1.5rem; transition:var(--transition); }
+    .usecase-card:hover { border-color:var(--navy-light); box-shadow:var(--shadow-sm); }
+    .uc-icon  { width:44px; height:44px; border-radius:12px; background:var(--navy); display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0; }
+    .uc-title { font-weight:700; font-size:0.92rem; color:var(--navy); margin-bottom:0.3rem; }
+    .uc-desc  { font-size:0.8rem; color:var(--text-mid); line-height:1.6; }
+
+    /* CTA */
+    .cta-banner { background:linear-gradient(135deg,var(--navy) 0%,#1a3a5c 50%,#2a5298 100%); border-radius:var(--radius-xl); padding:3.5rem; text-align:center; position:relative; overflow:hidden; }
+    .cta-banner::before { content:''; position:absolute; top:-60px; right:-60px; width:300px; height:300px; background:rgba(201,168,76,0.1); border-radius:50%; filter:blur(50px); }
+    .cta-banner::after  { content:''; position:absolute; bottom:-50px; left:-50px; width:250px; height:250px; background:rgba(255,255,255,0.04); border-radius:50%; filter:blur(40px); }
+    .cta-inner { position:relative; z-index:2; }
+    .cta-icon  { font-size:2.8rem; margin-bottom:1rem; }
+    .cta-title { font-family:var(--font-display); font-size:clamp(1.6rem,3vw,2.4rem); font-weight:700; color:#fff; margin-bottom:0.75rem; }
+    .cta-sub   { font-size:1rem; color:rgba(255,255,255,0.65); margin-bottom:2.2rem; max-width:480px; margin-left:auto; margin-right:auto; line-height:1.7; }
+    .cta-btns  { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; }
+    .btn-cta-primary { display:inline-flex; align-items:center; gap:0.5rem; padding:1rem 2.5rem; background:var(--gold); color:var(--navy); border-radius:50px; font-size:1rem; font-weight:700; box-shadow:0 6px 24px rgba(201,168,76,0.4); transition:all 0.28s; border:none; cursor:pointer; }
+    .btn-cta-primary:hover { background:var(--gold-light); transform:translateY(-3px); }
+    .btn-cta-ghost { display:inline-flex; align-items:center; gap:0.5rem; padding:1rem 2.5rem; border:1.5px solid rgba(255,255,255,0.3); border-radius:50px; font-size:1rem; font-weight:600; color:rgba(255,255,255,0.85); transition:all 0.28s; cursor:pointer; background:none; }
+    .btn-cta-ghost:hover { border-color:#fff; color:#fff; }
+
+    /* Responsive */
+    @media (max-width:900px) {
+      .mod-hero-inner { grid-template-columns:1fr; }
+      .mod-hero-visual { display:none; }
+      .what-grid,.cost-sections { grid-template-columns:1fr; }
+      .steps-grid { grid-template-columns:repeat(2,1fr); }
+      .steps-grid::before { display:none; }
+      .features-grid,.formula-grid { grid-template-columns:repeat(2,1fr); }
+      .usecases-grid { grid-template-columns:1fr; }
+      .mod-hero,.info-section { padding:3rem 1.5rem; }
+      .cta-banner { padding:2.5rem 1.5rem; }
+    }
+    @media (max-width:640px) {
+      .steps-grid,.features-grid,.formula-grid { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body class="info-page">
+
+<!-- NAVBAR -->
+<nav class="navbar" id="navbar">
+  <a href="../index.html" class="nav-brand">
+    <div class="nav-logo-wrap"><img src="../impexio_logo.png" alt="IMPEXIO" class="nav-logo"/></div>
+    <div>
+      <div class="nav-brand-name">IMPEXIO</div>
+      <div class="nav-brand-sub">Trade Document Suite</div>
+    </div>
+  </a>
+  <ul class="nav-menu">
+    <li class="nav-item"><span class="nav-link" onclick="window.location.href='../index.html'">🏠 HOME</span></li>
+    <li class="nav-item" id="ni-export">
+      <span class="nav-link" onclick="toggleDD('ni-export',event)">📦 EXPORT <span class="nav-chevron">▾</span></span>
+      <div class="nav-dropdown">
+        <div class="dd-label">Export Modules</div>
+        <div class="dd-item" onclick="window.location.href='cbm-info.html'"><div class="dd-icon">📐</div>CBM Calculation</div>
+        <div class="dd-item" onclick="window.location.href='fob-info.html'"><div class="dd-icon">💰</div>Container Expenses FOB</div>
+        <div class="dd-item" onclick="window.location.href='ec-info.html'"><div class="dd-icon">🧮</div>Export Costing</div>
+        <div class="dd-item" onclick="window.location.href='../login.html'"><div class="dd-icon">📊</div>Export Costing 2</div>
+        <div class="dd-item" onclick="window.location.href='../login.html'"><div class="dd-icon">🔍</div>Export Data Filter Format</div>
+        <div class="dd-item" onclick="window.location.href='pi-info.html'"><div class="dd-icon">📄</div>Export Proforma Invoice</div>
+        <div class="dd-item" onclick="window.location.href='eq-info.html'"><div class="dd-icon">📋</div>Export Quotation</div>
+        <div class="dd-item" onclick="window.location.href='sci-info.html'"><div class="dd-icon">✈️</div>Export Sample Courier Invoice</div>
+      </div>
+    </li>
+    <li class="nav-item" id="ni-import">
+      <span class="nav-link" onclick="toggleDD('ni-import',event)">🚢 IMPORT <span class="nav-chevron">▾</span></span>
+      <div class="nav-dropdown">
+        <div class="dd-label">Import Modules</div>
+        <div class="dd-item" onclick="window.location.href='../login.html'"><div class="dd-icon">📩</div>Import Letter For Inquiry</div>
+        <div class="dd-item" onclick="window.location.href='../login.html'"><div class="dd-icon">🛒</div>Import Purchase Order</div>
+      </div>
+    </li>
+    <li class="nav-item" id="ni-exim">
+      <span class="nav-link" onclick="toggleDD('ni-exim',event)">🌐 EXIM MARKETING <span class="nav-chevron">▾</span></span>
+      <div class="nav-dropdown">
+        <div class="dd-label">Marketing Modules</div>
+        <div class="dd-item" onclick="window.location.href='../login.html'"><div class="dd-icon">📈</div>Export Follow Up Mail</div>
+        <div class="dd-item" onclick="window.location.href='../login.html'"><div class="dd-icon">🎯</div>Export Marketing</div>
+      </div>
+    </li>
+  </ul>
+  <div class="nav-auth">
+    <button class="btn-nav-login" onclick="window.location.href='../login.html'">🔐 Login</button>
+    <div class="hamburger" id="ham" onclick="toggleMob()"><span></span><span></span><span></span></div>
+  </div>
+</nav>
+
+<!-- MOBILE NAV -->
+<div class="nav-mobile" id="navMob">
+  <div class="mob-link" onclick="window.location.href='../index.html'">🏠 HOME</div>
+  <div class="mob-link" onclick="toggleMobDD('mdd-export')">📦 EXPORT <span>▾</span></div>
+  <div class="mob-drop" id="mdd-export">
+    <div class="mob-dd-item" onclick="window.location.href='cbm-info.html'">📐 CBM Calculation</div>
+    <div class="mob-dd-item" onclick="window.location.href='fob-info.html'">💰 Container Expenses FOB</div>
+    <div class="mob-dd-item" onclick="window.location.href='ec-info.html'">🧮 Export Costing</div>
+    <div class="mob-dd-item" onclick="window.location.href='pi-info.html'">📄 Export Proforma Invoice</div>
+    <div class="mob-dd-item" onclick="window.location.href='eq-info.html'">📋 Export Quotation</div>
+    <div class="mob-dd-item" onclick="window.location.href='sci-info.html'">✈️ Sample Courier Invoice</div>
+  </div>
+  <div class="mob-auth">
+    <button class="btn-nav-login" onclick="window.location.href='../login.html'" style="width:100%;justify-content:center;">🔐 Login</button>
+  </div>
+</div>
+
+<!-- BREADCRUMB -->
+<div class="mod-breadcrumb">
+  <div class="mod-breadcrumb-inner">
+    <a onclick="window.location.href='../index.html'">🏠 Home</a>
+    <span class="mod-breadcrumb-sep">›</span>
+    <a onclick="window.location.href='../index.html'">Export Modules</a>
+    <span class="mod-breadcrumb-sep">›</span>
+    <span style="color:var(--navy);font-weight:600;">Export Costing</span>
+  </div>
+</div>
+
+<!-- SECTION NAV -->
+<div class="mod-nav-bar">
+  <div class="mod-nav-bar-inner">
+    <span class="mod-nav-link active" onclick="scrollTo('sec-about')">About</span>
+    <span class="mod-nav-link" onclick="scrollTo('sec-sections')">Cost Sections</span>
+    <span class="mod-nav-link" onclick="scrollTo('sec-how')">How It Works</span>
+    <span class="mod-nav-link" onclick="scrollTo('sec-features')">Features</span>
+    <span class="mod-nav-link" onclick="scrollTo('sec-usecases')">Use Cases</span>
+    <span class="mod-nav-link" onclick="scrollTo('sec-cta')" style="margin-left:auto;color:var(--gold);font-weight:700;">🔐 Login to Use →</span>
+  </div>
+</div>
+
+<!-- ═══ HERO ═══ -->
+<div class="mod-hero" id="sec-about">
+  <div class="mod-hero-inner">
+    <div>
+      <div class="mod-hero-badge">📦 Export Module &nbsp;·&nbsp; Export Costing</div>
+      <h1 class="mod-hero-title">
+        Know Your Exact<br/>
+        <span>FOB &amp; CIF Price</span><br/>Before You Quote
+      </h1>
+      <p class="mod-hero-desc">
+        The Export Costing module is a complete internal cost sheet for calculating your precise FOB and CIF values across LCL and 40' HQ container shipments. Enter your EXW rate, local transport costs, customs charges and freight — get your exact export price in seconds.
+      </p>
+      <div class="mod-hero-btns">
+        <button class="btn-hero-primary" onclick="window.location.href='../login.html'">🔐 Login to Use Module →</button>
+        <button class="btn-hero-ghost"   onclick="document.getElementById('sec-formulas').scrollIntoView({behavior:'smooth'})">See All Formulas ↓</button>
+      </div>
+      <div class="mod-hero-stats">
+        <div><div class="mhs-val">3</div><div class="mhs-lbl">Step Wizard</div></div>
+        <div><div class="mhs-val">3</div><div class="mhs-lbl">Columns</div></div>
+        <div><div class="mhs-val">Auto</div><div class="mhs-lbl">FOB &amp; CIF</div></div>
+        <div><div class="mhs-val">INR+$</div><div class="mhs-lbl">Dual Currency</div></div>
+      </div>
+    </div>
+
+    <!-- Costing sheet preview -->
+    <div class="mod-hero-visual">
+      <div class="ec-hdr">
+        <div class="ec-hdr-title">IMPEXIO — EXPORT COSTING</div>
+        <div class="ec-hdr-sub">Cost Sheet For Internal Use</div>
+      </div>
+      <div class="ec-sheet-lbl">Cost Sheet For Internal Use</div>
+      <table class="ec-tbl">
+        <thead>
+          <tr>
+            <th>Particulars</th>
+            <th>LCL FCL</th>
+            <th>LCL LCL</th>
+            <th>40' HQ FCL</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="sec-row"><td colspan="4">MOQ Details</td></tr>
+          <tr><td>Net Weight KGS</td><td>5,000</td><td>5,000</td><td>18,000</td></tr>
+          <tr><td>No. of Cartons</td><td>200</td><td>200</td><td>720</td></tr>
+          <tr><td>CBM Total</td><td>14.40</td><td>14.40</td><td>51.84</td></tr>
+          <tr class="sec-row"><td colspan="4">Local Transport</td></tr>
+          <tr><td>Freight</td><td>12,000</td><td>12,000</td><td>28,000</td></tr>
+          <tr><td>18% Service Tax</td><td>2,160</td><td>2,160</td><td>5,040</td></tr>
+          <tr class="tot-row"><td>TOTAL Local</td><td>18,500</td><td>18,500</td><td>42,800</td></tr>
+          <tr class="fob-row"><td>FOB VALUE INR</td><td>1,28,500</td><td>1,28,500</td><td>4,52,800</td></tr>
+          <tr class="fob-row"><td>FOB VALUE IN $</td><td>$1,518</td><td>$1,518</td><td>$5,349</td></tr>
+          <tr class="cif-row"><td>CIF VALUE INR</td><td>1,48,500</td><td>1,48,500</td><td>5,12,800</td></tr>
+          <tr class="cif-row"><td>CIF VALUE IN $</td><td>$1,754</td><td>$1,754</td><td>$6,058</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ WHAT IS ═══ -->
+<div class="info-section" id="sec-about2">
+  <div class="info-section-inner">
+    <div class="info-kicker"><div class="info-kicker-bar"></div>What is Export Costing?</div>
+    <h2 class="info-heading">Your Internal Price Calculator Before Every Quote</h2>
+    <div class="what-grid">
+      <div class="what-text">
+        <p><strong>Export Costing</strong> is the process of calculating the total cost of exporting goods — from the factory gate (EXW) to the buyer's destination (CIF). Before you quote a price to an overseas buyer, you must know exactly how much it costs to get your goods on a ship and to the buyer's port.</p>
+        <p>Without proper costing, exporters either quote too low (losing money) or too high (losing the order). IMPEXIO's Export Costing module is a <strong>confidential internal cost sheet</strong> — it is never shared with the buyer. It is used purely for calculating your break-even price and profit margin.</p>
+        <p>The module covers three cost stages: <strong>Local Transportation</strong> (getting goods to port), <strong>Custom Clearance &amp; Handling</strong> (all port charges), and calculates your exact <strong>FOB value</strong> (your selling price at port) and <strong>CIF value</strong> (including marine insurance and sea freight to buyer's port) — in both INR and USD, across 3 shipment columns simultaneously.</p>
+      </div>
+      <div class="what-highlight">
+        <div class="wh-title">📊 Export Costing Quick Reference</div>
+        <div class="wh-stat"><span class="wh-stat-icon">🏭</span><span class="wh-stat-txt">EXW Rate</span><span class="wh-stat-val">Factory gate price</span></div>
+        <div class="wh-stat"><span class="wh-stat-icon">🚛</span><span class="wh-stat-txt">+ Local Transport</span><span class="wh-stat-val">Port handling charges</span></div>
+        <div class="wh-stat"><span class="wh-stat-icon">🛃</span><span class="wh-stat-txt">+ Custom Clearance</span><span class="wh-stat-val">CHA, THC, B/L etc.</span></div>
+        <div class="wh-stat"><span class="wh-stat-icon">📦</span><span class="wh-stat-txt">= FOB Value</span><span class="wh-stat-val">Your price at port</span></div>
+        <div class="wh-stat"><span class="wh-stat-icon">🚢</span><span class="wh-stat-txt">+ Marine Ins. + Freight</span><span class="wh-stat-val">To buyer's port</span></div>
+        <div class="wh-stat"><span class="wh-stat-icon">🌍</span><span class="wh-stat-txt">= CIF Value</span><span class="wh-stat-val">Price at destination port</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- ═══ COST SECTIONS ═══ -->
+<div class="info-section" id="sec-sections">
+  <div class="info-section-inner">
+    <div class="info-kicker"><div class="info-kicker-bar"></div>Cost Sections</div>
+    <h2 class="info-heading">4 Cost Sections — Every Expense Captured</h2>
+    <p class="info-sub">The costing sheet is divided into 4 logical sections covering every cost from factory to destination port.</p>
+    <div class="cost-sections">
+      <div class="cost-section-card">
+        <div class="cs-header navy">
+          <div class="cs-icon">📦</div>
+          <div>
+            <div class="cs-title">MOQ Details</div>
+            <div class="cs-sub">Product &amp; container specifications</div>
+          </div>
+        </div>
+        <div class="cs-items">
+          <div class="cs-item">MOQ Net Weight — KGS</div>
+          <div class="cs-item">MOQ Gross Weight — KGS</div>
+          <div class="cs-item">No. of Cartons</div>
+          <div class="cs-item">CBM per Carton</div>
+          <div class="cs-item auto">CBM Total (Auto = Cartons × CBM/Carton)</div>
+        </div>
+      </div>
+      <div class="cost-section-card">
+        <div class="cs-header mid">
+          <div class="cs-icon">🚛</div>
+          <div>
+            <div class="cs-title">Local Transportation Cost</div>
+            <div class="cs-sub">Factory to port charges</div>
+          </div>
+        </div>
+        <div class="cs-items">
+          <div class="cs-item">Freight</div>
+          <div class="cs-item">Docket &amp; FOV</div>
+          <div class="cs-item">FSC (Fuel Surcharge)</div>
+          <div class="cs-item">Special Delivery Charge</div>
+          <div class="cs-item auto">18% Service Tax (Auto)</div>
+          <div class="cs-item">Domestic Insurance</div>
+          <div class="cs-item auto">TOTAL (Auto)</div>
+        </div>
+      </div>
+      <div class="cost-section-card">
+        <div class="cs-header teal">
+          <div class="cs-icon">🛃</div>
+          <div>
+            <div class="cs-title">Custom Clearance &amp; Handling</div>
+            <div class="cs-sub">All port &amp; documentation charges</div>
+          </div>
+        </div>
+        <div class="cs-items">
+          <div class="cs-item">General THC LCL</div>
+          <div class="cs-item">B/L Charges</div>
+          <div class="cs-item">Certificate of Origin</div>
+          <div class="cs-item">ENS (USD 25) — manual input</div>
+          <div class="cs-item">VGM (USD 20) — manual input</div>
+          <div class="cs-item">Custom Clearance Charge — CFS</div>
+          <div class="cs-item auto">18% Service Tax (Auto)</div>
+          <div class="cs-item auto">TOTAL (Auto)</div>
+        </div>
+      </div>
+      <div class="cost-section-card">
+        <div class="cs-header gold">
+          <div class="cs-icon">🌍</div>
+          <div>
+            <div class="cs-title">FOB &amp; CIF Calculations</div>
+            <div class="cs-sub">All auto-calculated output values</div>
+          </div>
+        </div>
+        <div class="cs-items">
+          <div class="cs-item">Other Expenses (Direct &amp; Indirect)</div>
+          <div class="cs-item auto">FOB Value IN INR (Auto)</div>
+          <div class="cs-item auto">FOB Expense / KG (Auto)</div>
+          <div class="cs-item auto">FOB Value IN $ (Auto)</div>
+          <div class="cs-item">Marine Insurance (input)</div>
+          <div class="cs-item">Sea Freight Charges (input)</div>
+          <div class="cs-item auto">CIF Value IN INR (Auto)</div>
+          <div class="cs-item auto">CIF Value IN $ (Auto)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ HOW IT WORKS ═══ -->
+<div class="info-section alt" id="sec-how">
+  <div class="info-section-inner">
+    <div class="info-kicker"><div class="info-kicker-bar"></div>How It Works</div>
+    <h2 class="info-heading">3 Steps to Your Complete Export Cost Sheet</h2>
+    <p class="info-sub">A guided wizard walks you through document setup, the full costing sheet, and summary — no formulas needed, everything calculates automatically.</p>
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <div class="step-icon">📋</div>
+        <div class="step-title">Document Info</div>
+        <p class="step-desc">Enter Company name, Costing Ref. No., Product name, Rate On Date, USD exchange rate (1$ = INR) and Port of Loading. The USD rate powers all automatic currency conversions.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <div class="step-icon">🧮</div>
+        <div class="step-title">Costing Sheet</div>
+        <p class="step-desc">Fill in all cost inputs across 3 columns (LCL FCL, LCL LCL, 40' HQ FCL). Enter MOQ details, local transport charges, custom clearance fees, other expenses, marine insurance and sea freight. All totals and FOB/CIF values calculate live as you type.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <div class="step-icon">📊</div>
+        <div class="step-title">Summary &amp; Auth</div>
+        <p class="step-desc">Review the FOB &amp; CIF summary card showing all 6 output values for the reference column. Add Prepared By and Authorised Signatory. Save for records or Print a clean internal cost sheet.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ FEATURES ═══ -->
+<div class="info-section" id="sec-features">
+  <div class="info-section-inner">
+    <div class="info-kicker"><div class="info-kicker-bar"></div>Features</div>
+    <h2 class="info-heading">Precision Costing for Every Shipment</h2>
+    <p class="info-sub">Every feature is built to give Indian exporters accurate, defensible cost data before they commit to a price.</p>
+    <div class="features-grid">
+      <div class="feat-box">
+        <div class="feat-box-icon">⚡</div>
+        <div class="feat-box-title">Fully Automatic Calculations</div>
+        <p class="feat-box-desc">12 auto-calculated fields — CBM Total, 18% taxes (both sections), section totals, FOB INR, FOB $, FOB/KG, FOB/MT, CIF INR, CIF $ and CIF/MT all update live as you type.</p>
+      </div>
+      <div class="feat-box">
+        <div class="feat-box-icon">📊</div>
+        <div class="feat-box-title">3 Columns Side by Side</div>
+        <p class="feat-box-desc">LCL FCL, LCL LCL and 40' HQ FCL — all three calculated simultaneously. Compare costs across shipment types instantly on one sheet.</p>
+      </div>
+      <div class="feat-box">
+        <div class="feat-box-icon">💱</div>
+        <div class="feat-box-title">Dual Currency (INR + USD)</div>
+        <p class="feat-box-desc">Enter one USD rate and all dollar conversions are automatic. FOB $, CIF $, FOB/MT and CIF/MT are all calculated using your entered exchange rate.</p>
+      </div>
+      <div class="feat-box">
+        <div class="feat-box-icon">🔒</div>
+        <div class="feat-box-title">Internal Use Only</div>
+        <p class="feat-box-desc">The printout is clearly marked "Cost Sheet For Internal Use" — it is a private document for your pricing decisions, never shared with buyers.</p>
+      </div>
+      <div class="feat-box">
+        <div class="feat-box-icon">💾</div>
+        <div class="feat-box-title">Save &amp; Retrieve</div>
+        <p class="feat-box-desc">All costing sheets are saved by Costing Ref. No. and searchable by company or product. Retrieve any previous calculation to compare with current costs.</p>
+      </div>
+      <div class="feat-box">
+        <div class="feat-box-icon">🖨️</div>
+        <div class="feat-box-title">Professional Print Output</div>
+        <p class="feat-box-desc">A4 Portrait printout with IMPEXIO branding, gold "Costing Sheet" header, full 3-column cost table with navy/gold row highlighting, and signatory section.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ USE CASES ═══ -->
+<div class="info-section alt" id="sec-usecases">
+  <div class="info-section-inner">
+    <div class="info-kicker"><div class="info-kicker-bar"></div>Use Cases</div>
+    <h2 class="info-heading">Who Uses the Export Costing Module?</h2>
+    <p class="info-sub">Any Indian exporter who quotes prices to overseas buyers needs to know their exact costs first.</p>
+    <div class="usecases-grid">
+      <div class="usecase-card">
+        <div class="uc-icon">🏭</div>
+        <div>
+          <div class="uc-title">Manufacturers Before Quoting</div>
+          <p class="uc-desc">Before sending a price quotation or proforma invoice, calculate your exact FOB and CIF cost. Know your minimum selling price and set your profit margin with confidence.</p>
+        </div>
+      </div>
+      <div class="usecase-card">
+        <div class="uc-icon">📈</div>
+        <div>
+          <div class="uc-title">Pricing Strategy &amp; Margin Analysis</div>
+          <p class="uc-desc">Compare costs across LCL and FCL shipments to find the most cost-effective option. Understand how freight and customs charges affect your margin at different order quantities.</p>
+        </div>
+      </div>
+      <div class="usecase-card">
+        <div class="uc-icon">💱</div>
+        <div>
+          <div class="uc-title">Currency Rate Planning</div>
+          <p class="uc-desc">Change the USD/INR rate to see how exchange rate fluctuations impact your dollar price. Plan hedging and forward contract decisions based on real cost data.</p>
+        </div>
+      </div>
+      <div class="usecase-card">
+        <div class="uc-icon">🤝</div>
+        <div>
+          <div class="uc-title">Negotiation Preparation</div>
+          <p class="uc-desc">Know exactly how much room you have to negotiate with buyers. When a buyer pushes for a lower price, your costing sheet tells you the floor price — protecting your business.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ CTA ═══ -->
+<div class="info-section" id="sec-cta">
+  <div class="info-section-inner">
+    <div class="cta-banner">
+      <div class="cta-inner">
+        <div class="cta-icon">🧮</div>
+        <h2 class="cta-title">Stop Guessing. Start Costing.</h2>
+        <p class="cta-sub">Login to IMPEXIO and calculate your precise FOB and CIF export price before your next buyer quotation. Know your numbers, win more business.</p>
+        <div class="cta-btns">
+          <button class="btn-cta-primary" onclick="window.location.href='../login.html'">🔐 Login &amp; Start Now →</button>
+          <button class="btn-cta-ghost"   onclick="window.location.href='../index.html'">← Back to Home</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-bottom" style="border-top:1px solid rgba(255,255,255,0.07);max-width:100%;padding:1.2rem 2.5rem;display:flex;justify-content:space-between;font-size:0.78rem;background:#091929;color:rgba(255,255,255,0.45);">
+    <span>© 2026 <strong style="color:rgba(255,255,255,0.8);">IMPEXIO</strong>. All rights reserved.</span>
+    <span>Export Costing Module &nbsp;|&nbsp; Export Modules</span>
+  </div>
+</footer>
+
+<script>
+window.addEventListener('scroll', function() {
+  var n = document.getElementById('navbar');
+  if (n) n.classList.toggle('scrolled', window.scrollY > 20);
+  var sections = ['sec-about','sec-sections','sec-how','sec-features','sec-usecases','sec-cta'];
+  var links = document.querySelectorAll('.mod-nav-link');
+  sections.forEach(function(id, i) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var rect = el.getBoundingClientRect();
+    if (rect.top <= 160 && rect.bottom > 0) {
+      links.forEach(function(l){ l.classList.remove('active'); });
+      if (links[i]) links[i].classList.add('active');
+    }
+  });
+});
+function toggleDD(id, event) {
+  if (event) event.stopPropagation();
+  var el = document.getElementById(id);
+  if (!el) return;
+  var isOpen = el.classList.contains('open');
+  document.querySelectorAll('.nav-item.open').forEach(function(i){ i.classList.remove('open'); });
+  if (!isOpen) el.classList.add('open');
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.nav-item')) {
+    document.querySelectorAll('.nav-item.open').forEach(function(i){ i.classList.remove('open'); });
+  }
+});
+function toggleMob() {
+  var m = document.getElementById('navMob');
+  var h = document.getElementById('ham');
+  if (!m) return;
+  var o = m.classList.toggle('open');
+  if (h) h.classList.toggle('open', o);
+}
+function toggleMobDD(id) {
+  var el = document.getElementById(id);
+  if (el) el.classList.toggle('open');
+}
+function scrollTo(id) {
+  var el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth' });
+}
+var style = document.createElement('style');
+style.textContent = '@media(max-width:900px){.nav-auth .btn-nav-login{display:none}.nav-mobile{display:none}.nav-mobile.open{display:block}}@media(min-width:901px){.nav-mobile{display:none!important}.hamburger{display:none!important}}';
+document.head.appendChild(style);
+</script>
+</body>
+</html>
