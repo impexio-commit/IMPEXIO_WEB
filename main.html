@@ -86,7 +86,7 @@
   </div>
   <div class="dtb-meta" id="dtbMeta"></div>
   <div class="dtb-right">
-    <div class="dtb-user" onclick="goToAdmin()" title="Click to open Admin Master" style="cursor:pointer;">
+    <div class="dtb-user">
       <div class="dtb-avatar" id="dtbAv">A</div>
       <div>
         <div class="dtb-uname" id="dtbUname">Admin</div>
@@ -97,18 +97,7 @@
   </div>
 </div>
 
-<!-- INFO STRIP 
-<div style="background:var(--navy);padding:0.6rem 2.5rem;display:flex;align-items:center;gap:2rem;flex-wrap:wrap;">
-  <div><div style="font-size:0.56rem;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.4);font-weight:700;">Client Code</div><div style="font-size:0.82rem;font-weight:700;color:var(--gold-light);" id="ds-client">—</div></div>
-  <div style="width:1px;height:26px;background:rgba(255,255,255,0.1);"></div>
-  <div><div style="font-size:0.56rem;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.4);font-weight:700;">Company</div><div style="font-size:0.82rem;font-weight:700;color:#fff;" id="ds-company">—</div></div>
-  <div style="width:1px;height:26px;background:rgba(255,255,255,0.1);"></div>
-  <div><div style="font-size:0.56rem;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.4);font-weight:700;">Financial Year</div><div style="font-size:0.82rem;font-weight:700;color:#fff;" id="ds-year">—</div></div>
-  <div style="width:1px;height:26px;background:rgba(255,255,255,0.1);"></div>
-  <div><div style="font-size:0.56rem;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.4);font-weight:700;">Login User</div><div style="font-size:0.82rem;font-weight:700;color:#fff;" id="ds-user">—</div></div>
-  <div style="width:1px;height:26px;background:rgba(255,255,255,0.1);"></div>
-  <div><div style="font-size:0.56rem;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.4);font-weight:700;">Role</div><div style="font-size:0.82rem;font-weight:700;color:#fff;" id="ds-role">—</div></div>
-</div>-->
+
 
 <!-- CONTENT -->
 <div class="dash-content">
@@ -264,14 +253,6 @@ function openMod(name) {
   t.classList.add('show');
   clearTimeout(t._t);
   t._t=setTimeout(()=>t.classList.remove('show'),3000);
-}
-function goToAdmin() {
-  var s = JSON.parse(sessionStorage.getItem('impexio') || '{}');
-  if (s.role !== 'Administrator') {
-    alert('Access Denied. Only Administrators can access Admin Master.');
-    return;
-  }
-  window.location.href = 'login-master/admin-master.html';
 }
 function doLogout() {
   if(confirm('Logout from IMPEXIO?')){ sessionStorage.removeItem('impexio'); window.location.href='index.html'; }

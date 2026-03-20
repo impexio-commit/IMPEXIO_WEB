@@ -403,3 +403,413 @@ function showToastCbm(icon,msg){
   t.innerHTML=`<span>${icon}</span><span>${msg}</span>`;
   t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),3000);
 }
+
+/* ════════════════════════════════════════════
+   IMPEXIO — MASTER DATA SYSTEM
+   All 11 masters: Company, Branch, Location,
+   Port, Exporter, Importer, Expense, Bank,
+   Product, HS Code, Currency
+════════════════════════════════════════════ */
+
+// ── Master config ──────────────────────────
+const MASTER_CONFIG = {
+  company:  {
+    label: 'Company', icon: '🏢', key: 'master_company',
+    fields: [
+      { id:'name',     label:'Company Name',    req:true,  placeholder:'e.g. Impexio Trade Solutions' },
+      { id:'addr1',    label:'Address Line 1',  req:false, placeholder:'Building, Street' },
+      { id:'addr2',    label:'Address Line 2',  req:false, placeholder:'Area, City' },
+      { id:'gst',      label:'GST Number',      req:false, placeholder:'24AABCI1234A1Z5' },
+      { id:'contact',  label:'Contact / Phone', req:false, placeholder:'+91 98765 43210' },
+      { id:'email',    label:'Email',           req:false, placeholder:'info@company.com' },
+    ],
+    display: r => r.name,
+    sub:     r => [r.addr1, r.addr2].filter(Boolean).join(', '),
+    tags:    r => [r.gst, r.contact].filter(Boolean),
+    fill:    (r, targetId) => {
+      setFieldVal(targetId, r.name);
+      // Also fill branch if empty
+      const b = document.getElementById('f_branch');
+      if (b && !b.value && r.addr1) b.value = r.addr1.split(',')[0];
+    }
+  },
+  branch: {
+    label: 'Branch', icon: '🏗️', key: 'master_branch',
+    fields: [
+      { id:'name',    label:'Branch Name',    req:true,  placeholder:'e.g. Ahmedabad Branch' },
+      { id:'company', label:'Company',        req:false, placeholder:'Parent company name' },
+      { id:'addr',    label:'Address',        req:false, placeholder:'Branch address' },
+      { id:'contact', label:'Contact',        req:false, placeholder:'+91 98765 43210' },
+    ],
+    display: r => r.name,
+    sub:     r => r.company || '',
+    tags:    r => [r.addr, r.contact].filter(Boolean),
+    fill:    (r, targetId) => setFieldVal(targetId, r.name)
+  },
+  location: {
+    label: 'Location', icon: '📍', key: 'master_location',
+    fields: [
+      { id:'name',    label:'Location Name',  req:true,  placeholder:'e.g. Mundra, Gujarat' },
+      { id:'state',   label:'State',          req:false, placeholder:'e.g. Gujarat' },
+      { id:'country', label:'Country',        req:false, placeholder:'e.g. India' },
+      { id:'pincode', label:'Pincode',        req:false, placeholder:'e.g. 370421' },
+    ],
+    display: r => r.name,
+    sub:     r => [r.state, r.country].filter(Boolean).join(', '),
+    tags:    r => [r.pincode].filter(Boolean),
+    fill:    (r, targetId) => setFieldVal(targetId, r.name)
+  },
+  port: {
+    label: 'Port', icon: '⚓', key: 'master_port',
+    fields: [
+      { id:'name',    label:'Port Name',      req:true,  placeholder:'e.g. Mundra Port' },
+      { id:'code',    label:'Port Code',      req:false, placeholder:'e.g. INMUN' },
+      { id:'country', label:'Country',        req:false, placeholder:'e.g. India' },
+      { id:'type',    label:'Type',           req:false, placeholder:'Sea / Air / ICD' },
+    ],
+    display: r => r.name,
+    sub:     r => [r.code, r.country].filter(Boolean).join(' · '),
+    tags:    r => [r.type].filter(Boolean),
+    fill:    (r, targetId) => setFieldVal(targetId, r.name)
+  },
+  exporter: {
+    label: 'Exporter', icon: '🏭', key: 'master_exporter',
+    fields: [
+      { id:'name',    label:'Exporter Name',  req:true,  placeholder:'e.g. Impexio Trade Solutions' },
+      { id:'addr1',   label:'Address Line 1', req:false, placeholder:'Building, Street' },
+      { id:'addr2',   label:'Address Line 2', req:false, placeholder:'City, State' },
+      { id:'gst',     label:'GST Number',     req:false, placeholder:'24AABCI1234A1Z5' },
+      { id:'iec',     label:'IEC Code',       req:false, placeholder:'IEC Number' },
+      { id:'contact', label:'Contact',        req:false, placeholder:'+91 98765 43210' },
+      { id:'email',   label:'Email',          req:false, placeholder:'exports@company.com' },
+    ],
+    display: r => r.name,
+    sub:     r => [r.addr1, r.addr2].filter(Boolean).join(', '),
+    tags:    r => [r.gst, r.iec].filter(Boolean),
+    fill:    (r, targetId) => setFieldVal(targetId, r.name)
+  },
+  importer: {
+    label: 'Importer', icon: '🌍', key: 'master_importer',
+    fields: [
+      { id:'name',    label:'Importer / Buyer Name', req:true,  placeholder:'e.g. Global Traders LLC' },
+      { id:'addr1',   label:'Address Line 1',        req:false, placeholder:'Building, Street' },
+      { id:'addr2',   label:'City, Country',         req:false, placeholder:'Dubai, UAE' },
+      { id:'country', label:'Country',               req:false, placeholder:'e.g. UAE' },
+      { id:'contact', label:'Contact',               req:false, placeholder:'+971 50 123 4567' },
+      { id:'email',   label:'Email',                 req:false, placeholder:'buyer@company.ae' },
+    ],
+    display: r => r.name,
+    sub:     r => [r.addr2, r.country].filter(Boolean).join(', '),
+    tags:    r => [r.contact].filter(Boolean),
+    fill:    (r, targetId) => setFieldVal(targetId, r.name)
+  },
+  expense: {
+    label: 'Expense', icon: '💸', key: 'master_expense',
+    fields: [
+      { id:'name',    label:'Expense Name',   req:true,  placeholder:'e.g. THC Charges' },
+      { id:'category',label:'Category',       req:false, placeholder:'Local / Customs / Port' },
+      { id:'amount',  label:'Default Amount', req:false, placeholder:'e.g. 5000' },
+      { id:'notes',   label:'Notes',          req:false, placeholder:'Any notes...' },
+    ],
+    display: r => r.name,
+    sub:     r => r.category || '',
+    tags:    r => [r.amount ? '₹'+r.amount : null].filter(Boolean),
+    fill:    (r, targetId) => setFieldVal(targetId, r.name)
+  },
+  bank: {
+    label: 'Bank', icon: '🏦', key: 'master_bank',
+    fields: [
+      { id:'name',    label:'Bank Name',      req:true,  placeholder:'e.g. HDFC Bank' },
+      { id:'branch',  label:'Branch',         req:false, placeholder:'e.g. Navrangpura Branch' },
+      { id:'account', label:'Account No.',    req:false, placeholder:'Account number' },
+      { id:'ifsc',    label:'IFSC Code',      req:false, placeholder:'e.g. HDFC0001234' },
+      { id:'swift',   label:'SWIFT Code',     req:false, placeholder:'e.g. HDFCINBB' },
+      { id:'currency',label:'Currency',       req:false, placeholder:'e.g. INR / USD' },
+    ],
+    display: r => r.name,
+    sub:     r => r.branch || '',
+    tags:    r => [r.ifsc, r.swift].filter(Boolean),
+    fill:    (r, targetId) => setFieldVal(targetId, r.name)
+  },
+  product: {
+    label: 'Product', icon: '📦', key: 'master_product',
+    fields: [
+      { id:'name',    label:'Product Name',   req:true,  placeholder:'e.g. Ceramic Floor Tiles' },
+      { id:'hscode',  label:'HS Code',        req:false, placeholder:'e.g. 6907.21' },
+      { id:'unit',    label:'Unit',           req:false, placeholder:'e.g. PCS / KGS / MT' },
+      { id:'rate',    label:'Default Rate',   req:false, placeholder:'e.g. 12.50' },
+      { id:'desc',    label:'Description',    req:false, placeholder:'Detailed product description' },
+    ],
+    display: r => r.name,
+    sub:     r => r.desc || '',
+    tags:    r => [r.hscode, r.unit].filter(Boolean),
+    fill:    (r, targetId) => setFieldVal(targetId, r.name)
+  },
+  hscode: {
+    label: 'HS Code', icon: '🔖', key: 'master_hscode',
+    fields: [
+      { id:'code',    label:'HS Code',        req:true,  placeholder:'e.g. 6907.21' },
+      { id:'desc',    label:'Description',    req:true,  placeholder:'Product description for this HS code' },
+      { id:'duty',    label:'Basic Duty %',   req:false, placeholder:'e.g. 10' },
+      { id:'notes',   label:'Notes',          req:false, placeholder:'Any notes...' },
+    ],
+    display: r => r.code,
+    sub:     r => r.desc || '',
+    tags:    r => [r.duty ? 'Duty: '+r.duty+'%' : null].filter(Boolean),
+    fill:    (r, targetId) => setFieldVal(targetId, r.code)
+  },
+  currency: {
+    label: 'Currency', icon: '💱', key: 'master_currency',
+    fields: [
+      { id:'name',    label:'Currency Name',  req:true,  placeholder:'e.g. US Dollar' },
+      { id:'code',    label:'Currency Code',  req:true,  placeholder:'e.g. USD' },
+      { id:'symbol',  label:'Symbol',         req:false, placeholder:'e.g. $' },
+      { id:'rate',    label:'Exchange Rate',  req:false, placeholder:'e.g. 85.40 (1 USD = INR)' },
+    ],
+    display: r => r.name + ' (' + (r.code||'') + ')',
+    sub:     r => r.rate ? '1 ' + (r.code||'') + ' = ₹' + r.rate : '',
+    tags:    r => [r.symbol].filter(Boolean),
+    fill:    (r, targetId) => setFieldVal(targetId, r.code || r.name)
+  }
+};
+
+// ── State ──────────────────────────────────
+let currentMasterTab = 'company';
+let currentPickTarget = null;   // field id to fill on pick
+let currentEditMasterKey = null;
+let currentEditMasterIdx = null;
+let currentEditMasterType = null;
+
+// ── Helper ─────────────────────────────────
+function getMasterData(type) {
+  const cfg = MASTER_CONFIG[type];
+  try { return JSON.parse(localStorage.getItem(cfg.key) || '[]'); } catch { return []; }
+}
+function saveMasterData(type, data) {
+  localStorage.setItem(MASTER_CONFIG[type].key, JSON.stringify(data));
+}
+function setFieldVal(id, val) {
+  const el = document.getElementById(id);
+  if (el) { el.value = val; el.dispatchEvent(new Event('input')); }
+}
+
+// ── Open / Close panel ─────────────────────
+function openMaster(tab) {
+  currentPickTarget = null;
+  const panel = document.getElementById('masterPanel');
+  const overlay = document.getElementById('masterOverlay');
+  panel.classList.remove('pick-mode');
+  panel.classList.add('open');
+  overlay.classList.add('open');
+  switchMasterTab(tab || 'company');
+}
+
+function openMasterPanel(tab) { openMaster(tab); }   // alias used by trigger buttons
+
+function openMasterPick(type, targetFieldId) {
+  currentPickTarget = targetFieldId;
+  const panel = document.getElementById('masterPanel');
+  const overlay = document.getElementById('masterOverlay');
+  panel.classList.add('pick-mode');
+  panel.classList.add('open');
+  overlay.classList.add('open');
+  // Update header to show pick mode
+  const sub = panel.querySelector('.master-head-sub');
+  if (sub) sub.textContent = 'Click a record to auto-fill the field';
+  switchMasterTab(type);
+}
+
+function closeMaster() {
+  document.getElementById('masterPanel').classList.remove('open');
+  document.getElementById('masterOverlay').classList.remove('open');
+  currentPickTarget = null;
+}
+
+// ── Tab switching ──────────────────────────
+function switchMasterTab(type) {
+  currentMasterTab = type;
+  document.querySelectorAll('.master-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.master-section').forEach(s => s.classList.remove('active'));
+  const tab = document.getElementById('mt-' + type);
+  const sec = document.getElementById('ms-' + type);
+  if (tab) tab.classList.add('active');
+  if (sec) sec.classList.add('active');
+  renderMasterList(type);
+  // Scroll tab into view
+  if (tab) tab.scrollIntoView({ behavior:'smooth', block:'nearest', inline:'center' });
+}
+
+// ── Render list ────────────────────────────
+function renderMasterList(type) {
+  const cfg = MASTER_CONFIG[type];
+  const data = getMasterData(type);
+  const listEl = document.getElementById('ml-' + type);
+  if (!listEl) return;
+
+  if (!data.length) {
+    listEl.innerHTML = `<div class="master-empty">
+      <div class="master-empty-icon">${cfg.icon}</div>
+      <div class="master-empty-text">No ${cfg.label} records yet</div>
+      <div class="master-empty-sub">Click "+ Add ${cfg.label}" to create your first record</div>
+    </div>`;
+    return;
+  }
+
+  listEl.innerHTML = data.map((r, i) => {
+    const tags = (cfg.tags(r) || []).map(t => `<span class="master-item-tag">${t}</span>`).join('');
+    const fillBtn = currentPickTarget
+      ? `<button class="mi-btn fill" onclick="pickMasterRecord('${type}',${i})">✓ Use</button>`
+      : `<button class="mi-btn fill" onclick="pickMasterRecord('${type}',${i})">↗ Fill</button>`;
+    return `<div class="master-item" onclick="pickMasterRecord('${type}',${i})">
+      <div class="master-item-info">
+        <div class="master-item-name">${cfg.icon} ${cfg.display(r)}</div>
+        <div class="master-item-sub">${cfg.sub(r)}</div>
+        ${tags ? `<div class="master-item-tags">${tags}</div>` : ''}
+      </div>
+      <div class="master-item-actions" onclick="event.stopPropagation()">
+        ${fillBtn}
+        <button class="mi-btn edit" onclick="openMasterForm('${type}',${i})">✏️</button>
+        <button class="mi-btn del"  onclick="deleteMasterRecord('${type}',${i})">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Pick / Fill ────────────────────────────
+function pickMasterRecord(type, idx) {
+  const cfg = MASTER_CONFIG[type];
+  const data = getMasterData(type);
+  const r = data[idx];
+  if (!r) return;
+
+  if (currentPickTarget) {
+    cfg.fill(r, currentPickTarget);
+    closeMaster();
+    showToastCbm(cfg.icon, cfg.label + ' selected: ' + cfg.display(r));
+  } else {
+    // No specific target — show toast with info
+    showToastCbm(cfg.icon, 'Select a field first, then click Fill');
+  }
+}
+
+// ── Add / Edit form ────────────────────────
+function openMasterForm(type, idx) {
+  currentEditMasterType = type;
+  currentEditMasterIdx  = (idx !== undefined) ? idx : null;
+  const cfg  = MASTER_CONFIG[type];
+  const data = getMasterData(type);
+  const rec  = (idx !== undefined) ? data[idx] : null;
+
+  document.getElementById('mfTitle').textContent = rec
+    ? `✏️ Edit ${cfg.label}`
+    : `+ Add ${cfg.label}`;
+
+  // Build form fields
+  const body = document.getElementById('mfBody');
+  body.innerHTML = cfg.fields.map(f => `
+    <div class="mf-fgroup">
+      <label class="mf-lbl">${f.label}${f.req ? ' *' : ''}</label>
+      <input class="mf-inp" id="mff_${f.id}" type="text"
+        placeholder="${f.placeholder}"
+        value="${rec ? (rec[f.id] || '') : ''}"/>
+    </div>`).join('');
+
+  document.getElementById('mfOverlay').classList.add('open');
+  // Focus first field
+  setTimeout(() => { const first = body.querySelector('.mf-inp'); if (first) first.focus(); }, 100);
+}
+
+function closeMasterForm() {
+  document.getElementById('mfOverlay').classList.remove('open');
+  currentEditMasterType = null;
+  currentEditMasterIdx  = null;
+}
+
+function saveMasterRecord() {
+  const type = currentEditMasterType;
+  if (!type) return;
+  const cfg  = MASTER_CONFIG[type];
+  const data = getMasterData(type);
+
+  // Build record from fields
+  const rec = {};
+  let valid = true;
+  cfg.fields.forEach(f => {
+    const el = document.getElementById('mff_' + f.id);
+    if (el) rec[f.id] = el.value.trim();
+    if (f.req && !rec[f.id]) { valid = false; el?.classList.add('mf-inp-err'); }
+    else el?.classList.remove('mf-inp-err');
+  });
+
+  if (!valid) { showToastCbm('⚠️', 'Please fill all required fields!'); return; }
+
+  if (currentEditMasterIdx !== null) {
+    data[currentEditMasterIdx] = rec;
+  } else {
+    data.push(rec);
+  }
+
+  saveMasterData(type, data);
+  closeMasterForm();
+  renderMasterList(type);
+  showToastCbm(cfg.icon, cfg.label + ' saved successfully!');
+}
+
+function deleteMasterRecord(type, idx) {
+  const cfg = MASTER_CONFIG[type];
+  if (!confirm('Delete this ' + cfg.label + ' record?')) return;
+  const data = getMasterData(type);
+  data.splice(idx, 1);
+  saveMasterData(type, data);
+  renderMasterList(type);
+  showToastCbm('🗑️', cfg.label + ' deleted.');
+}
+
+// ── Default seed data ──────────────────────
+function seedMasterDefaults() {
+  // Company
+  if (!getMasterData('company').length) {
+    saveMasterData('company', [
+      { name:'Impexio Trade Solutions Pvt. Ltd.', addr1:'401, Trade Tower', addr2:'GIFT City, Gandhinagar', gst:'24AABCI1234A1Z5', contact:'+91 79 1234 5678', email:'info@impexio.in' },
+      { name:'Global Exim Enterprises', addr1:'12, Export House', addr2:'Ashram Road, Ahmedabad', gst:'24BBCGE5678B2Y6', contact:'+91 79 8765 4321', email:'contact@globalexim.in' }
+    ]);
+  }
+  // Port
+  if (!getMasterData('port').length) {
+    saveMasterData('port', [
+      { name:'Mundra Port', code:'INMUN', country:'India', type:'Sea' },
+      { name:'JNPT Mumbai', code:'INJNP', country:'India', type:'Sea' },
+      { name:'Pipavav Port', code:'INPAV', country:'India', type:'Sea' },
+      { name:'Ahmedabad Airport', code:'AMD', country:'India', type:'Air' }
+    ]);
+  }
+  // Currency
+  if (!getMasterData('currency').length) {
+    saveMasterData('currency', [
+      { name:'US Dollar', code:'USD', symbol:'$', rate:'85.40' },
+      { name:'Euro', code:'EUR', symbol:'€', rate:'92.50' },
+      { name:'UAE Dirham', code:'AED', symbol:'AED', rate:'23.25' },
+      { name:'British Pound', code:'GBP', symbol:'£', rate:'108.60' }
+    ]);
+  }
+  // Location
+  if (!getMasterData('location').length) {
+    saveMasterData('location', [
+      { name:'Ahmedabad', state:'Gujarat', country:'India', pincode:'380001' },
+      { name:'Mundra', state:'Gujarat', country:'India', pincode:'370435' },
+      { name:'GIFT City, Gandhinagar', state:'Gujarat', country:'India', pincode:'382355' }
+    ]);
+  }
+}
+
+// ── Init on DOMContentLoaded ───────────────
+document.addEventListener('DOMContentLoaded', function() {
+  seedMasterDefaults();
+}, { once: false });
+
+// Also add CSS for error state
+(function(){
+  const s = document.createElement('style');
+  s.textContent = '.mf-inp-err{border-color:#ef4444!important;box-shadow:0 0 0 3px rgba(239,68,68,0.12)!important;}';
+  document.head.appendChild(s);
+})();
