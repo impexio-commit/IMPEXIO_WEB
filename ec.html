@@ -100,7 +100,7 @@
           <div class="ec-grid-3x2">
             <div class="ef">
               <label class="el2">Company <span class="req">*</span></label>
-              <input type="text" class="ei" id="f_company" placeholder="Enter company name"/>
+              <div class="master-field-wrap"><input type="text" class="ei" id="f_company" placeholder="Enter company name or pick from master"/><button class="master-trigger" onclick="openEcMaster('company','f_company')" title="Company Master">🏢</button></div>
             </div>
             <div class="ef">
               <label class="el2">Costing Ref. No. <span class="req">*</span></label>
@@ -108,7 +108,7 @@
             </div>
             <div class="ef">
               <label class="el2">Product</label>
-              <input type="text" class="ei" id="f_product" placeholder="Product name / description"/>
+              <div class="master-field-wrap"><input type="text" class="ei" id="f_product" placeholder="Product name / description"/><button class="master-trigger" onclick="openEcMaster('product','f_product')" title="Product Master">📦</button></div>
             </div>
             <div class="ef">
               <label class="el2">Rates As On <span class="req">*</span></label>
@@ -116,7 +116,7 @@
             </div>
             <div class="ef">
               <label class="el2">Currency 1$ = INR</label>
-              <input type="number" class="ei" id="f_usdrate" placeholder="e.g. 84.50" step="0.01"/>
+              <div class="master-field-wrap"><input type="number" class="ei" id="f_usdrate" placeholder="e.g. 84.50" step="0.01"/><button class="master-trigger" onclick="openEcMaster('currency','f_usdrate')" title="Currency Master">💱</button></div>
             </div>
             <div class="ef">
               <label class="el2">Ship Rate $</label>
@@ -244,11 +244,11 @@
             </div>
             <div class="ef">
               <label class="el2">Prepared By</label>
-              <input type="text" class="ei" id="f_preparedby" placeholder="Full name"/>
+              <div class="master-field-wrap"><input type="text" class="ei" id="f_preparedby" placeholder="Full name"/><button class="master-trigger" onclick="openEcMaster('signatory','f_preparedby')" title="Signatory Master">✍️</button></div>
             </div>
             <div class="ef">
               <label class="el2">Authorised Signatory</label>
-              <input type="text" class="ei" id="f_signatory" placeholder="Signatory name"/>
+              <div class="master-field-wrap"><input type="text" class="ei" id="f_signatory" placeholder="Signatory name"/><button class="master-trigger" onclick="openEcMaster('signatory','f_signatory')" title="Signatory Master">✍️</button></div>
             </div>
           </div>
         </div>
@@ -267,6 +267,115 @@
 </div><!-- /ec-shell -->
 
 <div id="printArea" style="display:none;"></div>
+
+<!-- ═══ EC MASTER PANEL ═══ -->
+<div class="ec-master-overlay" id="ecMasterOverlay" onclick="closeEcMaster()"></div>
+<div class="ec-master-panel" id="ecMasterPanel">
+  <div class="ec-master-head">
+    <div>
+      <div class="ec-master-title" id="ecMasterTitle">Master Data</div>
+      <div class="ec-master-sub">Click a record to auto-fill the field</div>
+    </div>
+    <button class="ec-master-close" onclick="closeEcMaster()">✕</button>
+  </div>
+  <div class="ec-master-tabs">
+    <div class="ec-master-tab active" id="ecmt-company"   onclick="switchEcMasterTab('company')">🏢 Company</div>
+    <div class="ec-master-tab"        id="ecmt-product"   onclick="switchEcMasterTab('product')">📦 Product</div>
+    <div class="ec-master-tab"        id="ecmt-currency"  onclick="switchEcMasterTab('currency')">💱 Currency</div>
+    <div class="ec-master-tab"        id="ecmt-signatory" onclick="switchEcMasterTab('signatory')">✍️ Signatory</div>
+  </div>
+  <div class="ec-master-body">
+    <div class="ec-master-sect active" id="ecms-company">
+      <div class="ec-master-add-wrap"><button class="ec-master-add-btn" onclick="openEcMasterForm('company')">+ Add Company</button></div>
+      <div class="ec-master-list" id="ecml-company"></div>
+    </div>
+    <div class="ec-master-sect" id="ecms-product">
+      <div class="ec-master-add-wrap"><button class="ec-master-add-btn" onclick="openEcMasterForm('product')">+ Add Product</button></div>
+      <div class="ec-master-list" id="ecml-product"></div>
+    </div>
+    <div class="ec-master-sect" id="ecms-currency">
+      <div class="ec-master-add-wrap"><button class="ec-master-add-btn" onclick="openEcMasterForm('currency')">+ Add Currency Rate</button></div>
+      <div class="ec-master-list" id="ecml-currency"></div>
+    </div>
+    <div class="ec-master-sect" id="ecms-signatory">
+      <div class="ec-master-add-wrap"><button class="ec-master-add-btn" onclick="openEcMasterForm('signatory')">+ Add Signatory</button></div>
+      <div class="ec-master-list" id="ecml-signatory"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ EC MASTER FORM MODAL ═══ -->
+<div class="ec-mf-overlay" id="ecMfOverlay">
+  <div class="ec-mf-modal">
+    <div class="ec-mf-head">
+      <div class="ec-mf-title" id="ecMfTitle">Add Record</div>
+      <button class="ec-master-close" onclick="closeEcMasterForm()">✕</button>
+    </div>
+    <div class="ec-mf-body" id="ecMfBody"></div>
+    <div class="ec-mf-foot">
+      <button class="enav enav-back" onclick="closeEcMasterForm()">Cancel</button>
+      <button class="enav enav-save" onclick="saveEcMasterRecord()">💾 Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Autocomplete dropdown -->
+<div id="ecAcDropdown" style="position:fixed;z-index:99999;background:#fff;border:1.5px solid #dde3f0;border-radius:12px;box-shadow:0 16px 48px rgba(15,37,64,0.16);min-width:260px;max-width:380px;max-height:280px;overflow-y:auto;display:none;font-family:'Outfit',sans-serif;"></div>
+
+<style>
+.master-field-wrap{position:relative;display:flex;align-items:center;gap:0.4rem;}
+.master-field-wrap .ei{flex:1;}
+.master-trigger{width:34px;height:34px;border-radius:8px;background:var(--navy);color:#fff;border:none;cursor:pointer;font-size:0.9rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;}
+.master-trigger:hover{background:var(--navy-mid);transform:scale(1.08);}
+.ec-master-overlay{display:none;position:fixed;inset:0;background:rgba(15,37,64,0.45);backdrop-filter:blur(3px);z-index:1000;}
+.ec-master-overlay.open{display:block;}
+.ec-master-panel{position:fixed;top:0;right:-420px;width:400px;max-width:95vw;bottom:0;background:#fff;z-index:1001;box-shadow:-8px 0 48px rgba(15,37,64,0.18);display:flex;flex-direction:column;transition:right 0.3s cubic-bezier(.4,0,.2,1);}
+.ec-master-panel.open{right:0;}
+.ec-master-head{padding:1.1rem 1.25rem;background:#1a3a5c;display:flex;align-items:flex-start;justify-content:space-between;}
+.ec-master-title{font-family:var(--font-display,'Georgia',serif);font-size:1.05rem;font-weight:700;color:#fff;}
+.ec-master-sub{font-size:0.68rem;color:rgba(255,255,255,0.6);margin-top:0.15rem;}
+.ec-master-close{background:rgba(255,255,255,0.15);border:none;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:0.85rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background 0.2s;}
+.ec-master-close:hover{background:rgba(255,255,255,0.28);}
+.ec-master-tabs{display:flex;border-bottom:1px solid #dde3f0;background:#fafaf7;overflow-x:auto;}
+.ec-master-tab{padding:0.65rem 1rem;font-size:0.78rem;font-weight:600;color:#6b7fa3;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:all 0.2s;}
+.ec-master-tab:hover{color:var(--navy,#0f2540);}
+.ec-master-tab.active{color:var(--navy,#0f2540);border-bottom-color:#c9a84c;}
+.ec-master-body{flex:1;overflow:hidden;}
+.ec-master-sect{display:none;height:100%;flex-direction:column;}
+.ec-master-sect.active{display:flex;}
+.ec-master-add-wrap{padding:0.75rem 1rem;border-bottom:1px solid #eef1f8;}
+.ec-master-add-btn{width:100%;padding:0.6rem;background:var(--navy,#0f2540);color:#fff;border:none;border-radius:8px;font-size:0.82rem;font-weight:700;cursor:pointer;transition:all 0.2s;}
+.ec-master-add-btn:hover{background:#1a3a5c;}
+.ec-master-list{flex:1;overflow-y:auto;padding:0.5rem;}
+.ec-master-item{display:flex;align-items:center;gap:0.75rem;padding:0.75rem 0.85rem;border-radius:10px;border:1px solid #dde3f0;margin-bottom:0.5rem;cursor:pointer;transition:all 0.18s;background:#fff;}
+.ec-master-item:hover{border-color:#0f2540;background:#f4f3ee;transform:translateX(3px);}
+.ec-master-item-icon{width:34px;height:34px;border-radius:8px;background:#0f2540;color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.9rem;flex-shrink:0;}
+.ec-master-item-name{font-size:0.83rem;font-weight:700;color:#0f2540;margin-bottom:0.1rem;}
+.ec-master-item-sub{font-size:0.7rem;color:#6b7fa3;}
+.ec-master-item-acts{display:flex;gap:0.3rem;margin-left:auto;flex-shrink:0;}
+.ec-mi-btn{padding:0.25rem 0.55rem;border-radius:6px;font-size:0.7rem;font-weight:700;border:none;cursor:pointer;}
+.ec-mi-btn.use{background:#0f2540;color:#fff;}
+.ec-mi-btn.edit{background:#f4f3ee;color:#3d5475;}
+.ec-mi-btn.del{background:#fef2f2;color:#dc2626;}
+.ec-master-empty{text-align:center;padding:2.5rem 1rem;color:#6b7fa3;}
+.ec-master-empty-icon{font-size:2rem;opacity:0.35;margin-bottom:0.5rem;}
+.ec-master-empty-txt{font-size:0.85rem;font-weight:600;margin-bottom:0.25rem;}
+.ec-master-empty-sub{font-size:0.75rem;}
+.ec-mf-overlay{display:none;position:fixed;inset:0;background:rgba(15,37,64,0.5);backdrop-filter:blur(4px);z-index:1100;align-items:center;justify-content:center;padding:1rem;}
+.ec-mf-overlay.open{display:flex;}
+.ec-mf-modal{background:#fff;border-radius:16px;width:100%;max-width:480px;box-shadow:0 24px 72px rgba(15,37,64,0.22);overflow:hidden;animation:ecRiseIn 0.25s ease;}
+@keyframes ecRiseIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.ec-mf-head{background:var(--navy,#0f2540);padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.ec-mf-title{font-weight:700;font-size:0.95rem;color:#fff;}
+.ec-mf-body{padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}
+.ec-mf-foot{padding:0.85rem 1.25rem;border-top:1px solid #dde3f0;display:flex;justify-content:flex-end;gap:0.5rem;}
+.ec-mf-fg{display:flex;flex-direction:column;gap:0.3rem;}
+.ec-mf-lbl{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#3d5475;}
+.ec-mf-inp{padding:0.65rem 0.85rem;border:1.5px solid #dde3f0;border-radius:8px;font-size:0.88rem;font-family:inherit;width:100%;transition:all 0.2s;}
+.ec-mf-inp:focus{outline:none;border-color:#0f2540;box-shadow:0 0 0 3px rgba(15,37,64,0.08);}
+.ec-mf-inp.err{border-color:#ef4444;}
+</style>
+
 <script src="app.js"></script>
 <script src="ec.js"></script>
 </body>

@@ -119,7 +119,7 @@
             <div class="pi-single-col">
               <div class="pf">
                 <label class="pl2">Exporter Name</label>
-                <input type="text" class="pi-fi" id="f_exp_name" placeholder="Exporter / Seller name"/>
+                <div class="master-field-wrap"><input type="text" class="pi-fi" id="f_exp_name" placeholder="Exporter / Seller name"/><button class="master-trigger" onclick="openPiMaster('exporter','f_exp_name')" title="Exporter Master">🏭</button></div>
               </div>
               <div class="pf">
                 <label class="pl2">Address Line 1</label>
@@ -141,7 +141,7 @@
             <div class="pi-single-col">
               <div class="pf">
                 <label class="pl2">Buyer Name</label>
-                <input type="text" class="pi-fi" id="f_buy_name" placeholder="Buyer / Importer name"/>
+                <div class="master-field-wrap"><input type="text" class="pi-fi" id="f_buy_name" placeholder="Buyer / Importer name"/><button class="master-trigger" onclick="openPiMaster('buyer','f_buy_name')" title="Buyer Master">🌍</button></div>
               </div>
               <div class="pf">
                 <label class="pl2">Address Line 1</label>
@@ -174,11 +174,11 @@
             </div>
             <div class="pf">
               <label class="pl2">Port of Loading</label>
-              <input type="text" class="pi-fi" id="f_pol" placeholder="e.g. Mundra"/>
+              <div class="master-field-wrap"><input type="text" class="pi-fi" id="f_pol" placeholder="e.g. Mundra"/><button class="master-trigger" onclick="openPiMaster('port','f_pol')" title="Port Master">⚓</button></div>
             </div>
             <div class="pf">
               <label class="pl2">Port of Discharge</label>
-              <input type="text" class="pi-fi" id="f_pod" placeholder="e.g. Hamburg"/>
+              <div class="master-field-wrap"><input type="text" class="pi-fi" id="f_pod" placeholder="e.g. Hamburg"/><button class="master-trigger" onclick="openPiMaster('port','f_pod')" title="Port Master">⚓</button></div>
             </div>
             <div class="pf">
               <label class="pl2">Pre-carriage By</label>
@@ -190,7 +190,7 @@
             </div>
             <div class="pf">
               <label class="pl2">IncoTerms</label>
-              <input type="text" class="pi-fi" id="f_incoterms" placeholder="e.g. FOB / CIF / EXW"/>
+              <div class="master-field-wrap"><input type="text" class="pi-fi" id="f_incoterms" placeholder="e.g. FOB / CIF / EXW"/><button class="master-trigger" onclick="openPiMaster('incoterms','f_incoterms')" title="Incoterms Master">📜</button></div>
             </div>
             <div class="pf">
               <label class="pl2">Final Destination</label>
@@ -198,7 +198,7 @@
             </div>
             <div class="pf">
               <label class="pl2">Payment Terms</label>
-              <input type="text" class="pi-fi" id="f_payment_terms" placeholder="e.g. 30% advance"/>
+              <div class="master-field-wrap"><input type="text" class="pi-fi" id="f_payment_terms" placeholder="e.g. 30% advance"/><button class="master-trigger" onclick="openPiMaster('payterms','f_payment_terms')" title="Payment Terms Master">💳</button></div>
             </div>
             <div class="pf">
               <label class="pl2">Delivery Terms</label>
@@ -348,11 +348,11 @@
             </div>
             <div class="pf">
               <label class="pl2">Prepared By</label>
-              <input type="text" class="pi-fi" id="f_preparedby" placeholder="Full name"/>
+              <div class="master-field-wrap"><input type="text" class="pi-fi" id="f_preparedby" placeholder="Full name"/><button class="master-trigger" onclick="openPiMaster('signatory','f_preparedby')" title="Signatory Master">✍️</button></div>
             </div>
             <div class="pf">
               <label class="pl2">For IMPEXIO / Authorised Signatory</label>
-              <input type="text" class="pi-fi" id="f_signatory" placeholder="Authorised signatory"/>
+              <div class="master-field-wrap"><input type="text" class="pi-fi" id="f_signatory" placeholder="Authorised signatory"/><button class="master-trigger" onclick="openPiMaster('signatory','f_signatory')" title="Signatory Master">✍️</button></div>
             </div>
           </div>
         </div>
@@ -371,6 +371,103 @@
 </div><!-- /pi-shell -->
 
 <div id="printArea" style="display:none;"></div>
+
+<!-- ═══ PI MASTER PANEL ═══ -->
+<div class="pi-master-overlay" id="piMasterOverlay" onclick="closePiMaster()"></div>
+<div class="pi-master-panel"   id="piMasterPanel">
+  <div class="pi-master-head">
+    <div>
+      <div class="pi-master-title" id="piMasterTitle">Master Data</div>
+      <div class="pi-master-sub">Click a record to auto-fill the field</div>
+    </div>
+    <button class="pi-master-close" onclick="closePiMaster()">✕</button>
+  </div>
+  <div class="pi-master-tabs">
+    <div class="pi-master-tab active" id="pimt-exporter"  onclick="switchPiMasterTab('exporter')">🏭 Exporter</div>
+    <div class="pi-master-tab"        id="pimt-buyer"     onclick="switchPiMasterTab('buyer')">🌍 Buyer</div>
+    <div class="pi-master-tab"        id="pimt-product"   onclick="switchPiMasterTab('product')">📦 Product</div>
+    <div class="pi-master-tab"        id="pimt-port"      onclick="switchPiMasterTab('port')">⚓ Port</div>
+    <div class="pi-master-tab"        id="pimt-incoterms" onclick="switchPiMasterTab('incoterms')">📜 Incoterms</div>
+    <div class="pi-master-tab"        id="pimt-payterms"  onclick="switchPiMasterTab('payterms')">💳 Pay Terms</div>
+    <div class="pi-master-tab"        id="pimt-signatory" onclick="switchPiMasterTab('signatory')">✍️ Signatory</div>
+  </div>
+  <div class="pi-master-body">
+    <div class="pi-master-sect active" id="pims-exporter"><div class="pi-master-add-wrap"><button class="pi-master-add-btn" onclick="openPiMasterForm('exporter')">+ Add Exporter</button></div><div class="pi-master-list" id="piml-exporter"></div></div>
+    <div class="pi-master-sect"        id="pims-buyer"><div class="pi-master-add-wrap"><button class="pi-master-add-btn" onclick="openPiMasterForm('buyer')">+ Add Buyer</button></div><div class="pi-master-list" id="piml-buyer"></div></div>
+    <div class="pi-master-sect"        id="pims-product"><div class="pi-master-add-wrap"><button class="pi-master-add-btn" onclick="openPiMasterForm('product')">+ Add Product</button></div><div class="pi-master-list" id="piml-product"></div></div>
+    <div class="pi-master-sect"        id="pims-port"><div class="pi-master-add-wrap"><button class="pi-master-add-btn" onclick="openPiMasterForm('port')">+ Add Port</button></div><div class="pi-master-list" id="piml-port"></div></div>
+    <div class="pi-master-sect"        id="pims-incoterms"><div class="pi-master-add-wrap"><button class="pi-master-add-btn" onclick="openPiMasterForm('incoterms')">+ Add Incoterm</button></div><div class="pi-master-list" id="piml-incoterms"></div></div>
+    <div class="pi-master-sect"        id="pims-payterms"><div class="pi-master-add-wrap"><button class="pi-master-add-btn" onclick="openPiMasterForm('payterms')">+ Add Payment Term</button></div><div class="pi-master-list" id="piml-payterms"></div></div>
+    <div class="pi-master-sect"        id="pims-signatory"><div class="pi-master-add-wrap"><button class="pi-master-add-btn" onclick="openPiMasterForm('signatory')">+ Add Signatory</button></div><div class="pi-master-list" id="piml-signatory"></div></div>
+  </div>
+</div>
+
+<!-- ═══ PI MASTER FORM MODAL ═══ -->
+<div class="pi-mf-overlay" id="piMfOverlay">
+  <div class="pi-mf-modal">
+    <div class="pi-mf-head"><div class="pi-mf-title" id="piMfTitle">Add Record</div><button class="pi-master-close" onclick="closePiMasterForm()">✕</button></div>
+    <div class="pi-mf-body" id="piMfBody"></div>
+    <div class="pi-mf-foot"><button class="pnav pnav-back" onclick="closePiMasterForm()">Cancel</button><button class="pnav pnav-save" onclick="savePiMasterRecord()">💾 Save</button></div>
+  </div>
+</div>
+
+<!-- Autocomplete dropdown -->
+<div id="piAcDropdown" style="position:fixed;z-index:99999;background:#fff;border:1.5px solid #dde3f0;border-radius:12px;box-shadow:0 16px 48px rgba(15,37,64,0.16);min-width:260px;max-width:380px;max-height:280px;overflow-y:auto;display:none;font-family:'Outfit',sans-serif;"></div>
+
+<style>
+.master-field-wrap{position:relative;display:flex;align-items:center;gap:0.4rem;}
+.master-field-wrap .pi-fi{flex:1;}
+.master-trigger{width:34px;height:34px;border-radius:8px;background:var(--navy);color:#fff;border:none;cursor:pointer;font-size:0.9rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;}
+.master-trigger:hover{background:var(--navy-mid);transform:scale(1.08);}
+.pi-master-overlay{display:none;position:fixed;inset:0;background:rgba(15,37,64,0.45);backdrop-filter:blur(3px);z-index:1000;}
+.pi-master-overlay.open{display:block;}
+.pi-master-panel{position:fixed;top:0;right:-420px;width:400px;max-width:95vw;bottom:0;background:#fff;z-index:1001;box-shadow:-8px 0 48px rgba(15,37,64,0.18);display:flex;flex-direction:column;transition:right 0.3s cubic-bezier(.4,0,.2,1);}
+.pi-master-panel.open{right:0;}
+.pi-master-head{padding:1.1rem 1.25rem;background:#2a5298;display:flex;align-items:flex-start;justify-content:space-between;}
+.pi-master-title{font-family:var(--font-display,'Georgia',serif);font-size:1.05rem;font-weight:700;color:#fff;}
+.pi-master-sub{font-size:0.68rem;color:rgba(255,255,255,0.6);margin-top:0.15rem;}
+.pi-master-close{background:rgba(255,255,255,0.15);border:none;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:0.85rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.pi-master-close:hover{background:rgba(255,255,255,0.28);}
+.pi-master-tabs{display:flex;border-bottom:1px solid #dde3f0;background:#fafaf7;overflow-x:auto;}
+.pi-master-tab{padding:0.65rem 0.85rem;font-size:0.76rem;font-weight:600;color:#6b7fa3;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:all 0.2s;}
+.pi-master-tab:hover{color:#0f2540;}
+.pi-master-tab.active{color:#0f2540;border-bottom-color:#c9a84c;}
+.pi-master-body{flex:1;overflow:hidden;}
+.pi-master-sect{display:none;height:100%;flex-direction:column;}
+.pi-master-sect.active{display:flex;}
+.pi-master-add-wrap{padding:0.75rem 1rem;border-bottom:1px solid #eef1f8;}
+.pi-master-add-btn{width:100%;padding:0.6rem;background:#0f2540;color:#fff;border:none;border-radius:8px;font-size:0.82rem;font-weight:700;cursor:pointer;}
+.pi-master-add-btn:hover{background:#1a3a5c;}
+.pi-master-list{flex:1;overflow-y:auto;padding:0.5rem;}
+.pi-master-item{display:flex;align-items:center;gap:0.75rem;padding:0.75rem 0.85rem;border-radius:10px;border:1px solid #dde3f0;margin-bottom:0.5rem;cursor:pointer;transition:all 0.18s;background:#fff;}
+.pi-master-item:hover{border-color:#0f2540;background:#f4f3ee;transform:translateX(3px);}
+.pi-master-item-icon{width:34px;height:34px;border-radius:8px;background:#0f2540;color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.9rem;flex-shrink:0;}
+.pi-master-item-name{font-size:0.83rem;font-weight:700;color:#0f2540;}
+.pi-master-item-sub{font-size:0.7rem;color:#6b7fa3;}
+.pi-master-item-acts{display:flex;gap:0.3rem;margin-left:auto;flex-shrink:0;}
+.pi-mi-btn{padding:0.25rem 0.55rem;border-radius:6px;font-size:0.7rem;font-weight:700;border:none;cursor:pointer;}
+.pi-mi-btn.use{background:#0f2540;color:#fff;}
+.pi-mi-btn.edit{background:#f4f3ee;color:#3d5475;}
+.pi-mi-btn.del{background:#fef2f2;color:#dc2626;}
+.pi-master-empty{text-align:center;padding:2.5rem 1rem;color:#6b7fa3;}
+.pi-master-empty-icon{font-size:2rem;opacity:0.35;margin-bottom:0.5rem;}
+.pi-master-empty-txt{font-size:0.85rem;font-weight:600;}
+.pi-master-empty-sub{font-size:0.75rem;}
+.pi-mf-overlay{display:none;position:fixed;inset:0;background:rgba(15,37,64,0.5);backdrop-filter:blur(4px);z-index:1100;align-items:center;justify-content:center;padding:1rem;}
+.pi-mf-overlay.open{display:flex;}
+.pi-mf-modal{background:#fff;border-radius:16px;width:100%;max-width:480px;box-shadow:0 24px 72px rgba(15,37,64,0.22);overflow:hidden;animation:piRiseIn 0.25s ease;}
+@keyframes piRiseIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.pi-mf-head{background:#0f2540;padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.pi-mf-title{font-weight:700;font-size:0.95rem;color:#fff;}
+.pi-mf-body{padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}
+.pi-mf-foot{padding:0.85rem 1.25rem;border-top:1px solid #dde3f0;display:flex;justify-content:flex-end;gap:0.5rem;}
+.pi-mf-fg{display:flex;flex-direction:column;gap:0.3rem;}
+.pi-mf-lbl{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#3d5475;}
+.pi-mf-inp{padding:0.65rem 0.85rem;border:1.5px solid #dde3f0;border-radius:8px;font-size:0.88rem;font-family:inherit;width:100%;transition:all 0.2s;}
+.pi-mf-inp:focus{outline:none;border-color:#0f2540;box-shadow:0 0 0 3px rgba(15,37,64,0.08);}
+.pi-mf-inp.err{border-color:#ef4444;}
+</style>
+
 <script src="app.js"></script>
 <script src="pi.js"></script>
 </body>

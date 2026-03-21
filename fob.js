@@ -467,3 +467,360 @@ function showToast(icon, msg) {
   clearTimeout(t._t);
   t._t = setTimeout(() => { t.style.opacity = '0'; }, 3000);
 }
+
+// ══════════════════════════════════════════════════════════════
+//  FOB MASTER DATA SYSTEM
+//  Masters: Company, Port, Signatory
+//  + Autocomplete dropdown on field click
+// ══════════════════════════════════════════════════════════════
+
+const FOB_MASTER_CONFIG = {
+  company: {
+    label: 'Company', icon: '🏢', key: 'fob_master_company',
+    fields: [
+      { id:'name',     label:'Company Name',   placeholder:'e.g. Impexio Trade Solutions', req:true },
+      { id:'branch',   label:'Branch / Office', placeholder:'e.g. GIFT City Branch' },
+      { id:'addr1',    label:'Address Line 1',  placeholder:'Building, Street' },
+      { id:'addr2',    label:'Address Line 2',  placeholder:'Area, City' },
+      { id:'contact',  label:'Contact',         placeholder:'+91 98765 43210' },
+      { id:'gst',      label:'GST Number',      placeholder:'24AABCI1234A1Z5' },
+    ],
+    display: r => r.name,
+    sub:     r => [r.branch, r.addr1].filter(Boolean).join(' · '),
+    fill:    (r, targetId) => {
+      const el = document.getElementById(targetId);
+      if (el) { el.value = r.name; el.dispatchEvent(new Event('input')); }
+    }
+  },
+  port: {
+    label: 'Port', icon: '⚓', key: 'fob_master_port',
+    fields: [
+      { id:'name',    label:'Port Name',    placeholder:'e.g. Mundra Port', req:true },
+      { id:'code',    label:'Port Code',    placeholder:'e.g. INMUN' },
+      { id:'state',   label:'State',        placeholder:'e.g. Gujarat' },
+      { id:'country', label:'Country',      placeholder:'e.g. India' },
+    ],
+    display: r => r.name,
+    sub:     r => [r.code, r.state].filter(Boolean).join(' · '),
+    fill:    (r, targetId) => {
+      const el = document.getElementById(targetId);
+      if (el) { el.value = r.name; el.dispatchEvent(new Event('input')); }
+    }
+  },
+  signatory: {
+    label: 'Signatory', icon: '✍️', key: 'fob_master_signatory',
+    fields: [
+      { id:'name',        label:'Full Name',       placeholder:'e.g. Rajesh Kumar Sharma', req:true },
+      { id:'designation', label:'Designation',     placeholder:'e.g. Director / Manager' },
+      { id:'department',  label:'Department',      placeholder:'e.g. Export Operations' },
+    ],
+    display: r => r.name,
+    sub:     r => r.designation || '',
+    fill:    (r, targetId) => {
+      const el = document.getElementById(targetId);
+      if (el) { el.value = r.name; el.dispatchEvent(new Event('input')); }
+    }
+  }
+};
+
+// ── Storage ───────────────────────────────────────────────────
+function getFobMaster(type) {
+  try { return JSON.parse(localStorage.getItem(FOB_MASTER_CONFIG[type].key) || '[]'); } catch { return []; }
+}
+function setFobMaster(type, data) {
+  localStorage.setItem(FOB_MASTER_CONFIG[type].key, JSON.stringify(data));
+}
+
+// ── State ─────────────────────────────────────────────────────
+let fobMasterCurrentTab    = 'company';
+let fobMasterPickTarget    = null;
+let fobMasterEditType      = null;
+let fobMasterEditIdx       = null;
+
+// ── Open panel ────────────────────────────────────────────────
+function openFobMaster(tab, targetFieldId) {
+  fobMasterPickTarget = targetFieldId || null;
+  document.getElementById('fobMasterOverlay').classList.add('open');
+  document.getElementById('fobMasterPanel').classList.add('open');
+  switchFobMasterTab(tab || 'company');
+}
+function closeFobMaster() {
+  document.getElementById('fobMasterOverlay').classList.remove('open');
+  document.getElementById('fobMasterPanel').classList.remove('open');
+  fobMasterPickTarget = null;
+}
+
+// ── Tab switch ────────────────────────────────────────────────
+function switchFobMasterTab(type) {
+  fobMasterCurrentTab = type;
+  document.querySelectorAll('.fob-master-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.fob-master-sect').forEach(s => s.classList.remove('active'));
+  const tab = document.getElementById('fmt-' + type);
+  const sec = document.getElementById('fms-' + type);
+  if (tab) tab.classList.add('active');
+  if (sec) sec.classList.add('active');
+  const cfg = FOB_MASTER_CONFIG[type];
+  document.getElementById('fobMasterTitle').textContent = cfg.icon + ' ' + cfg.label + ' Master';
+  renderFobMasterList(type);
+}
+
+// ── Render list ───────────────────────────────────────────────
+function renderFobMasterList(type) {
+  const cfg  = FOB_MASTER_CONFIG[type];
+  const data = getFobMaster(type);
+  const listEl = document.getElementById('fml-' + type);
+  if (!listEl) return;
+
+  if (!data.length) {
+    listEl.innerHTML = `<div class="fob-master-empty">
+      <div class="fob-master-empty-icon">${cfg.icon}</div>
+      <div class="fob-master-empty-txt">No ${cfg.label} records yet</div>
+      <div class="fob-master-empty-sub">Click "+ Add ${cfg.label}" to create your first record</div>
+    </div>`;
+    return;
+  }
+
+  listEl.innerHTML = data.map((r, i) => `
+    <div class="fob-master-item" onclick="pickFobMasterRecord('${type}',${i})">
+      <div class="fob-master-item-icon">${cfg.icon}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="fob-master-item-name">${cfg.display(r)}</div>
+        <div class="fob-master-item-sub">${cfg.sub(r)}</div>
+      </div>
+      <div class="fob-master-item-acts" onclick="event.stopPropagation()">
+        <button class="fob-mi-btn use"  onclick="pickFobMasterRecord('${type}',${i})">↗ Use</button>
+        <button class="fob-mi-btn edit" onclick="openFobMasterForm('${type}',${i})">✏️</button>
+        <button class="fob-mi-btn del"  onclick="deleteFobMaster('${type}',${i})">🗑</button>
+      </div>
+    </div>`).join('');
+}
+
+// ── Pick record ───────────────────────────────────────────────
+function pickFobMasterRecord(type, idx) {
+  const cfg  = FOB_MASTER_CONFIG[type];
+  const data = getFobMaster(type);
+  const r    = data[idx];
+  if (!r) return;
+  if (fobMasterPickTarget) {
+    cfg.fill(r, fobMasterPickTarget);
+    showToast('✅', cfg.label + ' selected: ' + cfg.display(r));
+    closeFobMaster();
+  }
+}
+
+// ── Add / Edit form ───────────────────────────────────────────
+function openFobMasterForm(type, idx) {
+  fobMasterEditType = type;
+  fobMasterEditIdx  = (idx !== undefined && idx !== null) ? idx : null;
+  const cfg  = FOB_MASTER_CONFIG[type];
+  const data = getFobMaster(type);
+  const rec  = fobMasterEditIdx !== null ? data[fobMasterEditIdx] : null;
+
+  document.getElementById('fobMfTitle').textContent =
+    rec ? `✏️ Edit ${cfg.label}` : `+ Add ${cfg.label}`;
+
+  document.getElementById('fobMfBody').innerHTML = cfg.fields.map(f => `
+    <div class="fob-mf-fg">
+      <label class="fob-mf-lbl">${f.label}${f.req ? ' *' : ''}</label>
+      <input class="fob-mf-inp" id="fobmf_${f.id}" type="text"
+        placeholder="${f.placeholder}"
+        value="${rec ? (rec[f.id] || '') : ''}"/>
+    </div>`).join('');
+
+  document.getElementById('fobMfOverlay').classList.add('open');
+  setTimeout(() => {
+    const first = document.querySelector('#fobMfBody .fob-mf-inp');
+    if (first) first.focus();
+  }, 100);
+}
+function closeFobMasterForm() {
+  document.getElementById('fobMfOverlay').classList.remove('open');
+  fobMasterEditType = null;
+  fobMasterEditIdx  = null;
+}
+function saveFobMasterRecord() {
+  const type = fobMasterEditType;
+  if (!type) return;
+  const cfg  = FOB_MASTER_CONFIG[type];
+  const data = getFobMaster(type);
+  const rec  = {};
+  let valid  = true;
+  cfg.fields.forEach(f => {
+    const el = document.getElementById('fobmf_' + f.id);
+    if (el) rec[f.id] = el.value.trim();
+    if (f.req && !rec[f.id]) {
+      valid = false;
+      el?.classList.add('err');
+    } else {
+      el?.classList.remove('err');
+    }
+  });
+  if (!valid) { showToast('⚠️', 'Please fill all required fields!'); return; }
+
+  if (fobMasterEditIdx !== null) {
+    data[fobMasterEditIdx] = rec;
+  } else {
+    data.push(rec);
+  }
+  setFobMaster(type, data);
+  closeFobMasterForm();
+  renderFobMasterList(type);
+  showToast('✅', cfg.label + ' saved!');
+}
+function deleteFobMaster(type, idx) {
+  const cfg = FOB_MASTER_CONFIG[type];
+  if (!confirm('Delete this ' + cfg.label + ' record?')) return;
+  const data = getFobMaster(type);
+  data.splice(idx, 1);
+  setFobMaster(type, data);
+  renderFobMasterList(type);
+  showToast('🗑', cfg.label + ' deleted.');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  AUTOCOMPLETE DROPDOWN
+// ══════════════════════════════════════════════════════════════
+
+const FOB_FIELD_MASTER_MAP = {
+  'f_company':    { type:'company',   display: r => r.name, sub: r => [r.branch,r.addr1].filter(Boolean).join(' · ') },
+  'f_pol':        { type:'port',      display: r => r.name, sub: r => [r.code,r.state].filter(Boolean).join(' · ')   },
+  'f_preparedby': { type:'signatory', display: r => r.name, sub: r => r.designation || '' },
+  'f_signatory':  { type:'signatory', display: r => r.name, sub: r => r.designation || '' },
+};
+
+const fobAcDropdown = document.getElementById('fobAcDropdown');
+let fobAcCurrentField = null;
+
+function positionFobAC(inputEl) {
+  const rect = inputEl.getBoundingClientRect();
+  fobAcDropdown.style.left  = rect.left + 'px';
+  fobAcDropdown.style.top   = (rect.bottom + 4) + 'px';
+  fobAcDropdown.style.width = Math.max(rect.width, 260) + 'px';
+}
+
+function renderFobAC(fieldId, query) {
+  const map = FOB_FIELD_MASTER_MAP[fieldId];
+  if (!map) return closeFobAC();
+  const data = getFobMaster(map.type);
+  if (!data.length) return closeFobAC();
+  const q = (query || '').toLowerCase().trim();
+  const filtered = q ? data.filter(r => map.display(r).toLowerCase().includes(q)) : data;
+  if (!filtered.length) return closeFobAC();
+
+  const cfg = FOB_MASTER_CONFIG[map.type];
+  fobAcDropdown.innerHTML = `
+    <div style="padding:0.45rem 0.75rem;font-size:0.62rem;font-weight:700;text-transform:uppercase;
+      letter-spacing:0.1em;color:#6b7fa3;border-bottom:1px solid #eef1f8;
+      display:flex;align-items:center;justify-content:space-between;">
+      <span>${cfg.icon} Saved ${cfg.label} Records</span>
+      <span style="color:#9aadcc;">${filtered.length} found</span>
+    </div>
+    ${filtered.map(r => {
+      const idx = data.indexOf(r);
+      const sub = map.sub(r);
+      return `<div class="fob-ac-item" onmousedown="event.preventDefault();pickFobAC('${fieldId}',${idx})"
+        style="padding:0.6rem 0.85rem;cursor:pointer;transition:background 0.15s;
+          border-bottom:1px solid #f4f3ee;display:flex;align-items:center;gap:0.65rem;">
+        <div style="width:28px;height:28px;border-radius:7px;background:#f0f2f8;
+          display:flex;align-items:center;justify-content:center;font-size:0.85rem;flex-shrink:0;">
+          ${cfg.icon}
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:0.82rem;font-weight:600;color:#0f2540;
+            white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${map.display(r)}</div>
+          ${sub ? `<div style="font-size:0.68rem;color:#6b7fa3;margin-top:0.1rem;">${sub}</div>` : ''}
+        </div>
+        <div style="font-size:0.65rem;color:#c9a84c;font-weight:700;flex-shrink:0;">↗ Use</div>
+      </div>`;
+    }).join('')}`;
+
+  fobAcDropdown.querySelectorAll('.fob-ac-item').forEach(el => {
+    el.addEventListener('mouseover', () => el.style.background = '#f4f3ee');
+    el.addEventListener('mouseout',  () => el.style.background = '');
+  });
+
+  fobAcDropdown.style.display = 'block';
+  positionFobAC(document.getElementById(fieldId));
+}
+
+function pickFobAC(fieldId, idx) {
+  const map  = FOB_FIELD_MASTER_MAP[fieldId];
+  if (!map) return;
+  const data = getFobMaster(map.type);
+  const r    = data[idx];
+  if (!r) return;
+  const el = document.getElementById(fieldId);
+  if (el) { el.value = map.display(r); el.dispatchEvent(new Event('input')); }
+  closeFobAC();
+  showToast('✅', map.display(r) + ' selected');
+}
+
+function closeFobAC() {
+  fobAcDropdown.style.display = 'none';
+  fobAcCurrentField = null;
+}
+
+// ── Attach autocomplete events ────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    Object.keys(FOB_FIELD_MASTER_MAP).forEach(fieldId => {
+      const el = document.getElementById(fieldId);
+      if (!el) return;
+
+      el.addEventListener('focus', () => {
+        fobAcCurrentField = fieldId;
+        renderFobAC(fieldId, el.value);
+      });
+      el.addEventListener('click', () => {
+        fobAcCurrentField = fieldId;
+        renderFobAC(fieldId, el.value);
+      });
+      el.addEventListener('input', () => {
+        if (fobAcCurrentField === fieldId) renderFobAC(fieldId, el.value);
+      });
+      el.addEventListener('keydown', e => {
+        if (e.key === 'Escape') { closeFobAC(); return; }
+        if (fobAcDropdown.style.display === 'none') return;
+        const items  = fobAcDropdown.querySelectorAll('.fob-ac-item');
+        const active = fobAcDropdown.querySelector('.fob-ac-item.ac-active');
+        let idx = -1;
+        items.forEach((item, i) => { if (item === active) idx = i; });
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          const next = idx < items.length - 1 ? idx + 1 : 0;
+          items.forEach(i => { i.classList.remove('ac-active'); i.style.background = ''; });
+          items[next].classList.add('ac-active');
+          items[next].style.background = '#f4f3ee';
+          items[next].scrollIntoView({ block:'nearest' });
+        }
+        if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          const prev = idx > 0 ? idx - 1 : items.length - 1;
+          items.forEach(i => { i.classList.remove('ac-active'); i.style.background = ''; });
+          items[prev].classList.add('ac-active');
+          items[prev].style.background = '#f4f3ee';
+          items[prev].scrollIntoView({ block:'nearest' });
+        }
+        if (e.key === 'Enter' && active) {
+          e.preventDefault();
+          active.dispatchEvent(new MouseEvent('mousedown'));
+        }
+      });
+    });
+
+    document.addEventListener('click', e => {
+      if (!fobAcDropdown.contains(e.target) &&
+          !Object.keys(FOB_FIELD_MASTER_MAP).some(id => document.getElementById(id) === e.target)) {
+        closeFobAC();
+      }
+    });
+
+    window.addEventListener('scroll', () => {
+      if (fobAcCurrentField && fobAcDropdown.style.display !== 'none') {
+        positionFobAC(document.getElementById(fobAcCurrentField));
+      }
+    }, true);
+
+  }, 300);
+});
+

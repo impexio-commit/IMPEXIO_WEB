@@ -577,3 +577,302 @@ function showToast(icon, msg) {
   clearTimeout(t._t);
   t._t = setTimeout(() => { t.style.opacity = '0'; }, 3000);
 }
+
+// ══════════════════════════════════════════════════════════════
+//  EC MASTER DATA SYSTEM
+//  Masters: Company, Product, Currency, Signatory
+//  + Autocomplete dropdown on field click
+// ══════════════════════════════════════════════════════════════
+
+const EC_MASTER_CONFIG = {
+  company: {
+    label:'Company', icon:'🏢', key:'ec_master_company',
+    fields:[
+      {id:'name',    label:'Company Name',    placeholder:'e.g. Impexio Trade Solutions', req:true},
+      {id:'branch',  label:'Branch / Office', placeholder:'e.g. GIFT City Branch'},
+      {id:'addr1',   label:'Address Line 1',  placeholder:'Building, Street'},
+      {id:'addr2',   label:'Address Line 2',  placeholder:'Area, City'},
+      {id:'contact', label:'Contact',         placeholder:'+91 98765 43210'},
+      {id:'gst',     label:'GST Number',      placeholder:'24AABCI1234A1Z5'},
+    ],
+    display: r => r.name,
+    sub:     r => [r.branch, r.addr1].filter(Boolean).join(' · '),
+    fill:    (r, targetId) => { const el=document.getElementById(targetId); if(el){el.value=r.name;el.dispatchEvent(new Event('input'));} }
+  },
+  product: {
+    label:'Product', icon:'📦', key:'ec_master_product',
+    fields:[
+      {id:'name',   label:'Product Name',    placeholder:'e.g. Ceramic Floor Tiles', req:true},
+      {id:'hscode', label:'HS Code',         placeholder:'e.g. 6907.21'},
+      {id:'unit',   label:'Unit',            placeholder:'e.g. PCS / KGS / MTR'},
+      {id:'desc',   label:'Description',     placeholder:'Additional details'},
+    ],
+    display: r => r.name,
+    sub:     r => [r.hscode ? 'HS: '+r.hscode : '', r.unit].filter(Boolean).join(' · '),
+    fill:    (r, targetId) => { const el=document.getElementById(targetId); if(el){el.value=r.name;el.dispatchEvent(new Event('input'));} }
+  },
+  currency: {
+    label:'Currency', icon:'💱', key:'ec_master_currency',
+    fields:[
+      {id:'name', label:'Currency Name', placeholder:'e.g. US Dollar', req:true},
+      {id:'code', label:'Currency Code', placeholder:'e.g. USD'},
+      {id:'rate', label:'Rate (1 Unit = INR)', placeholder:'e.g. 85.40', req:true},
+    ],
+    display: r => r.code ? r.code + ' — ' + r.name : r.name,
+    sub:     r => r.rate ? '1 ' + (r.code||'unit') + ' = ₹' + r.rate : '',
+    fill:    (r, targetId) => { const el=document.getElementById(targetId); if(el){el.value=r.rate||'';el.dispatchEvent(new Event('input'));} }
+  },
+  signatory: {
+    label:'Signatory', icon:'✍️', key:'ec_master_signatory',
+    fields:[
+      {id:'name',        label:'Full Name',    placeholder:'e.g. Rajesh Kumar Sharma', req:true},
+      {id:'designation', label:'Designation',  placeholder:'e.g. Director / Manager'},
+      {id:'department',  label:'Department',   placeholder:'e.g. Export Operations'},
+    ],
+    display: r => r.name,
+    sub:     r => r.designation || '',
+    fill:    (r, targetId) => { const el=document.getElementById(targetId); if(el){el.value=r.name;el.dispatchEvent(new Event('input'));} }
+  }
+};
+
+// ── Storage ───────────────────────────────────────────────────
+function getEcMaster(type) {
+  try { return JSON.parse(localStorage.getItem(EC_MASTER_CONFIG[type].key)||'[]'); } catch { return []; }
+}
+function setEcMaster(type, data) {
+  localStorage.setItem(EC_MASTER_CONFIG[type].key, JSON.stringify(data));
+}
+
+// ── State ─────────────────────────────────────────────────────
+let ecMasterPickTarget = null;
+let ecMasterEditType   = null;
+let ecMasterEditIdx    = null;
+
+// ── Open / Close ──────────────────────────────────────────────
+function openEcMaster(tab, targetFieldId) {
+  ecMasterPickTarget = targetFieldId || null;
+  document.getElementById('ecMasterOverlay').classList.add('open');
+  document.getElementById('ecMasterPanel').classList.add('open');
+  switchEcMasterTab(tab || 'company');
+}
+function closeEcMaster() {
+  document.getElementById('ecMasterOverlay').classList.remove('open');
+  document.getElementById('ecMasterPanel').classList.remove('open');
+  ecMasterPickTarget = null;
+}
+
+// ── Tab switch ────────────────────────────────────────────────
+function switchEcMasterTab(type) {
+  document.querySelectorAll('.ec-master-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.ec-master-sect').forEach(s => s.classList.remove('active'));
+  const tab = document.getElementById('ecmt-' + type);
+  const sec = document.getElementById('ecms-' + type);
+  if (tab) tab.classList.add('active');
+  if (sec) sec.classList.add('active');
+  const cfg = EC_MASTER_CONFIG[type];
+  document.getElementById('ecMasterTitle').textContent = cfg.icon + ' ' + cfg.label + ' Master';
+  renderEcMasterList(type);
+}
+
+// ── Render list ───────────────────────────────────────────────
+function renderEcMasterList(type) {
+  const cfg    = EC_MASTER_CONFIG[type];
+  const data   = getEcMaster(type);
+  const listEl = document.getElementById('ecml-' + type);
+  if (!listEl) return;
+  if (!data.length) {
+    listEl.innerHTML = `<div class="ec-master-empty">
+      <div class="ec-master-empty-icon">${cfg.icon}</div>
+      <div class="ec-master-empty-txt">No ${cfg.label} records yet</div>
+      <div class="ec-master-empty-sub">Click "+ Add ${cfg.label}" to create your first record</div>
+    </div>`; return;
+  }
+  listEl.innerHTML = data.map((r, i) => `
+    <div class="ec-master-item" onclick="pickEcMasterRecord('${type}',${i})">
+      <div class="ec-master-item-icon">${cfg.icon}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="ec-master-item-name">${cfg.display(r)}</div>
+        <div class="ec-master-item-sub">${cfg.sub(r)}</div>
+      </div>
+      <div class="ec-master-item-acts" onclick="event.stopPropagation()">
+        <button class="ec-mi-btn use"  onclick="pickEcMasterRecord('${type}',${i})">↗ Use</button>
+        <button class="ec-mi-btn edit" onclick="openEcMasterForm('${type}',${i})">✏️</button>
+        <button class="ec-mi-btn del"  onclick="deleteEcMaster('${type}',${i})">🗑</button>
+      </div>
+    </div>`).join('');
+}
+
+// ── Pick record ───────────────────────────────────────────────
+function pickEcMasterRecord(type, idx) {
+  const cfg  = EC_MASTER_CONFIG[type];
+  const data = getEcMaster(type);
+  const r    = data[idx];
+  if (!r) return;
+  if (ecMasterPickTarget) {
+    cfg.fill(r, ecMasterPickTarget);
+    showToast('✅', cfg.label + ' selected: ' + cfg.display(r));
+    closeEcMaster();
+  }
+}
+
+// ── Add / Edit form ───────────────────────────────────────────
+function openEcMasterForm(type, idx) {
+  ecMasterEditType = type;
+  ecMasterEditIdx  = (idx !== undefined && idx !== null) ? idx : null;
+  const cfg  = EC_MASTER_CONFIG[type];
+  const data = getEcMaster(type);
+  const rec  = ecMasterEditIdx !== null ? data[ecMasterEditIdx] : null;
+  document.getElementById('ecMfTitle').textContent = rec ? `✏️ Edit ${cfg.label}` : `+ Add ${cfg.label}`;
+  document.getElementById('ecMfBody').innerHTML = cfg.fields.map(f => `
+    <div class="ec-mf-fg">
+      <label class="ec-mf-lbl">${f.label}${f.req?' *':''}</label>
+      <input class="ec-mf-inp" id="ecmf_${f.id}" type="text"
+        placeholder="${f.placeholder}" value="${rec?(rec[f.id]||''):''}"/>
+    </div>`).join('');
+  document.getElementById('ecMfOverlay').classList.add('open');
+  setTimeout(() => { const first=document.querySelector('#ecMfBody .ec-mf-inp'); if(first) first.focus(); }, 100);
+}
+function closeEcMasterForm() {
+  document.getElementById('ecMfOverlay').classList.remove('open');
+  ecMasterEditType = null; ecMasterEditIdx = null;
+}
+function saveEcMasterRecord() {
+  const type = ecMasterEditType;
+  if (!type) return;
+  const cfg  = EC_MASTER_CONFIG[type];
+  const data = getEcMaster(type);
+  const rec  = {}; let valid = true;
+  cfg.fields.forEach(f => {
+    const el = document.getElementById('ecmf_' + f.id);
+    if (el) rec[f.id] = el.value.trim();
+    if (f.req && !rec[f.id]) { valid=false; el?.classList.add('err'); }
+    else el?.classList.remove('err');
+  });
+  if (!valid) { showToast('⚠️','Please fill all required fields!'); return; }
+  if (ecMasterEditIdx !== null) { data[ecMasterEditIdx] = rec; } else { data.push(rec); }
+  setEcMaster(type, data);
+  closeEcMasterForm();
+  renderEcMasterList(type);
+  showToast('✅', cfg.label + ' saved!');
+}
+function deleteEcMaster(type, idx) {
+  const cfg = EC_MASTER_CONFIG[type];
+  if (!confirm('Delete this ' + cfg.label + ' record?')) return;
+  const data = getEcMaster(type);
+  data.splice(idx, 1);
+  setEcMaster(type, data);
+  renderEcMasterList(type);
+  showToast('🗑', cfg.label + ' deleted.');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  AUTOCOMPLETE DROPDOWN
+// ══════════════════════════════════════════════════════════════
+const EC_FIELD_MASTER_MAP = {
+  'f_company':    { type:'company',   display:r=>r.name,                      sub:r=>[r.branch,r.addr1].filter(Boolean).join(' · ') },
+  'f_product':    { type:'product',   display:r=>r.name,                      sub:r=>[r.hscode?'HS:'+r.hscode:'',r.unit].filter(Boolean).join(' · ') },
+  'f_usdrate':    { type:'currency',  display:r=>r.rate||'',                  sub:r=>'1 '+(r.code||'unit')+' = ₹'+(r.rate||'') },
+  'f_preparedby': { type:'signatory', display:r=>r.name,                      sub:r=>r.designation||'' },
+  'f_signatory':  { type:'signatory', display:r=>r.name,                      sub:r=>r.designation||'' },
+};
+
+const ecAcDrop = document.getElementById('ecAcDropdown');
+let ecAcField  = null;
+
+function posEcAC(el) {
+  const r = el.getBoundingClientRect();
+  ecAcDrop.style.left  = r.left + 'px';
+  ecAcDrop.style.top   = (r.bottom + 4) + 'px';
+  ecAcDrop.style.width = Math.max(r.width, 260) + 'px';
+}
+
+function renderEcAC(fieldId, query) {
+  const map  = EC_FIELD_MASTER_MAP[fieldId];
+  if (!map) return closeEcAC();
+  const data = getEcMaster(map.type);
+  if (!data.length) return closeEcAC();
+  const q = (query||'').toLowerCase().trim();
+  const filtered = q ? data.filter(r => map.display(r).toLowerCase().includes(q)) : data;
+  if (!filtered.length) return closeEcAC();
+  const cfg = EC_MASTER_CONFIG[map.type];
+  ecAcDrop.innerHTML = `
+    <div style="padding:0.45rem 0.75rem;font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#6b7fa3;border-bottom:1px solid #eef1f8;display:flex;align-items:center;justify-content:space-between;">
+      <span>${cfg.icon} Saved ${cfg.label}</span><span style="color:#9aadcc;">${filtered.length} found</span>
+    </div>
+    ${filtered.map(r => {
+      const idx = data.indexOf(r);
+      const sub = map.sub(r);
+      return `<div class="ec-ac-item" onmousedown="event.preventDefault();pickEcAC('${fieldId}',${idx})"
+        style="padding:0.6rem 0.85rem;cursor:pointer;transition:background 0.15s;border-bottom:1px solid #f4f3ee;display:flex;align-items:center;gap:0.65rem;">
+        <div style="width:28px;height:28px;border-radius:7px;background:#f0f2f8;display:flex;align-items:center;justify-content:center;font-size:0.85rem;flex-shrink:0;">${cfg.icon}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:0.82rem;font-weight:600;color:#0f2540;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${map.display(r)}</div>
+          ${sub?`<div style="font-size:0.68rem;color:#6b7fa3;margin-top:0.1rem;">${sub}</div>`:''}
+        </div>
+        <div style="font-size:0.65rem;color:#c9a84c;font-weight:700;flex-shrink:0;">↗ Use</div>
+      </div>`;
+    }).join('')}`;
+  ecAcDrop.querySelectorAll('.ec-ac-item').forEach(el => {
+    el.addEventListener('mouseover', () => el.style.background='#f4f3ee');
+    el.addEventListener('mouseout',  () => el.style.background='');
+  });
+  ecAcDrop.style.display = 'block';
+  posEcAC(document.getElementById(fieldId));
+}
+
+function pickEcAC(fieldId, idx) {
+  const map  = EC_FIELD_MASTER_MAP[fieldId];
+  if (!map) return;
+  const data = getEcMaster(map.type);
+  const r    = data[idx]; if (!r) return;
+  const cfg  = EC_MASTER_CONFIG[map.type];
+  cfg.fill(r, fieldId);
+  closeEcAC();
+  showToast('✅', map.display(r) + ' selected');
+}
+
+function closeEcAC() { ecAcDrop.style.display='none'; ecAcField=null; }
+
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    Object.keys(EC_FIELD_MASTER_MAP).forEach(fieldId => {
+      const el = document.getElementById(fieldId);
+      if (!el) return;
+      el.addEventListener('focus', () => { ecAcField=fieldId; renderEcAC(fieldId, el.value); });
+      el.addEventListener('click', () => { ecAcField=fieldId; renderEcAC(fieldId, el.value); });
+      el.addEventListener('input', () => { if(ecAcField===fieldId) renderEcAC(fieldId, el.value); });
+      el.addEventListener('keydown', e => {
+        if (e.key==='Escape') { closeEcAC(); return; }
+        if (ecAcDrop.style.display==='none') return;
+        const items  = ecAcDrop.querySelectorAll('.ec-ac-item');
+        const active = ecAcDrop.querySelector('.ec-ac-item.ac-active');
+        let idx = -1; items.forEach((item,i)=>{ if(item===active) idx=i; });
+        if (e.key==='ArrowDown') {
+          e.preventDefault();
+          const next = idx<items.length-1?idx+1:0;
+          items.forEach(i=>{i.classList.remove('ac-active');i.style.background='';});
+          items[next].classList.add('ac-active'); items[next].style.background='#f4f3ee';
+          items[next].scrollIntoView({block:'nearest'});
+        }
+        if (e.key==='ArrowUp') {
+          e.preventDefault();
+          const prev = idx>0?idx-1:items.length-1;
+          items.forEach(i=>{i.classList.remove('ac-active');i.style.background='';});
+          items[prev].classList.add('ac-active'); items[prev].style.background='#f4f3ee';
+          items[prev].scrollIntoView({block:'nearest'});
+        }
+        if (e.key==='Enter' && active) { e.preventDefault(); active.dispatchEvent(new MouseEvent('mousedown')); }
+      });
+    });
+    document.addEventListener('click', e => {
+      if (!ecAcDrop.contains(e.target) &&
+          !Object.keys(EC_FIELD_MASTER_MAP).some(id => document.getElementById(id)===e.target)) {
+        closeEcAC();
+      }
+    });
+    window.addEventListener('scroll', () => {
+      if (ecAcField && ecAcDrop.style.display!=='none') posEcAC(document.getElementById(ecAcField));
+    }, true);
+  }, 300);
+});
+

@@ -604,3 +604,301 @@ function showToast(icon, msg) {
   clearTimeout(t._t);
   t._t = setTimeout(() => { t.style.opacity = '0'; }, 3000);
 }
+
+// ══════════════════════════════════════════════════════════════
+//  EC2 MASTER DATA SYSTEM
+//  Masters: Company, Product, Currency, Port, Signatory
+//  + Autocomplete dropdown on field click
+// ══════════════════════════════════════════════════════════════
+
+const EC2_MASTER_CONFIG = {
+  company: {
+    label:'Company', icon:'🏢', key:'ec2_master_company',
+    fields:[
+      {id:'name',    label:'Company Name',    placeholder:'e.g. Impexio Trade Solutions', req:true},
+      {id:'branch',  label:'Branch / Office', placeholder:'e.g. GIFT City Branch'},
+      {id:'addr1',   label:'Address Line 1',  placeholder:'Building, Street'},
+      {id:'addr2',   label:'Address Line 2',  placeholder:'Area, City'},
+      {id:'contact', label:'Contact',         placeholder:'+91 98765 43210'},
+      {id:'gst',     label:'GST Number',      placeholder:'24AABCI1234A1Z5'},
+    ],
+    display: r => r.name,
+    sub:     r => [r.branch, r.addr1].filter(Boolean).join(' · '),
+    fill:    (r, tid) => { const el=document.getElementById(tid); if(el){el.value=r.name;el.dispatchEvent(new Event('input'));} }
+  },
+  product: {
+    label:'Product', icon:'📦', key:'ec2_master_product',
+    fields:[
+      {id:'name',   label:'Product Name', placeholder:'e.g. Ceramic Floor Tiles', req:true},
+      {id:'hscode', label:'HS Code',      placeholder:'e.g. 6907.21'},
+      {id:'unit',   label:'Unit',         placeholder:'e.g. PCS / KGS / MTR'},
+      {id:'desc',   label:'Description',  placeholder:'Additional details'},
+    ],
+    display: r => r.name,
+    sub:     r => [r.hscode?'HS:'+r.hscode:'', r.unit].filter(Boolean).join(' · '),
+    fill:    (r, tid) => { const el=document.getElementById(tid); if(el){el.value=r.name;el.dispatchEvent(new Event('input'));} }
+  },
+  currency: {
+    label:'Currency', icon:'💱', key:'ec2_master_currency',
+    fields:[
+      {id:'name', label:'Currency Name',      placeholder:'e.g. US Dollar', req:true},
+      {id:'code', label:'Currency Code',      placeholder:'e.g. USD'},
+      {id:'rate', label:'Rate (1 Unit = INR)', placeholder:'e.g. 85.40', req:true},
+    ],
+    display: r => r.code ? r.code+' — '+r.name : r.name,
+    sub:     r => r.rate ? '1 '+(r.code||'unit')+' = ₹'+r.rate : '',
+    fill:    (r, tid) => { const el=document.getElementById(tid); if(el){el.value=r.rate||'';el.dispatchEvent(new Event('input'));} }
+  },
+  port: {
+    label:'Port', icon:'⚓', key:'ec2_master_port',
+    fields:[
+      {id:'name',    label:'Port Name',  placeholder:'e.g. Mundra Port', req:true},
+      {id:'code',    label:'Port Code',  placeholder:'e.g. INMUN'},
+      {id:'state',   label:'State',      placeholder:'e.g. Gujarat'},
+      {id:'country', label:'Country',    placeholder:'e.g. India'},
+    ],
+    display: r => r.name,
+    sub:     r => [r.code, r.state].filter(Boolean).join(' · '),
+    fill:    (r, tid) => { const el=document.getElementById(tid); if(el){el.value=r.name;el.dispatchEvent(new Event('input'));} }
+  },
+  signatory: {
+    label:'Signatory', icon:'✍️', key:'ec2_master_signatory',
+    fields:[
+      {id:'name',        label:'Full Name',    placeholder:'e.g. Rajesh Kumar Sharma', req:true},
+      {id:'designation', label:'Designation',  placeholder:'e.g. Director / Manager'},
+      {id:'department',  label:'Department',   placeholder:'e.g. Export Operations'},
+    ],
+    display: r => r.name,
+    sub:     r => r.designation || '',
+    fill:    (r, tid) => { const el=document.getElementById(tid); if(el){el.value=r.name;el.dispatchEvent(new Event('input'));} }
+  }
+};
+
+// ── Storage ───────────────────────────────────────────────────
+function getEc2Master(type) {
+  try { return JSON.parse(localStorage.getItem(EC2_MASTER_CONFIG[type].key)||'[]'); } catch { return []; }
+}
+function setEc2Master(type, data) {
+  localStorage.setItem(EC2_MASTER_CONFIG[type].key, JSON.stringify(data));
+}
+
+// ── State ─────────────────────────────────────────────────────
+let ec2MasterPickTarget = null;
+let ec2MasterEditType   = null;
+let ec2MasterEditIdx    = null;
+
+// ── Open / Close ──────────────────────────────────────────────
+function openEc2Master(tab, targetFieldId) {
+  ec2MasterPickTarget = targetFieldId || null;
+  document.getElementById('ec2MasterOverlay').classList.add('open');
+  document.getElementById('ec2MasterPanel').classList.add('open');
+  switchEc2MasterTab(tab || 'company');
+}
+function closeEc2Master() {
+  document.getElementById('ec2MasterOverlay').classList.remove('open');
+  document.getElementById('ec2MasterPanel').classList.remove('open');
+  ec2MasterPickTarget = null;
+}
+
+// ── Tab switch ────────────────────────────────────────────────
+function switchEc2MasterTab(type) {
+  document.querySelectorAll('.ec2-master-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.ec2-master-sect').forEach(s => s.classList.remove('active'));
+  const tab = document.getElementById('ec2mt-' + type);
+  const sec = document.getElementById('ec2ms-' + type);
+  if (tab) tab.classList.add('active');
+  if (sec) sec.classList.add('active');
+  const cfg = EC2_MASTER_CONFIG[type];
+  document.getElementById('ec2MasterTitle').textContent = cfg.icon + ' ' + cfg.label + ' Master';
+  renderEc2MasterList(type);
+}
+
+// ── Render list ───────────────────────────────────────────────
+function renderEc2MasterList(type) {
+  const cfg    = EC2_MASTER_CONFIG[type];
+  const data   = getEc2Master(type);
+  const listEl = document.getElementById('ec2ml-' + type);
+  if (!listEl) return;
+  if (!data.length) {
+    listEl.innerHTML = `<div class="ec2-master-empty">
+      <div class="ec2-master-empty-icon">${cfg.icon}</div>
+      <div class="ec2-master-empty-txt">No ${cfg.label} records yet</div>
+      <div class="ec2-master-empty-sub">Click "+ Add ${cfg.label}" to create your first record</div>
+    </div>`; return;
+  }
+  listEl.innerHTML = data.map((r, i) => `
+    <div class="ec2-master-item" onclick="pickEc2MasterRecord('${type}',${i})">
+      <div class="ec2-master-item-icon">${cfg.icon}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="ec2-master-item-name">${cfg.display(r)}</div>
+        <div class="ec2-master-item-sub">${cfg.sub(r)}</div>
+      </div>
+      <div class="ec2-master-item-acts" onclick="event.stopPropagation()">
+        <button class="ec2-mi-btn use"  onclick="pickEc2MasterRecord('${type}',${i})">↗ Use</button>
+        <button class="ec2-mi-btn edit" onclick="openEc2MasterForm('${type}',${i})">✏️</button>
+        <button class="ec2-mi-btn del"  onclick="deleteEc2Master('${type}',${i})">🗑</button>
+      </div>
+    </div>`).join('');
+}
+
+// ── Pick record ───────────────────────────────────────────────
+function pickEc2MasterRecord(type, idx) {
+  const cfg  = EC2_MASTER_CONFIG[type];
+  const data = getEc2Master(type);
+  const r    = data[idx]; if (!r) return;
+  if (ec2MasterPickTarget) {
+    cfg.fill(r, ec2MasterPickTarget);
+    showToast('✅', cfg.label + ' selected: ' + cfg.display(r));
+    closeEc2Master();
+  }
+}
+
+// ── Add / Edit form ───────────────────────────────────────────
+function openEc2MasterForm(type, idx) {
+  ec2MasterEditType = type;
+  ec2MasterEditIdx  = (idx !== undefined && idx !== null) ? idx : null;
+  const cfg  = EC2_MASTER_CONFIG[type];
+  const data = getEc2Master(type);
+  const rec  = ec2MasterEditIdx !== null ? data[ec2MasterEditIdx] : null;
+  document.getElementById('ec2MfTitle').textContent = rec ? `✏️ Edit ${cfg.label}` : `+ Add ${cfg.label}`;
+  document.getElementById('ec2MfBody').innerHTML = cfg.fields.map(f => `
+    <div class="ec2-mf-fg">
+      <label class="ec2-mf-lbl">${f.label}${f.req?' *':''}</label>
+      <input class="ec2-mf-inp" id="ec2mf_${f.id}" type="text"
+        placeholder="${f.placeholder}" value="${rec?(rec[f.id]||''):''}"/>
+    </div>`).join('');
+  document.getElementById('ec2MfOverlay').classList.add('open');
+  setTimeout(() => { const first=document.querySelector('#ec2MfBody .ec2-mf-inp'); if(first) first.focus(); }, 100);
+}
+function closeEc2MasterForm() {
+  document.getElementById('ec2MfOverlay').classList.remove('open');
+  ec2MasterEditType = null; ec2MasterEditIdx = null;
+}
+function saveEc2MasterRecord() {
+  const type = ec2MasterEditType; if (!type) return;
+  const cfg  = EC2_MASTER_CONFIG[type];
+  const data = getEc2Master(type);
+  const rec  = {}; let valid = true;
+  cfg.fields.forEach(f => {
+    const el = document.getElementById('ec2mf_' + f.id);
+    if (el) rec[f.id] = el.value.trim();
+    if (f.req && !rec[f.id]) { valid=false; el?.classList.add('err'); }
+    else el?.classList.remove('err');
+  });
+  if (!valid) { showToast('⚠️','Please fill all required fields!'); return; }
+  if (ec2MasterEditIdx !== null) { data[ec2MasterEditIdx]=rec; } else { data.push(rec); }
+  setEc2Master(type, data);
+  closeEc2MasterForm();
+  renderEc2MasterList(type);
+  showToast('✅', cfg.label + ' saved!');
+}
+function deleteEc2Master(type, idx) {
+  const cfg = EC2_MASTER_CONFIG[type];
+  if (!confirm('Delete this ' + cfg.label + ' record?')) return;
+  const data = getEc2Master(type); data.splice(idx,1);
+  setEc2Master(type, data); renderEc2MasterList(type);
+  showToast('🗑', cfg.label + ' deleted.');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  AUTOCOMPLETE DROPDOWN
+// ══════════════════════════════════════════════════════════════
+const EC2_FIELD_MAP = {
+  'f_company':    { type:'company',   display:r=>r.name,            sub:r=>[r.branch,r.addr1].filter(Boolean).join(' · ') },
+  'f_product':    { type:'product',   display:r=>r.name,            sub:r=>[r.hscode?'HS:'+r.hscode:'',r.unit].filter(Boolean).join(' · ') },
+  'f_usdrate':    { type:'currency',  display:r=>r.rate||'',        sub:r=>'1 '+(r.code||'unit')+' = ₹'+(r.rate||'') },
+  'f_pol':        { type:'port',      display:r=>r.name,            sub:r=>[r.code,r.state].filter(Boolean).join(' · ') },
+  'f_preparedby': { type:'signatory', display:r=>r.name,            sub:r=>r.designation||'' },
+  'f_signatory':  { type:'signatory', display:r=>r.name,            sub:r=>r.designation||'' },
+};
+
+const ec2AcDrop = document.getElementById('ec2AcDropdown');
+let ec2AcField  = null;
+
+function posEc2AC(el) {
+  const r = el.getBoundingClientRect();
+  ec2AcDrop.style.left  = r.left + 'px';
+  ec2AcDrop.style.top   = (r.bottom + 4) + 'px';
+  ec2AcDrop.style.width = Math.max(r.width, 260) + 'px';
+}
+
+function renderEc2AC(fieldId, query) {
+  const map  = EC2_FIELD_MAP[fieldId]; if (!map) return closeEc2AC();
+  const data = getEc2Master(map.type); if (!data.length) return closeEc2AC();
+  const q    = (query||'').toLowerCase().trim();
+  const filtered = q ? data.filter(r => map.display(r).toLowerCase().includes(q)) : data;
+  if (!filtered.length) return closeEc2AC();
+  const cfg = EC2_MASTER_CONFIG[map.type];
+  ec2AcDrop.innerHTML = `
+    <div style="padding:0.45rem 0.75rem;font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#6b7fa3;border-bottom:1px solid #eef1f8;display:flex;align-items:center;justify-content:space-between;">
+      <span>${cfg.icon} Saved ${cfg.label}</span><span style="color:#9aadcc;">${filtered.length} found</span>
+    </div>
+    ${filtered.map(r => {
+      const idx = data.indexOf(r); const sub = map.sub(r);
+      return `<div class="ec2-ac-item" onmousedown="event.preventDefault();pickEc2AC('${fieldId}',${idx})"
+        style="padding:0.6rem 0.85rem;cursor:pointer;border-bottom:1px solid #f4f3ee;display:flex;align-items:center;gap:0.65rem;transition:background 0.15s;">
+        <div style="width:28px;height:28px;border-radius:7px;background:#f0f2f8;display:flex;align-items:center;justify-content:center;font-size:0.85rem;flex-shrink:0;">${cfg.icon}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:0.82rem;font-weight:600;color:#0f2540;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${map.display(r)}</div>
+          ${sub?`<div style="font-size:0.68rem;color:#6b7fa3;margin-top:0.1rem;">${sub}</div>`:''}
+        </div>
+        <div style="font-size:0.65rem;color:#c9a84c;font-weight:700;flex-shrink:0;">↗ Use</div>
+      </div>`;
+    }).join('')}`;
+  ec2AcDrop.querySelectorAll('.ec2-ac-item').forEach(el => {
+    el.addEventListener('mouseover', () => el.style.background='#f4f3ee');
+    el.addEventListener('mouseout',  () => el.style.background='');
+  });
+  ec2AcDrop.style.display = 'block';
+  posEc2AC(document.getElementById(fieldId));
+}
+
+function pickEc2AC(fieldId, idx) {
+  const map = EC2_FIELD_MAP[fieldId]; if (!map) return;
+  const data = getEc2Master(map.type); const r = data[idx]; if (!r) return;
+  EC2_MASTER_CONFIG[map.type].fill(r, fieldId);
+  closeEc2AC();
+  showToast('✅', map.display(r) + ' selected');
+}
+function closeEc2AC() { ec2AcDrop.style.display='none'; ec2AcField=null; }
+
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    Object.keys(EC2_FIELD_MAP).forEach(fieldId => {
+      const el = document.getElementById(fieldId); if (!el) return;
+      el.addEventListener('focus', () => { ec2AcField=fieldId; renderEc2AC(fieldId, el.value); });
+      el.addEventListener('click', () => { ec2AcField=fieldId; renderEc2AC(fieldId, el.value); });
+      el.addEventListener('input', () => { if(ec2AcField===fieldId) renderEc2AC(fieldId, el.value); });
+      el.addEventListener('keydown', e => {
+        if (e.key==='Escape') { closeEc2AC(); return; }
+        if (ec2AcDrop.style.display==='none') return;
+        const items  = ec2AcDrop.querySelectorAll('.ec2-ac-item');
+        const active = ec2AcDrop.querySelector('.ec2-ac-item.ac-active');
+        let idx=-1; items.forEach((it,i)=>{ if(it===active) idx=i; });
+        if (e.key==='ArrowDown') {
+          e.preventDefault(); const next=idx<items.length-1?idx+1:0;
+          items.forEach(i=>{i.classList.remove('ac-active');i.style.background='';});
+          items[next].classList.add('ac-active'); items[next].style.background='#f4f3ee';
+          items[next].scrollIntoView({block:'nearest'});
+        }
+        if (e.key==='ArrowUp') {
+          e.preventDefault(); const prev=idx>0?idx-1:items.length-1;
+          items.forEach(i=>{i.classList.remove('ac-active');i.style.background='';});
+          items[prev].classList.add('ac-active'); items[prev].style.background='#f4f3ee';
+          items[prev].scrollIntoView({block:'nearest'});
+        }
+        if (e.key==='Enter' && active) { e.preventDefault(); active.dispatchEvent(new MouseEvent('mousedown')); }
+      });
+    });
+    document.addEventListener('click', e => {
+      if (!ec2AcDrop.contains(e.target) &&
+          !Object.keys(EC2_FIELD_MAP).some(id => document.getElementById(id)===e.target))
+        closeEc2AC();
+    });
+    window.addEventListener('scroll', () => {
+      if (ec2AcField && ec2AcDrop.style.display!=='none')
+        posEc2AC(document.getElementById(ec2AcField));
+    }, true);
+  }, 300);
+});
+
