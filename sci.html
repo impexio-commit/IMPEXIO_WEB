@@ -118,7 +118,7 @@
             <div class="sci-single-col">
               <div class="sf">
                 <label class="sl2">Consignee Name</label>
-                <input type="text" class="si" id="f_con_name"  placeholder="Consignee name"/>
+                <div class="master-field-wrap"><input type="text" class="si" id="f_con_name" placeholder="Consignee name"/><button class="master-trigger" onclick="openSciMaster('consignee','f_con_name')" title="Consignee Master">🌍</button></div>
               </div>
               <div class="sf">
                 <label class="sl2">Address Line 1</label>
@@ -172,11 +172,11 @@
             </div>
             <div class="sf">
               <label class="sl2">Port of Loading</label>
-              <input type="text" class="si" id="f_pol" placeholder="e.g. Mundra"/>
+              <div class="master-field-wrap"><input type="text" class="si" id="f_pol" placeholder="e.g. Mundra"/><button class="master-trigger" onclick="openSciMaster('port','f_pol')" title="Port Master">⚓</button></div>
             </div>
             <div class="sf">
               <label class="sl2">Port of Discharge</label>
-              <input type="text" class="si" id="f_pod" placeholder="e.g. Hamburg"/>
+              <div class="master-field-wrap"><input type="text" class="si" id="f_pod" placeholder="e.g. Hamburg"/><button class="master-trigger" onclick="openSciMaster('port','f_pod')" title="Port Master">⚓</button></div>
             </div>
             <div class="sf">
               <label class="sl2">Final Destination</label>
@@ -207,11 +207,11 @@
             </div>
             <div class="sf">
               <label class="sl2">Payment Terms</label>
-              <input type="text" class="si" id="f_payment_terms" placeholder="e.g. 30% advance"/>
+              <div class="master-field-wrap"><input type="text" class="si" id="f_payment_terms" placeholder="e.g. 30% advance"/><button class="master-trigger" onclick="openSciMaster('payterms','f_payment_terms')" title="Payment Terms Master">💳</button></div>
             </div>
             <div class="sf">
               <label class="sl2">Inco Terms</label>
-              <input type="text" class="si" id="f_incoterms" placeholder="e.g. FOB / CIF / EXW"/>
+              <div class="master-field-wrap"><input type="text" class="si" id="f_incoterms" placeholder="e.g. FOB / CIF / EXW"/><button class="master-trigger" onclick="openSciMaster('incoterms','f_incoterms')" title="Incoterms Master">📜</button></div>
             </div>
             <div class="sf">
               <label class="sl2">Other Terms</label>
@@ -342,11 +342,11 @@
           <div class="sci-auth-grid">
             <div class="sf">
               <label class="sl2">Prepared By</label>
-              <input type="text" class="si" id="f_preparedby" placeholder="Full name of preparer"/>
+              <div class="master-field-wrap"><input type="text" class="si" id="f_preparedby" placeholder="Full name of preparer"/><button class="master-trigger" onclick="openSciMaster('signatory','f_preparedby')" title="Signatory Master">✍️</button></div>
             </div>
             <div class="sf">
               <label class="sl2">For IMPEXIO / Authorised Signatory</label>
-              <input type="text" class="si" id="f_signatory" placeholder="Authorised signatory name"/>
+              <div class="master-field-wrap"><input type="text" class="si" id="f_signatory" placeholder="Authorised signatory name"/><button class="master-trigger" onclick="openSciMaster('signatory','f_signatory')" title="Signatory Master">✍️</button></div>
             </div>
           </div>
         </div>
@@ -365,6 +365,98 @@
 </div><!-- /sci-shell -->
 
 <div id="printArea" style="display:none;"></div>
+
+<!-- ═══ SCI MASTER PANEL ═══ -->
+<div class="sci-master-overlay" id="sciMasterOverlay" onclick="closeSciMaster()"></div>
+<div class="sci-master-panel"   id="sciMasterPanel">
+  <div class="sci-master-head">
+    <div><div class="sci-master-title" id="sciMasterTitle">Master Data</div><div class="sci-master-sub">Click a record to auto-fill the field</div></div>
+    <button class="sci-master-close" onclick="closeSciMaster()">✕</button>
+  </div>
+  <div class="sci-master-tabs">
+    <div class="sci-master-tab active" id="scimt-consignee" onclick="switchSciMasterTab('consignee')">🌍 Consignee</div>
+    <div class="sci-master-tab"        id="scimt-product"   onclick="switchSciMasterTab('product')">📦 Product</div>
+    <div class="sci-master-tab"        id="scimt-port"      onclick="switchSciMasterTab('port')">⚓ Port</div>
+    <div class="sci-master-tab"        id="scimt-incoterms" onclick="switchSciMasterTab('incoterms')">📜 Incoterms</div>
+    <div class="sci-master-tab"        id="scimt-payterms"  onclick="switchSciMasterTab('payterms')">💳 Pay Terms</div>
+    <div class="sci-master-tab"        id="scimt-signatory" onclick="switchSciMasterTab('signatory')">✍️ Signatory</div>
+  </div>
+  <div class="sci-master-body">
+    <div class="sci-master-sect active" id="scims-consignee"><div class="sci-master-add-wrap"><button class="sci-master-add-btn" onclick="openSciMasterForm('consignee')">+ Add Consignee</button></div><div class="sci-master-list" id="sciml-consignee"></div></div>
+    <div class="sci-master-sect"        id="scims-product"><div class="sci-master-add-wrap"><button class="sci-master-add-btn" onclick="openSciMasterForm('product')">+ Add Product</button></div><div class="sci-master-list" id="sciml-product"></div></div>
+    <div class="sci-master-sect"        id="scims-port"><div class="sci-master-add-wrap"><button class="sci-master-add-btn" onclick="openSciMasterForm('port')">+ Add Port</button></div><div class="sci-master-list" id="sciml-port"></div></div>
+    <div class="sci-master-sect"        id="scims-incoterms"><div class="sci-master-add-wrap"><button class="sci-master-add-btn" onclick="openSciMasterForm('incoterms')">+ Add Incoterm</button></div><div class="sci-master-list" id="sciml-incoterms"></div></div>
+    <div class="sci-master-sect"        id="scims-payterms"><div class="sci-master-add-wrap"><button class="sci-master-add-btn" onclick="openSciMasterForm('payterms')">+ Add Payment Term</button></div><div class="sci-master-list" id="sciml-payterms"></div></div>
+    <div class="sci-master-sect"        id="scims-signatory"><div class="sci-master-add-wrap"><button class="sci-master-add-btn" onclick="openSciMasterForm('signatory')">+ Add Signatory</button></div><div class="sci-master-list" id="sciml-signatory"></div></div>
+  </div>
+</div>
+
+<!-- ═══ SCI MASTER FORM MODAL ═══ -->
+<div class="sci-mf-overlay" id="sciMfOverlay">
+  <div class="sci-mf-modal">
+    <div class="sci-mf-head"><div class="sci-mf-title" id="sciMfTitle">Add Record</div><button class="sci-master-close" onclick="closeSciMasterForm()">✕</button></div>
+    <div class="sci-mf-body" id="sciMfBody"></div>
+    <div class="sci-mf-foot"><button class="snav snav-back" onclick="closeSciMasterForm()">Cancel</button><button class="snav snav-save" onclick="saveSciMasterRecord()">💾 Save</button></div>
+  </div>
+</div>
+
+<!-- Autocomplete dropdown -->
+<div id="sciAcDropdown" style="position:fixed;z-index:99999;background:#fff;border:1.5px solid #dde3f0;border-radius:12px;box-shadow:0 16px 48px rgba(15,37,64,0.16);min-width:260px;max-width:380px;max-height:280px;overflow-y:auto;display:none;font-family:'Outfit',sans-serif;"></div>
+
+<style>
+.master-field-wrap{position:relative;display:flex;align-items:center;gap:0.4rem;}
+.master-field-wrap .si{flex:1;}
+.master-trigger{width:34px;height:34px;border-radius:8px;background:var(--navy);color:#fff;border:none;cursor:pointer;font-size:0.9rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;}
+.master-trigger:hover{background:var(--navy-mid,#1a3a5c);transform:scale(1.08);}
+.sci-master-overlay{display:none;position:fixed;inset:0;background:rgba(15,37,64,0.45);backdrop-filter:blur(3px);z-index:1000;}
+.sci-master-overlay.open{display:block;}
+.sci-master-panel{position:fixed;top:0;right:-420px;width:400px;max-width:95vw;bottom:0;background:#fff;z-index:1001;box-shadow:-8px 0 48px rgba(15,37,64,0.18);display:flex;flex-direction:column;transition:right 0.3s cubic-bezier(.4,0,.2,1);}
+.sci-master-panel.open{right:0;}
+.sci-master-head{padding:1.1rem 1.25rem;background:#7c3aed;display:flex;align-items:flex-start;justify-content:space-between;}
+.sci-master-title{font-family:var(--font-display,'Georgia',serif);font-size:1.05rem;font-weight:700;color:#fff;}
+.sci-master-sub{font-size:0.68rem;color:rgba(255,255,255,0.6);margin-top:0.15rem;}
+.sci-master-close{background:rgba(255,255,255,0.15);border:none;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:0.85rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sci-master-close:hover{background:rgba(255,255,255,0.28);}
+.sci-master-tabs{display:flex;border-bottom:1px solid #dde3f0;background:#fafaf7;overflow-x:auto;}
+.sci-master-tab{padding:0.65rem 0.85rem;font-size:0.76rem;font-weight:600;color:#6b7fa3;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:all 0.2s;}
+.sci-master-tab:hover{color:#0f2540;}
+.sci-master-tab.active{color:#0f2540;border-bottom-color:#c9a84c;}
+.sci-master-body{flex:1;overflow:hidden;}
+.sci-master-sect{display:none;height:100%;flex-direction:column;}
+.sci-master-sect.active{display:flex;}
+.sci-master-add-wrap{padding:0.75rem 1rem;border-bottom:1px solid #eef1f8;}
+.sci-master-add-btn{width:100%;padding:0.6rem;background:#0f2540;color:#fff;border:none;border-radius:8px;font-size:0.82rem;font-weight:700;cursor:pointer;}
+.sci-master-add-btn:hover{background:#1a3a5c;}
+.sci-master-list{flex:1;overflow-y:auto;padding:0.5rem;}
+.sci-master-item{display:flex;align-items:center;gap:0.75rem;padding:0.75rem 0.85rem;border-radius:10px;border:1px solid #dde3f0;margin-bottom:0.5rem;cursor:pointer;transition:all 0.18s;background:#fff;}
+.sci-master-item:hover{border-color:#0f2540;background:#f4f3ee;transform:translateX(3px);}
+.sci-master-item-icon{width:34px;height:34px;border-radius:8px;background:#0f2540;color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.9rem;flex-shrink:0;}
+.sci-master-item-name{font-size:0.83rem;font-weight:700;color:#0f2540;}
+.sci-master-item-sub{font-size:0.7rem;color:#6b7fa3;}
+.sci-master-item-acts{display:flex;gap:0.3rem;margin-left:auto;flex-shrink:0;}
+.sci-mi-btn{padding:0.25rem 0.55rem;border-radius:6px;font-size:0.7rem;font-weight:700;border:none;cursor:pointer;}
+.sci-mi-btn.use{background:#0f2540;color:#fff;}
+.sci-mi-btn.edit{background:#f4f3ee;color:#3d5475;}
+.sci-mi-btn.del{background:#fef2f2;color:#dc2626;}
+.sci-master-empty{text-align:center;padding:2.5rem 1rem;color:#6b7fa3;}
+.sci-master-empty-icon{font-size:2rem;opacity:0.35;margin-bottom:0.5rem;}
+.sci-master-empty-txt{font-size:0.85rem;font-weight:600;}
+.sci-master-empty-sub{font-size:0.75rem;}
+.sci-mf-overlay{display:none;position:fixed;inset:0;background:rgba(15,37,64,0.5);backdrop-filter:blur(4px);z-index:1100;align-items:center;justify-content:center;padding:1rem;}
+.sci-mf-overlay.open{display:flex;}
+.sci-mf-modal{background:#fff;border-radius:16px;width:100%;max-width:480px;box-shadow:0 24px 72px rgba(15,37,64,0.22);overflow:hidden;animation:sciRiseIn 0.25s ease;}
+@keyframes sciRiseIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.sci-mf-head{background:#0f2540;padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.sci-mf-title{font-weight:700;font-size:0.95rem;color:#fff;}
+.sci-mf-body{padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}
+.sci-mf-foot{padding:0.85rem 1.25rem;border-top:1px solid #dde3f0;display:flex;justify-content:flex-end;gap:0.5rem;}
+.sci-mf-fg{display:flex;flex-direction:column;gap:0.3rem;}
+.sci-mf-lbl{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#3d5475;}
+.sci-mf-inp{padding:0.65rem 0.85rem;border:1.5px solid #dde3f0;border-radius:8px;font-size:0.88rem;font-family:inherit;width:100%;transition:all 0.2s;}
+.sci-mf-inp:focus{outline:none;border-color:#0f2540;box-shadow:0 0 0 3px rgba(15,37,64,0.08);}
+.sci-mf-inp.err{border-color:#ef4444;}
+</style>
+
 <script src="app.js"></script>
 <script src="sci.js"></script>
 </body>

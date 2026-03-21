@@ -111,13 +111,17 @@ function addRow() {
   const tr = document.createElement('tr');
   tr.id = `srow_${id}`;
   tr.innerHTML = `
-    <td><input type="text"   class="si-ci"           id="r_desc_${id}" placeholder="Product description"/></td>
+    <td style="display:flex;align-items:center;gap:0.3rem;">
+      <button onclick="openSciProductPicker(${id})" title="Pick from Product Master" style="width:26px;height:26px;border-radius:6px;background:#0f2540;color:#fff;border:none;cursor:pointer;font-size:0.75rem;flex-shrink:0;display:flex;align-items:center;justify-content:center;">📦</button>
+      <input type="text" class="si-ci" id="r_desc_${id}" placeholder="Product description" style="flex:1;min-width:0;"/>
+    </td>
     <td><input type="text"   class="si-ci si-ci-num" id="r_hs_${id}"   placeholder="HS Code"/></td>
     <td><input type="number" class="si-ci si-ci-num" id="r_qty_${id}"  placeholder="0"    step="0.01" min="0" oninput="calcRow(${id})"/></td>
     <td><input type="number" class="si-ci si-ci-num" id="r_rate_${id}" placeholder="0.00" step="0.01" min="0" oninput="calcRow(${id})"/></td>
     <td><span class="si-ci-amt" id="r_amt_${id}">0.00</span></td>
     <td><button class="si-del-btn" onclick="delRow(${id})">✕</button></td>`;
   tbody.appendChild(tr);
+  attachSciProductAC(id);
 }
 
 function delRow(id) {
@@ -527,3 +531,371 @@ function showToast(icon, msg) {
   clearTimeout(t._t);
   t._t = setTimeout(() => { t.style.opacity = '0'; }, 3000);
 }
+
+// ══════════════════════════════════════════════════════════════
+//  SCI MASTER DATA SYSTEM
+//  Masters: Consignee, Product, Port, Incoterms, Payment Terms, Signatory
+//  + Autocomplete dropdown on field click
+// ══════════════════════════════════════════════════════════════
+
+const SCI_MASTER_CONFIG = {
+  consignee: {
+    label:'Consignee', icon:'🌍', key:'impexio_master_buyer',
+    fields:[
+      {id:'name',    label:'Consignee Name',  placeholder:'e.g. Euro Ceramics GmbH', req:true},
+      {id:'addr1',   label:'Address Line 1',  placeholder:'Building / Street'},
+      {id:'addr2',   label:'Address Line 2',  placeholder:'City, State, ZIP'},
+      {id:'addr3',   label:'Country',         placeholder:'e.g. Germany'},
+      {id:'contact', label:'Contact',         placeholder:'Phone / Email'},
+    ],
+    display: r => r.name,
+    sub:     r => [r.addr2, r.addr3].filter(Boolean).join(', '),
+    fill:    (r, tid) => {
+      const el = document.getElementById(tid);
+      if (el) { el.value = r.name || ''; el.dispatchEvent(new Event('input')); }
+      [['f_con_addr1','addr1'],['f_con_addr2','addr2'],['f_con_addr3','addr3']].forEach(([fid, key]) => {
+        const el2 = document.getElementById(fid);
+        if (el2) { el2.value = r[key] || ''; el2.dispatchEvent(new Event('input')); }
+      });
+    }
+  },
+  product: {
+    label:'Product', icon:'📦', key:'impexio_master_product',
+    fields:[
+      {id:'name',   label:'Product Name',      placeholder:'e.g. Ceramic Floor Tiles', req:true},
+      {id:'hscode', label:'HS Code',            placeholder:'e.g. 6907.21'},
+      {id:'unit',   label:'Unit',               placeholder:'e.g. PCS / KGS / MTR'},
+      {id:'rate',   label:'Default Rate ($)',   placeholder:'e.g. 12.50'},
+      {id:'desc',   label:'Additional Details', placeholder:'Grade, finish, size etc.'},
+    ],
+    display: r => r.name,
+    sub:     r => [r.hscode ? 'HS: '+r.hscode : '', r.unit].filter(Boolean).join(' · '),
+    fill:    (r, rowId) => {
+      const dEl = document.getElementById('r_desc_' + rowId);
+      const hEl = document.getElementById('r_hs_'   + rowId);
+      const rEl = document.getElementById('r_rate_' + rowId);
+      if (dEl) { dEl.value = r.name || '';    dEl.dispatchEvent(new Event('input')); }
+      if (hEl) { hEl.value = r.hscode || ''; }
+      if (rEl && r.rate) { rEl.value = r.rate; rEl.dispatchEvent(new Event('input')); calcRow(rowId); }
+    }
+  },
+  port: {
+    label:'Port', icon:'⚓', key:'impexio_master_port',
+    fields:[
+      {id:'name',    label:'Port Name',  placeholder:'e.g. Mundra Port', req:true},
+      {id:'code',    label:'Port Code',  placeholder:'e.g. INMUN'},
+      {id:'state',   label:'State',      placeholder:'e.g. Gujarat'},
+      {id:'country', label:'Country',    placeholder:'e.g. India'},
+    ],
+    display: r => r.name,
+    sub:     r => [r.code, r.state].filter(Boolean).join(' · '),
+    fill:    (r, tid) => { const el=document.getElementById(tid); if(el){el.value=r.name;el.dispatchEvent(new Event('input'));} }
+  },
+  incoterms: {
+    label:'Incoterms', icon:'📜', key:'impexio_master_incoterms',
+    fields:[
+      {id:'term', label:'Incoterm',    placeholder:'e.g. FOB / CIF / EXW', req:true},
+      {id:'desc', label:'Description', placeholder:'e.g. Free On Board'},
+    ],
+    display: r => r.term,
+    sub:     r => r.desc || '',
+    fill:    (r, tid) => { const el=document.getElementById(tid); if(el){el.value=r.term;el.dispatchEvent(new Event('input'));} }
+  },
+  payterms: {
+    label:'Payment Terms', icon:'💳', key:'impexio_master_payterms',
+    fields:[
+      {id:'term', label:'Payment Term', placeholder:'e.g. 30% Advance, 70% against BL', req:true},
+      {id:'note', label:'Note',         placeholder:'Additional note'},
+    ],
+    display: r => r.term,
+    sub:     r => r.note || '',
+    fill:    (r, tid) => { const el=document.getElementById(tid); if(el){el.value=r.term;el.dispatchEvent(new Event('input'));} }
+  },
+  signatory: {
+    label:'Signatory', icon:'✍️', key:'impexio_master_signatory',
+    fields:[
+      {id:'name',        label:'Full Name',    placeholder:'e.g. Rajesh Kumar Sharma', req:true},
+      {id:'designation', label:'Designation',  placeholder:'e.g. Director / Manager'},
+      {id:'department',  label:'Department',   placeholder:'e.g. Export Operations'},
+    ],
+    display: r => r.name,
+    sub:     r => r.designation || '',
+    fill:    (r, tid) => { const el=document.getElementById(tid); if(el){el.value=r.name;el.dispatchEvent(new Event('input'));} }
+  }
+};
+
+// ── Storage ───────────────────────────────────────────────────
+function getSciMaster(type) {
+  try { return JSON.parse(localStorage.getItem(SCI_MASTER_CONFIG[type].key)||'[]'); } catch { return []; }
+}
+function setSciMaster(type, data) {
+  localStorage.setItem(SCI_MASTER_CONFIG[type].key, JSON.stringify(data));
+}
+
+// ── State ─────────────────────────────────────────────────────
+let sciMasterPickTarget = null;
+let sciMasterEditType   = null;
+let sciMasterEditIdx    = null;
+let sciProductPickRowId = null;
+
+// ── Open / Close ──────────────────────────────────────────────
+function openSciMaster(tab, targetFieldId) {
+  sciMasterPickTarget = targetFieldId || null;
+  document.getElementById('sciMasterOverlay').classList.add('open');
+  document.getElementById('sciMasterPanel').classList.add('open');
+  switchSciMasterTab(tab || 'consignee');
+}
+function closeSciMaster() {
+  document.getElementById('sciMasterOverlay').classList.remove('open');
+  document.getElementById('sciMasterPanel').classList.remove('open');
+  sciMasterPickTarget = null;
+  sciProductPickRowId = null;
+}
+
+// ── Tab switch ────────────────────────────────────────────────
+function switchSciMasterTab(type) {
+  document.querySelectorAll('.sci-master-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.sci-master-sect').forEach(s => s.classList.remove('active'));
+  const tab = document.getElementById('scimt-' + type);
+  const sec = document.getElementById('scims-' + type);
+  if (tab) tab.classList.add('active');
+  if (sec) sec.classList.add('active');
+  const cfg = SCI_MASTER_CONFIG[type];
+  document.getElementById('sciMasterTitle').textContent = cfg.icon + ' ' + cfg.label + ' Master';
+  renderSciMasterList(type);
+}
+
+// ── Render list ───────────────────────────────────────────────
+function renderSciMasterList(type) {
+  const cfg    = SCI_MASTER_CONFIG[type];
+  const data   = getSciMaster(type);
+  const listEl = document.getElementById('sciml-' + type);
+  if (!listEl) return;
+  if (!data.length) {
+    listEl.innerHTML = `<div class="sci-master-empty"><div class="sci-master-empty-icon">${cfg.icon}</div><div class="sci-master-empty-txt">No ${cfg.label} records yet</div><div class="sci-master-empty-sub">Click "+ Add ${cfg.label}" to create your first record</div></div>`;
+    return;
+  }
+  listEl.innerHTML = data.map((r, i) => `
+    <div class="sci-master-item" onclick="pickSciMasterRecord('${type}',${i})">
+      <div class="sci-master-item-icon">${cfg.icon}</div>
+      <div style="flex:1;min-width:0;"><div class="sci-master-item-name">${cfg.display(r)}</div><div class="sci-master-item-sub">${cfg.sub(r)}</div></div>
+      <div class="sci-master-item-acts" onclick="event.stopPropagation()">
+        <button class="sci-mi-btn use"  onclick="pickSciMasterRecord('${type}',${i})">↗ Use</button>
+        <button class="sci-mi-btn edit" onclick="openSciMasterForm('${type}',${i})">✏️</button>
+        <button class="sci-mi-btn del"  onclick="deleteSciMaster('${type}',${i})">🗑</button>
+      </div>
+    </div>`).join('');
+}
+
+// ── Pick record ───────────────────────────────────────────────
+function pickSciMasterRecord(type, idx) {
+  const cfg  = SCI_MASTER_CONFIG[type];
+  const data = getSciMaster(type);
+  const r    = data[idx]; if (!r) return;
+  if (type === 'product' && sciProductPickRowId !== null) {
+    cfg.fill(r, sciProductPickRowId);
+    showToast('📦', r.name + ' selected');
+    closeSciMaster(); return;
+  }
+  if (sciMasterPickTarget) {
+    cfg.fill(r, sciMasterPickTarget);
+    showToast('✅', cfg.label + ' selected: ' + cfg.display(r));
+    closeSciMaster();
+  }
+}
+
+// ── Add / Edit form ───────────────────────────────────────────
+function openSciMasterForm(type, idx) {
+  sciMasterEditType = type;
+  sciMasterEditIdx  = (idx !== undefined && idx !== null) ? idx : null;
+  const cfg  = SCI_MASTER_CONFIG[type];
+  const data = getSciMaster(type);
+  const rec  = sciMasterEditIdx !== null ? data[sciMasterEditIdx] : null;
+  document.getElementById('sciMfTitle').textContent = rec ? `✏️ Edit ${cfg.label}` : `+ Add ${cfg.label}`;
+  document.getElementById('sciMfBody').innerHTML = cfg.fields.map(f => `
+    <div class="sci-mf-fg">
+      <label class="sci-mf-lbl">${f.label}${f.req?' *':''}</label>
+      <input class="sci-mf-inp" id="scimf_${f.id}" type="text" placeholder="${f.placeholder}" value="${rec?(rec[f.id]||''):''}"/>
+    </div>`).join('');
+  document.getElementById('sciMfOverlay').classList.add('open');
+  setTimeout(() => { const first=document.querySelector('#sciMfBody .sci-mf-inp'); if(first) first.focus(); }, 100);
+}
+function closeSciMasterForm() {
+  document.getElementById('sciMfOverlay').classList.remove('open');
+  sciMasterEditType = null; sciMasterEditIdx = null;
+}
+function saveSciMasterRecord() {
+  const type = sciMasterEditType; if (!type) return;
+  const cfg  = SCI_MASTER_CONFIG[type];
+  const data = getSciMaster(type);
+  const rec  = {}; let valid = true;
+  cfg.fields.forEach(f => {
+    const el = document.getElementById('scimf_' + f.id);
+    if (el) rec[f.id] = el.value.trim();
+    if (f.req && !rec[f.id]) { valid=false; el?.classList.add('err'); } else el?.classList.remove('err');
+  });
+  if (!valid) { showToast('⚠️','Please fill all required fields!'); return; }
+  if (sciMasterEditIdx !== null) { data[sciMasterEditIdx]=rec; } else { data.push(rec); }
+  setSciMaster(type, data);
+  closeSciMasterForm();
+  renderSciMasterList(type);
+  showToast('✅', cfg.label + ' saved!');
+}
+function deleteSciMaster(type, idx) {
+  const cfg = SCI_MASTER_CONFIG[type];
+  if (!confirm('Delete this ' + cfg.label + ' record?')) return;
+  const data = getSciMaster(type); data.splice(idx,1);
+  setSciMaster(type, data); renderSciMasterList(type);
+  showToast('🗑', cfg.label + ' deleted.');
+}
+
+// ── Product row picker ────────────────────────────────────────
+function openSciProductPicker(rowId) {
+  sciProductPickRowId = rowId;
+  openSciMaster('product', rowId);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  AUTOCOMPLETE DROPDOWN
+// ══════════════════════════════════════════════════════════════
+const SCI_FIELD_MAP = {
+  'f_con_name':      { type:'consignee', display:r=>r.name, sub:r=>[r.addr2,r.addr3].filter(Boolean).join(', ') },
+  'f_pol':           { type:'port',      display:r=>r.name, sub:r=>[r.code,r.state].filter(Boolean).join(' · ') },
+  'f_pod':           { type:'port',      display:r=>r.name, sub:r=>[r.code,r.state].filter(Boolean).join(' · ') },
+  'f_incoterms':     { type:'incoterms', display:r=>r.term, sub:r=>r.desc||'' },
+  'f_payment_terms': { type:'payterms',  display:r=>r.term, sub:r=>r.note||'' },
+  'f_preparedby':    { type:'signatory', display:r=>r.name, sub:r=>r.designation||'' },
+  'f_signatory':     { type:'signatory', display:r=>r.name, sub:r=>r.designation||'' },
+};
+
+const sciAcDrop = document.getElementById('sciAcDropdown');
+let sciAcField  = null;
+
+function posSciAC(el) {
+  const r = el.getBoundingClientRect();
+  sciAcDrop.style.left  = r.left + 'px';
+  sciAcDrop.style.top   = (r.bottom + 4) + 'px';
+  sciAcDrop.style.width = Math.max(r.width, 260) + 'px';
+}
+
+function renderSciAC(fieldId, query) {
+  const map  = SCI_FIELD_MAP[fieldId]; if (!map) return closeSciAC();
+  const data = getSciMaster(map.type);  if (!data.length) return closeSciAC();
+  const q    = (query||'').toLowerCase().trim();
+  const filtered = q ? data.filter(r => map.display(r).toLowerCase().includes(q)) : data;
+  if (!filtered.length) return closeSciAC();
+  const cfg = SCI_MASTER_CONFIG[map.type];
+  sciAcDrop.innerHTML = `
+    <div style="padding:0.45rem 0.75rem;font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#6b7fa3;border-bottom:1px solid #eef1f8;display:flex;align-items:center;justify-content:space-between;">
+      <span>${cfg.icon} Saved ${cfg.label}</span><span style="color:#9aadcc;">${filtered.length} found</span>
+    </div>
+    ${filtered.map(r => {
+      const idx=data.indexOf(r); const sub=map.sub(r);
+      return `<div class="sci-ac-item" onmousedown="event.preventDefault();pickSciAC('${fieldId}',${idx})"
+        style="padding:0.6rem 0.85rem;cursor:pointer;border-bottom:1px solid #f4f3ee;display:flex;align-items:center;gap:0.65rem;transition:background 0.15s;">
+        <div style="width:28px;height:28px;border-radius:7px;background:#f0f2f8;display:flex;align-items:center;justify-content:center;font-size:0.85rem;flex-shrink:0;">${cfg.icon}</div>
+        <div style="flex:1;min-width:0;"><div style="font-size:0.82rem;font-weight:600;color:#0f2540;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${map.display(r)}</div>${sub?`<div style="font-size:0.68rem;color:#6b7fa3;margin-top:0.1rem;">${sub}</div>`:''}</div>
+        <div style="font-size:0.65rem;color:#c9a84c;font-weight:700;flex-shrink:0;">↗ Use</div>
+      </div>`;
+    }).join('')}`;
+  sciAcDrop.querySelectorAll('.sci-ac-item').forEach(el => {
+    el.addEventListener('mouseover', () => el.style.background='#f4f3ee');
+    el.addEventListener('mouseout',  () => el.style.background='');
+  });
+  sciAcDrop.style.display = 'block';
+  posSciAC(document.getElementById(fieldId));
+}
+
+function pickSciAC(fieldId, idx) {
+  const map = SCI_FIELD_MAP[fieldId]; if (!map) return;
+  const data = getSciMaster(map.type); const r=data[idx]; if (!r) return;
+  SCI_MASTER_CONFIG[map.type].fill(r, fieldId);
+  closeSciAC();
+  showToast('✅', map.display(r) + ' selected');
+}
+function closeSciAC() { sciAcDrop.style.display='none'; sciAcField=null; }
+
+// ── Product row autocomplete ──────────────────────────────────
+function attachSciProductAC(rowId) {
+  setTimeout(() => {
+    const descEl = document.getElementById('r_desc_' + rowId);
+    if (!descEl) return;
+    descEl.addEventListener('focus', () => renderSciRowAC(rowId, descEl.value));
+    descEl.addEventListener('click', () => renderSciRowAC(rowId, descEl.value));
+    descEl.addEventListener('input', () => renderSciRowAC(rowId, descEl.value));
+    descEl.addEventListener('keydown', e => {
+      if (e.key==='Escape') { closeSciAC(); return; }
+      if (sciAcDrop.style.display==='none') return;
+      const items=sciAcDrop.querySelectorAll('.sci-row-ac-item');
+      const active=sciAcDrop.querySelector('.sci-row-ac-item.ac-active');
+      let idx=-1; items.forEach((it,i)=>{ if(it===active) idx=i; });
+      if (e.key==='ArrowDown') { e.preventDefault(); const next=idx<items.length-1?idx+1:0; items.forEach(i=>{i.classList.remove('ac-active');i.style.background='';}); items[next].classList.add('ac-active'); items[next].style.background='#f4f3ee'; items[next].scrollIntoView({block:'nearest'}); }
+      if (e.key==='ArrowUp')   { e.preventDefault(); const prev=idx>0?idx-1:items.length-1; items.forEach(i=>{i.classList.remove('ac-active');i.style.background='';}); items[prev].classList.add('ac-active'); items[prev].style.background='#f4f3ee'; items[prev].scrollIntoView({block:'nearest'}); }
+      if (e.key==='Enter' && active) { e.preventDefault(); active.dispatchEvent(new MouseEvent('mousedown')); }
+    });
+  }, 50);
+}
+
+function renderSciRowAC(rowId, query) {
+  const data = getSciMaster('product'); if (!data.length) return closeSciAC();
+  const q = (query||'').toLowerCase().trim();
+  const filtered = q ? data.filter(r => r.name.toLowerCase().includes(q)) : data;
+  if (!filtered.length) return closeSciAC();
+  sciAcDrop.innerHTML = `
+    <div style="padding:0.45rem 0.75rem;font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#6b7fa3;border-bottom:1px solid #eef1f8;display:flex;align-items:center;justify-content:space-between;">
+      <span>📦 Saved Products</span><span style="color:#9aadcc;">${filtered.length} found</span>
+    </div>
+    ${filtered.map(r => {
+      const idx=data.indexOf(r);
+      const sub=[r.hscode?'HS:'+r.hscode:'',r.unit].filter(Boolean).join(' · ');
+      return `<div class="sci-row-ac-item" onmousedown="event.preventDefault();pickSciRowProduct(${rowId},${idx})"
+        style="padding:0.6rem 0.85rem;cursor:pointer;border-bottom:1px solid #f4f3ee;display:flex;align-items:center;gap:0.65rem;transition:background 0.15s;">
+        <div style="width:28px;height:28px;border-radius:7px;background:#f0f2f8;display:flex;align-items:center;justify-content:center;font-size:0.85rem;flex-shrink:0;">📦</div>
+        <div style="flex:1;min-width:0;"><div style="font-size:0.82rem;font-weight:600;color:#0f2540;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${r.name}</div>${sub?`<div style="font-size:0.68rem;color:#6b7fa3;margin-top:0.1rem;">${sub}</div>`:''}${r.rate?`<div style="font-size:0.68rem;color:#c9a84c;font-weight:700;">Rate: $${r.rate}</div>`:''}</div>
+        <div style="font-size:0.65rem;color:#c9a84c;font-weight:700;flex-shrink:0;">↗ Use</div>
+      </div>`;
+    }).join('')}`;
+  sciAcDrop.querySelectorAll('.sci-row-ac-item').forEach(el => {
+    el.addEventListener('mouseover', () => el.style.background='#f4f3ee');
+    el.addEventListener('mouseout',  () => el.style.background='');
+  });
+  sciAcDrop.style.display = 'block';
+  const descEl = document.getElementById('r_desc_' + rowId);
+  if (descEl) posSciAC(descEl);
+}
+
+function pickSciRowProduct(rowId, idx) {
+  const data = getSciMaster('product'); const r=data[idx]; if (!r) return;
+  SCI_MASTER_CONFIG.product.fill(r, rowId);
+  closeSciAC();
+  showToast('📦', r.name + ' selected');
+}
+
+// ── Attach all autocomplete events ───────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    Object.keys(SCI_FIELD_MAP).forEach(fieldId => {
+      const el = document.getElementById(fieldId); if (!el) return;
+      el.addEventListener('focus', () => { sciAcField=fieldId; renderSciAC(fieldId, el.value); });
+      el.addEventListener('click', () => { sciAcField=fieldId; renderSciAC(fieldId, el.value); });
+      el.addEventListener('input', () => { if(sciAcField===fieldId) renderSciAC(fieldId, el.value); });
+      el.addEventListener('keydown', e => {
+        if (e.key==='Escape') { closeSciAC(); return; }
+        if (sciAcDrop.style.display==='none') return;
+        const items=sciAcDrop.querySelectorAll('.sci-ac-item');
+        const active=sciAcDrop.querySelector('.sci-ac-item.ac-active');
+        let idx=-1; items.forEach((it,i)=>{ if(it===active) idx=i; });
+        if (e.key==='ArrowDown') { e.preventDefault(); const next=idx<items.length-1?idx+1:0; items.forEach(i=>{i.classList.remove('ac-active');i.style.background='';}); items[next].classList.add('ac-active'); items[next].style.background='#f4f3ee'; items[next].scrollIntoView({block:'nearest'}); }
+        if (e.key==='ArrowUp')   { e.preventDefault(); const prev=idx>0?idx-1:items.length-1; items.forEach(i=>{i.classList.remove('ac-active');i.style.background='';}); items[prev].classList.add('ac-active'); items[prev].style.background='#f4f3ee'; items[prev].scrollIntoView({block:'nearest'}); }
+        if (e.key==='Enter' && active) { e.preventDefault(); active.dispatchEvent(new MouseEvent('mousedown')); }
+      });
+    });
+    document.addEventListener('click', e => {
+      if (!sciAcDrop.contains(e.target) && !Object.keys(SCI_FIELD_MAP).some(id => document.getElementById(id)===e.target)) closeSciAC();
+    });
+    window.addEventListener('scroll', () => { if(sciAcField && sciAcDrop.style.display!=='none') posSciAC(document.getElementById(sciAcField)); }, true);
+    // Attach to initial 5 rows
+    [1,2,3,4,5].forEach(id => attachSciProductAC(id));
+  }, 300);
+});
+

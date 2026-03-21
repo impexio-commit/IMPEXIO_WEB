@@ -613,7 +613,7 @@ function showToast(icon, msg) {
 
 const EC2_MASTER_CONFIG = {
   company: {
-    label:'Company', icon:'🏢', key:'ec2_master_company',
+    label:'Company', icon:'🏢', key:'impexio_master_company',
     fields:[
       {id:'name',    label:'Company Name',    placeholder:'e.g. Impexio Trade Solutions', req:true},
       {id:'branch',  label:'Branch / Office', placeholder:'e.g. GIFT City Branch'},
@@ -627,7 +627,7 @@ const EC2_MASTER_CONFIG = {
     fill:    (r, tid) => { const el=document.getElementById(tid); if(el){el.value=r.name;el.dispatchEvent(new Event('input'));} }
   },
   product: {
-    label:'Product', icon:'📦', key:'ec2_master_product',
+    label:'Product', icon:'📦', key:'impexio_master_product',
     fields:[
       {id:'name',   label:'Product Name', placeholder:'e.g. Ceramic Floor Tiles', req:true},
       {id:'hscode', label:'HS Code',      placeholder:'e.g. 6907.21'},
@@ -639,7 +639,7 @@ const EC2_MASTER_CONFIG = {
     fill:    (r, tid) => { const el=document.getElementById(tid); if(el){el.value=r.name;el.dispatchEvent(new Event('input'));} }
   },
   currency: {
-    label:'Currency', icon:'💱', key:'ec2_master_currency',
+    label:'Currency', icon:'💱', key:'impexio_master_currency',
     fields:[
       {id:'name', label:'Currency Name',      placeholder:'e.g. US Dollar', req:true},
       {id:'code', label:'Currency Code',      placeholder:'e.g. USD'},
@@ -650,7 +650,7 @@ const EC2_MASTER_CONFIG = {
     fill:    (r, tid) => { const el=document.getElementById(tid); if(el){el.value=r.rate||'';el.dispatchEvent(new Event('input'));} }
   },
   port: {
-    label:'Port', icon:'⚓', key:'ec2_master_port',
+    label:'Port', icon:'⚓', key:'impexio_master_port',
     fields:[
       {id:'name',    label:'Port Name',  placeholder:'e.g. Mundra Port', req:true},
       {id:'code',    label:'Port Code',  placeholder:'e.g. INMUN'},
@@ -662,7 +662,7 @@ const EC2_MASTER_CONFIG = {
     fill:    (r, tid) => { const el=document.getElementById(tid); if(el){el.value=r.name;el.dispatchEvent(new Event('input'));} }
   },
   signatory: {
-    label:'Signatory', icon:'✍️', key:'ec2_master_signatory',
+    label:'Signatory', icon:'✍️', key:'impexio_master_signatory',
     fields:[
       {id:'name',        label:'Full Name',    placeholder:'e.g. Rajesh Kumar Sharma', req:true},
       {id:'designation', label:'Designation',  placeholder:'e.g. Director / Manager'},

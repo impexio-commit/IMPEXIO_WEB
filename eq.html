@@ -110,11 +110,11 @@
             </div>
             <div class="qf">
               <label class="ql2">Product</label>
-              <input type="text" class="qi" id="f_product" placeholder="Product name"/>
+              <div class="master-field-wrap"><input type="text" class="qi" id="f_product" placeholder="Product name"/><button class="master-trigger" onclick="openEqMaster('product','f_product')" title="Product Master">📦</button></div>
             </div>
             <div class="qf">
               <label class="ql2">Buyer <span class="req">*</span></label>
-              <input type="text" class="qi" id="f_buyer" placeholder="Buyer / Company name"/>
+              <div class="master-field-wrap"><input type="text" class="qi" id="f_buyer" placeholder="Buyer / Company name"/><button class="master-trigger" onclick="openEqMaster('buyer','f_buyer')" title="Buyer Master">🌍</button></div>
             </div>
             <div class="qf" style="grid-column:1/-1;">
               <label class="ql2">Country</label>
@@ -201,15 +201,15 @@
           <div class="eq-terms-grid">
             <div class="qf">
               <label class="ql2">Port of Loading</label>
-              <input type="text" class="qi" id="f_pol" placeholder="e.g. Mundra"/>
+              <div class="master-field-wrap"><input type="text" class="qi" id="f_pol" placeholder="e.g. Mundra"/><button class="master-trigger" onclick="openEqMaster('port','f_pol')" title="Port Master">⚓</button></div>
             </div>
             <div class="qf">
               <label class="ql2">Port of Discharge</label>
-              <input type="text" class="qi" id="f_pod" placeholder="e.g. Hamburg"/>
+              <div class="master-field-wrap"><input type="text" class="qi" id="f_pod" placeholder="e.g. Hamburg"/><button class="master-trigger" onclick="openEqMaster('port','f_pod')" title="Port Master">⚓</button></div>
             </div>
             <div class="qf">
               <label class="ql2">Inco Terms</label>
-              <input type="text" class="qi" id="f_incoterms" placeholder="e.g. CIF / FOB"/>
+              <div class="master-field-wrap"><input type="text" class="qi" id="f_incoterms" placeholder="e.g. CIF / FOB"/><button class="master-trigger" onclick="openEqMaster('incoterms','f_incoterms')" title="Incoterms Master">📜</button></div>
             </div>
             <div class="qf">
               <label class="ql2">Final Destination</label>
@@ -225,7 +225,7 @@
             </div>
             <div class="qf">
               <label class="ql2">Payment Terms</label>
-              <input type="text" class="qi" id="f_payment_terms" placeholder="e.g. 30% advance"/>
+              <div class="master-field-wrap"><input type="text" class="qi" id="f_payment_terms" placeholder="e.g. 30% advance"/><button class="master-trigger" onclick="openEqMaster('payterms','f_payment_terms')" title="Payment Terms Master">💳</button></div>
             </div>
             <div class="qf">
               <label class="ql2">Quotation Validity</label>
@@ -305,11 +305,11 @@
           <div class="eq-auth-grid">
             <div class="qf">
               <label class="ql2">Prepared By</label>
-              <input type="text" class="qi" id="f_preparedby" placeholder="Full name"/>
+              <div class="master-field-wrap"><input type="text" class="qi" id="f_preparedby" placeholder="Full name"/><button class="master-trigger" onclick="openEqMaster('signatory','f_preparedby')" title="Signatory Master">✍️</button></div>
             </div>
             <div class="qf">
               <label class="ql2">For IMPEXIO / Authorised Signatory</label>
-              <input type="text" class="qi" id="f_signatory" placeholder="Signatory name"/>
+              <div class="master-field-wrap"><input type="text" class="qi" id="f_signatory" placeholder="Signatory name"/><button class="master-trigger" onclick="openEqMaster('signatory','f_signatory')" title="Signatory Master">✍️</button></div>
             </div>
           </div>
         </div>
@@ -328,6 +328,98 @@
 </div><!-- /eq-shell -->
 
 <div id="printArea" style="display:none;"></div>
+
+<!-- ═══ EQ MASTER PANEL ═══ -->
+<div class="eq-master-overlay" id="eqMasterOverlay" onclick="closeEqMaster()"></div>
+<div class="eq-master-panel"   id="eqMasterPanel">
+  <div class="eq-master-head">
+    <div><div class="eq-master-title" id="eqMasterTitle">Master Data</div><div class="eq-master-sub">Click a record to auto-fill the field</div></div>
+    <button class="eq-master-close" onclick="closeEqMaster()">✕</button>
+  </div>
+  <div class="eq-master-tabs">
+    <div class="eq-master-tab active" id="eqmt-buyer"     onclick="switchEqMasterTab('buyer')">🌍 Buyer</div>
+    <div class="eq-master-tab"        id="eqmt-product"   onclick="switchEqMasterTab('product')">📦 Product</div>
+    <div class="eq-master-tab"        id="eqmt-port"      onclick="switchEqMasterTab('port')">⚓ Port</div>
+    <div class="eq-master-tab"        id="eqmt-incoterms" onclick="switchEqMasterTab('incoterms')">📜 Incoterms</div>
+    <div class="eq-master-tab"        id="eqmt-payterms"  onclick="switchEqMasterTab('payterms')">💳 Pay Terms</div>
+    <div class="eq-master-tab"        id="eqmt-signatory" onclick="switchEqMasterTab('signatory')">✍️ Signatory</div>
+  </div>
+  <div class="eq-master-body">
+    <div class="eq-master-sect active" id="eqms-buyer"><div class="eq-master-add-wrap"><button class="eq-master-add-btn" onclick="openEqMasterForm('buyer')">+ Add Buyer</button></div><div class="eq-master-list" id="eqml-buyer"></div></div>
+    <div class="eq-master-sect"        id="eqms-product"><div class="eq-master-add-wrap"><button class="eq-master-add-btn" onclick="openEqMasterForm('product')">+ Add Product</button></div><div class="eq-master-list" id="eqml-product"></div></div>
+    <div class="eq-master-sect"        id="eqms-port"><div class="eq-master-add-wrap"><button class="eq-master-add-btn" onclick="openEqMasterForm('port')">+ Add Port</button></div><div class="eq-master-list" id="eqml-port"></div></div>
+    <div class="eq-master-sect"        id="eqms-incoterms"><div class="eq-master-add-wrap"><button class="eq-master-add-btn" onclick="openEqMasterForm('incoterms')">+ Add Incoterm</button></div><div class="eq-master-list" id="eqml-incoterms"></div></div>
+    <div class="eq-master-sect"        id="eqms-payterms"><div class="eq-master-add-wrap"><button class="eq-master-add-btn" onclick="openEqMasterForm('payterms')">+ Add Payment Term</button></div><div class="eq-master-list" id="eqml-payterms"></div></div>
+    <div class="eq-master-sect"        id="eqms-signatory"><div class="eq-master-add-wrap"><button class="eq-master-add-btn" onclick="openEqMasterForm('signatory')">+ Add Signatory</button></div><div class="eq-master-list" id="eqml-signatory"></div></div>
+  </div>
+</div>
+
+<!-- ═══ EQ MASTER FORM MODAL ═══ -->
+<div class="eq-mf-overlay" id="eqMfOverlay">
+  <div class="eq-mf-modal">
+    <div class="eq-mf-head"><div class="eq-mf-title" id="eqMfTitle">Add Record</div><button class="eq-master-close" onclick="closeEqMasterForm()">✕</button></div>
+    <div class="eq-mf-body" id="eqMfBody"></div>
+    <div class="eq-mf-foot"><button class="qnav qnav-back" onclick="closeEqMasterForm()">Cancel</button><button class="qnav qnav-save" onclick="saveEqMasterRecord()">💾 Save</button></div>
+  </div>
+</div>
+
+<!-- Autocomplete dropdown -->
+<div id="eqAcDropdown" style="position:fixed;z-index:99999;background:#fff;border:1.5px solid #dde3f0;border-radius:12px;box-shadow:0 16px 48px rgba(15,37,64,0.16);min-width:260px;max-width:380px;max-height:280px;overflow-y:auto;display:none;font-family:'Outfit',sans-serif;"></div>
+
+<style>
+.master-field-wrap{position:relative;display:flex;align-items:center;gap:0.4rem;}
+.master-field-wrap .qi{flex:1;}
+.master-trigger{width:34px;height:34px;border-radius:8px;background:var(--navy);color:#fff;border:none;cursor:pointer;font-size:0.9rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;}
+.master-trigger:hover{background:var(--navy-mid);transform:scale(1.08);}
+.eq-master-overlay{display:none;position:fixed;inset:0;background:rgba(15,37,64,0.45);backdrop-filter:blur(3px);z-index:1000;}
+.eq-master-overlay.open{display:block;}
+.eq-master-panel{position:fixed;top:0;right:-420px;width:400px;max-width:95vw;bottom:0;background:#fff;z-index:1001;box-shadow:-8px 0 48px rgba(15,37,64,0.18);display:flex;flex-direction:column;transition:right 0.3s cubic-bezier(.4,0,.2,1);}
+.eq-master-panel.open{right:0;}
+.eq-master-head{padding:1.1rem 1.25rem;background:#0f5c52;display:flex;align-items:flex-start;justify-content:space-between;}
+.eq-master-title{font-family:var(--font-display,'Georgia',serif);font-size:1.05rem;font-weight:700;color:#fff;}
+.eq-master-sub{font-size:0.68rem;color:rgba(255,255,255,0.6);margin-top:0.15rem;}
+.eq-master-close{background:rgba(255,255,255,0.15);border:none;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:0.85rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.eq-master-close:hover{background:rgba(255,255,255,0.28);}
+.eq-master-tabs{display:flex;border-bottom:1px solid #dde3f0;background:#fafaf7;overflow-x:auto;}
+.eq-master-tab{padding:0.65rem 0.85rem;font-size:0.76rem;font-weight:600;color:#6b7fa3;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:all 0.2s;}
+.eq-master-tab:hover{color:#0f2540;}
+.eq-master-tab.active{color:#0f2540;border-bottom-color:#c9a84c;}
+.eq-master-body{flex:1;overflow:hidden;}
+.eq-master-sect{display:none;height:100%;flex-direction:column;}
+.eq-master-sect.active{display:flex;}
+.eq-master-add-wrap{padding:0.75rem 1rem;border-bottom:1px solid #eef1f8;}
+.eq-master-add-btn{width:100%;padding:0.6rem;background:#0f2540;color:#fff;border:none;border-radius:8px;font-size:0.82rem;font-weight:700;cursor:pointer;}
+.eq-master-add-btn:hover{background:#1a3a5c;}
+.eq-master-list{flex:1;overflow-y:auto;padding:0.5rem;}
+.eq-master-item{display:flex;align-items:center;gap:0.75rem;padding:0.75rem 0.85rem;border-radius:10px;border:1px solid #dde3f0;margin-bottom:0.5rem;cursor:pointer;transition:all 0.18s;background:#fff;}
+.eq-master-item:hover{border-color:#0f2540;background:#f4f3ee;transform:translateX(3px);}
+.eq-master-item-icon{width:34px;height:34px;border-radius:8px;background:#0f2540;color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.9rem;flex-shrink:0;}
+.eq-master-item-name{font-size:0.83rem;font-weight:700;color:#0f2540;}
+.eq-master-item-sub{font-size:0.7rem;color:#6b7fa3;}
+.eq-master-item-acts{display:flex;gap:0.3rem;margin-left:auto;flex-shrink:0;}
+.eq-mi-btn{padding:0.25rem 0.55rem;border-radius:6px;font-size:0.7rem;font-weight:700;border:none;cursor:pointer;}
+.eq-mi-btn.use{background:#0f2540;color:#fff;}
+.eq-mi-btn.edit{background:#f4f3ee;color:#3d5475;}
+.eq-mi-btn.del{background:#fef2f2;color:#dc2626;}
+.eq-master-empty{text-align:center;padding:2.5rem 1rem;color:#6b7fa3;}
+.eq-master-empty-icon{font-size:2rem;opacity:0.35;margin-bottom:0.5rem;}
+.eq-master-empty-txt{font-size:0.85rem;font-weight:600;}
+.eq-master-empty-sub{font-size:0.75rem;}
+.eq-mf-overlay{display:none;position:fixed;inset:0;background:rgba(15,37,64,0.5);backdrop-filter:blur(4px);z-index:1100;align-items:center;justify-content:center;padding:1rem;}
+.eq-mf-overlay.open{display:flex;}
+.eq-mf-modal{background:#fff;border-radius:16px;width:100%;max-width:480px;box-shadow:0 24px 72px rgba(15,37,64,0.22);overflow:hidden;animation:eqRiseIn 0.25s ease;}
+@keyframes eqRiseIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.eq-mf-head{background:#0f2540;padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.eq-mf-title{font-weight:700;font-size:0.95rem;color:#fff;}
+.eq-mf-body{padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}
+.eq-mf-foot{padding:0.85rem 1.25rem;border-top:1px solid #dde3f0;display:flex;justify-content:flex-end;gap:0.5rem;}
+.eq-mf-fg{display:flex;flex-direction:column;gap:0.3rem;}
+.eq-mf-lbl{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#3d5475;}
+.eq-mf-inp{padding:0.65rem 0.85rem;border:1.5px solid #dde3f0;border-radius:8px;font-size:0.88rem;font-family:inherit;width:100%;transition:all 0.2s;}
+.eq-mf-inp:focus{outline:none;border-color:#0f2540;box-shadow:0 0 0 3px rgba(15,37,64,0.08);}
+.eq-mf-inp.err{border-color:#ef4444;}
+</style>
+
 <script src="app.js"></script>
 <script src="eq.js"></script>
 </body>

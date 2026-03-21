@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IMPEXIO — Import Letter For Enquiry Module</title>
+  <link rel="stylesheet" href="../styles.css"/>
+  <link rel="icon" href="../impexio_logo.png" type="image/png"/>
+  <style>
+
+    .info-page { padding-top: var(--nav-h); }
+
+    /* ── HERO ── */
+    .mod-hero {
+      background: linear-gradient(135deg, #0f2540 0%, #1a3a5c 45%, #1a3a0f 100%);
+      padding: 5rem 2.5rem 4rem;
+      position: relative; overflow: hidden;
+    }
+    .mod-hero::before {
+      content: ''; position: absolute; top: -80px; right: -80px;
+      width: 420px; height: 420px;
+      background: radial-gradient(circle, rgba(201,168,76,0.12) 0%, transparent 65%);
+      border-radius: 50%; filter: blur(50px); pointer-events: none;
+    }
+    .mod-hero::after {
+      content: ''; position: absolute; bottom: -60px; left: 10%;
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(26,160,26,0.1) 0%, transparent 65%);
+      border-radius: 50%; filter: blur(40px); pointer-events: none;
+    }
+    .mod-hero-inner {
+      max-width: 1100px; margin: 0 auto;
+      display: grid; grid-template-columns: 1fr 420px;
+      align-items: center; gap: 4rem;
+      position: relative; z-index: 2;
+    }
+    .mod-hero-badge {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: rgba(201,168,76,0.15); border: 1px solid rgba(201,168,76,0.3);
+      border-radius: 50px; padding: 0.35rem 1rem;
+      font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.12em; color: var(--gold-light); margin-bottom: 1.5rem;
+    }
+    .mod-hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(2.2rem, 4vw, 3.5rem);
+      font-weight: 700; color: #fff; line-height: 1.15; margin-bottom: 1.2rem;
+    }
+    .mod-hero-title span { color: var(--gold-light); font-style: italic; }
+    .mod-hero-desc { font-size: 1.05rem; color: rgba(255,255,255,0.72); line-height: 1.75; margin-bottom: 2.2rem; max-width: 500px; }
+    .mod-hero-btns { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .btn-hero-primary {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.85rem 2rem; background: var(--gold); color: var(--navy);
+      border-radius: 50px; font-size: 0.95rem; font-weight: 700;
+      box-shadow: 0 6px 24px rgba(201,168,76,0.35);
+      transition: all 0.28s; border: none; cursor: pointer; text-decoration: none;
+    }
+    .btn-hero-primary:hover { background: var(--gold-light); transform: translateY(-3px); }
+    .btn-hero-ghost {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.85rem 2rem; border: 1.5px solid rgba(255,255,255,0.25);
+      border-radius: 50px; font-size: 0.95rem; font-weight: 600;
+      color: rgba(255,255,255,0.85); transition: all 0.28s; cursor: pointer; background: none; text-decoration: none;
+    }
+    .btn-hero-ghost:hover { border-color: #fff; color: #fff; }
+
+    .mod-hero-stats {
+      display: flex; gap: 2.5rem; margin-top: 2.5rem;
+      padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    .mhs-val { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; color: var(--gold-light); }
+    .mhs-lbl { font-size: 0.72rem; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 0.1rem; }
+
+    /* ── HERO VISUAL ── */
+    .mod-hero-visual {
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 20px; padding: 1.5rem; backdrop-filter: blur(10px);
+    }
+    .mhv-header {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 1.1rem;
+    }
+    .mhv-icon  { font-size: 1.8rem; }
+    .mhv-title { font-family: var(--font-display); font-size: 1rem; font-weight: 700; color: #fff; }
+    .mhv-sub   { font-size: 0.7rem; color: rgba(255,255,255,0.45); }
+    .mhv-field { margin-bottom: 0.7rem; }
+    .mhv-field-label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.4); margin-bottom: 0.2rem; }
+    .mhv-field-val { font-size: 0.82rem; color: rgba(255,255,255,0.85); font-family: var(--font-mono); background: rgba(255,255,255,0.05); border-radius: 6px; padding: 0.3rem 0.6rem; border: 1px solid rgba(255,255,255,0.08); }
+    .mhv-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 0.85rem 0; }
+    .mhv-tag-row { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.5rem; }
+    .mhv-tag { background: rgba(201,168,76,0.15); border: 1px solid rgba(201,168,76,0.3); border-radius: 50px; padding: 0.18rem 0.65rem; font-size: 0.65rem; font-weight: 700; color: var(--gold-light); }
+    .mhv-tag.green { background: rgba(34,197,94,0.12); border-color: rgba(34,197,94,0.3); color: #86efac; }
+
+    /* ── BREADCRUMB ── */
+    .mod-breadcrumb { background: var(--white); border-bottom: 1px solid var(--border); padding: 0.7rem 2.5rem; }
+    .mod-breadcrumb-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; gap: 0.5rem; font-size: 0.78rem; color: var(--text-soft); }
+    .mod-breadcrumb a { color: var(--navy-light); font-weight: 600; cursor: pointer; text-decoration: none; }
+    .mod-breadcrumb a:hover { text-decoration: underline; }
+    .mod-breadcrumb-sep { color: var(--border); }
+
+    /* ── STICKY SECTION NAV ── */
+    .mod-nav-bar { background: var(--white); border-bottom: 1px solid var(--border); position: sticky; top: var(--nav-h); z-index: 90; overflow-x: auto; }
+    .mod-nav-bar-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; padding: 0 2.5rem; }
+    .mod-nav-link { padding: 0.9rem 1.1rem; font-size: 0.82rem; font-weight: 600; color: var(--text-soft); border-bottom: 2px solid transparent; cursor: pointer; transition: var(--transition); white-space: nowrap; }
+    .mod-nav-link:hover { color: var(--navy); }
+    .mod-nav-link.active { color: var(--navy); border-bottom-color: var(--gold); }
+
+    /* ── SECTIONS ── */
+    .info-section { padding: 5rem 2.5rem; }
+    .info-section-inner { max-width: 1100px; margin: 0 auto; }
+    .info-section.alt { background: var(--ivory2); }
+
+    .info-kicker { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--navy-light); margin-bottom: 0.85rem; }
+    .info-kicker-bar { width: 24px; height: 2px; background: var(--gold); border-radius: 2px; }
+    .info-heading { font-family: var(--font-display); font-size: clamp(1.7rem, 3vw, 2.4rem); font-weight: 700; color: var(--navy); line-height: 1.2; margin-bottom: 0.85rem; }
+    .info-sub { font-size: 0.97rem; color: var(--text-mid); line-height: 1.75; max-width: 560px; margin-bottom: 3rem; }
+
+    /* ── WHAT IS IT ── */
+    .what-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center; }
+    .what-text p { font-size: 0.95rem; color: var(--text-mid); line-height: 1.8; margin-bottom: 1rem; }
+    .what-text p:last-child { margin-bottom: 0; }
+    .what-highlight { background: var(--navy); border-radius: var(--radius-lg); padding: 2rem; color: #fff; position: relative; overflow: hidden; }
+    .what-highlight::before { content: '📩'; position: absolute; bottom: -10px; right: 10px; font-size: 5rem; opacity: 0.08; }
+    .wh-title { font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; color: var(--gold-light); margin-bottom: 1rem; }
+    .wh-stat { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .wh-stat:last-child { border-bottom: none; }
+    .wh-stat-icon { font-size: 1.1rem; }
+    .wh-stat-txt  { font-size: 0.84rem; color: rgba(255,255,255,0.8); }
+    .wh-stat-val  { font-family: var(--font-mono); font-size: 0.82rem; font-weight: 700; color: var(--gold-light); margin-left: auto; }
+
+    /* ── LETTER COMPONENTS ── */
+    .comp-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.25rem; }
+    .comp-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.35rem;
+      display: flex; align-items: flex-start; gap: 0.85rem;
+      transition: var(--transition);
+    }
+    .comp-card:hover { border-color: var(--navy-light); box-shadow: var(--shadow-sm); transform: translateY(-3px); }
+    .comp-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--navy); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
+    .comp-title { font-weight: 700; font-size: 0.88rem; color: var(--navy); margin-bottom: 0.28rem; }
+    .comp-desc  { font-size: 0.78rem; color: var(--text-mid); line-height: 1.55; }
+
+    /* ── LETTER PREVIEW ── */
+    .letter-preview {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-md);
+    }
+    .lp-header {
+      background: linear-gradient(90deg, var(--navy), #1a3a5c);
+      padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between;
+    }
+    .lp-title { font-family: var(--font-display); font-size: 0.95rem; font-weight: 700; color: #fff; }
+    .lp-badge { background: rgba(201,168,76,0.2); border: 1px solid rgba(201,168,76,0.35); border-radius: 50px; padding: 0.2rem 0.65rem; font-size: 0.62rem; font-weight: 700; color: var(--gold-light); }
+    .lp-body { padding: 1.5rem; }
+    .lp-row { display: flex; gap: 1rem; margin-bottom: 0.75rem; }
+    .lp-field { flex: 1; }
+    .lp-lbl { font-size: 0.58rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-soft); margin-bottom: 0.2rem; }
+    .lp-val { font-size: 0.8rem; color: var(--text); background: var(--ivory2); border: 1px solid var(--border-soft); border-radius: 6px; padding: 0.3rem 0.6rem; font-family: var(--font-mono); }
+    .lp-text-area { background: var(--ivory2); border: 1px solid var(--border-soft); border-radius: 8px; padding: 0.75rem 0.85rem; font-size: 0.78rem; color: var(--text-mid); line-height: 1.65; margin-top: 0.5rem; }
+    .lp-divider { height: 1px; background: var(--border-soft); margin: 1rem 0; }
+    .lp-prod-table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
+    .lp-prod-table th { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-soft); padding: 0.35rem 0.5rem; border-bottom: 1px solid var(--border); text-align: left; }
+    .lp-prod-table td { font-size: 0.75rem; padding: 0.4rem 0.5rem; border-bottom: 1px solid var(--border-soft); color: var(--text); font-family: var(--font-mono); }
+
+    /* ── HOW IT WORKS ── */
+    .steps-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 1.5rem; position: relative; }
+    .steps-grid::before { content: ''; position: absolute; top: 28px; left: 10%; right: 10%; height: 2px; background: linear-gradient(90deg, var(--navy), var(--gold), var(--navy)); z-index: 0; }
+    .step-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.75rem 1.25rem; text-align: center; position: relative; z-index: 1; transition: var(--transition); }
+    .step-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); border-color: rgba(201,168,76,0.4); }
+    .step-num { width: 52px; height: 52px; border-radius: 50%; background: var(--navy); color: #fff; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; margin: 0 auto 1.1rem; border: 3px solid var(--gold); box-shadow: 0 4px 14px rgba(15,37,64,0.2); }
+    .step-icon  { font-size: 1.6rem; margin-bottom: 0.65rem; }
+    .step-title { font-family: var(--font-display); font-size: 1rem; font-weight: 700; color: var(--navy); margin-bottom: 0.5rem; }
+    .step-desc  { font-size: 0.82rem; color: var(--text-mid); line-height: 1.65; }
+
+    /* ── FEATURES ── */
+    .features-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.25rem; }
+    .feat-box { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; transition: var(--transition); position: relative; overflow: hidden; }
+    .feat-box::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--navy), var(--gold)); transform: scaleX(0); transform-origin: left; transition: transform 0.3s; }
+    .feat-box:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+    .feat-box:hover::after { transform: scaleX(1); }
+    .feat-box-icon  { font-size: 1.75rem; margin-bottom: 0.75rem; }
+    .feat-box-title { font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; color: var(--navy); margin-bottom: 0.45rem; }
+    .feat-box-desc  { font-size: 0.83rem; color: var(--text-mid); line-height: 1.65; }
+
+    /* ── USE CASES ── */
+    .usecases-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 1.25rem; }
+    .usecase-card { display: flex; align-items: flex-start; gap: 1rem; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.35rem 1.5rem; transition: var(--transition); }
+    .usecase-card:hover { border-color: var(--navy-light); box-shadow: var(--shadow-sm); }
+    .uc-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--navy); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+    .uc-title { font-weight: 700; font-size: 0.92rem; color: var(--navy); margin-bottom: 0.3rem; }
+    .uc-desc  { font-size: 0.8rem; color: var(--text-mid); line-height: 1.6; }
+
+    /* ── CTA ── */
+    .cta-banner { background: linear-gradient(135deg, var(--navy) 0%, #1a3a5c 50%, #0f5c52 100%); border-radius: var(--radius-xl); padding: 3.5rem; text-align: center; position: relative; overflow: hidden; }
+    .cta-banner::before { content: ''; position: absolute; top: -60px; right: -60px; width: 300px; height: 300px; background: rgba(201,168,76,0.1); border-radius: 50%; filter: blur(50px); }
+    .cta-banner::after  { content: ''; position: absolute; bottom: -50px; left: -50px; width: 250px; height: 250px; background: rgba(255,255,255,0.04); border-radius: 50%; filter: blur(40px); }
+    .cta-inner { position: relative; z-index: 2; }
+    .cta-title { font-family: var(--font-display); font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 700; color: #fff; margin-bottom: 0.85rem; }
+    .cta-sub   { font-size: 1rem; color: rgba(255,255,255,0.7); margin-bottom: 2rem; }
+    .cta-btns  { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+    /* ── IMPORT vs EXPORT TABLE ── */
+    .compare-table { width: 100%; border-collapse: collapse; margin-top: 1.5rem; }
+    .compare-table th { background: var(--navy); color: #fff; padding: 0.85rem 1.1rem; font-size: 0.82rem; font-weight: 700; text-align: left; }
+    .compare-table th:first-child { border-radius: var(--radius-sm) 0 0 0; }
+    .compare-table th:last-child  { border-radius: 0 var(--radius-sm) 0 0; }
+    .compare-table td { padding: 0.75rem 1.1rem; font-size: 0.83rem; color: var(--text); border-bottom: 1px solid var(--border-soft); }
+    .compare-table tr:nth-child(even) td { background: var(--ivory2); }
+    .compare-table tr:hover td { background: #eef1f8; }
+    .ct-check { color: #16a34a; font-weight: 700; }
+    .ct-cross { color: #dc2626; font-weight: 700; }
+
+    /* ── MOBILE ── */
+    @media (max-width: 900px) {
+      .mod-hero-inner { grid-template-columns: 1fr; gap: 2rem; }
+      .mod-hero-visual { display: none; }
+      .what-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+      .comp-grid  { grid-template-columns: repeat(2,1fr); }
+      .steps-grid { grid-template-columns: repeat(2,1fr); }
+      .steps-grid::before { display: none; }
+      .features-grid { grid-template-columns: repeat(2,1fr); }
+      .usecases-grid { grid-template-columns: 1fr; }
+      .info-section { padding: 3rem 1.25rem; }
+      .mod-hero { padding: 3.5rem 1.25rem 2.5rem; }
+      .mod-breadcrumb { padding: 0.7rem 1.25rem; }
+    }
+    @media (max-width: 540px) {
+      .comp-grid  { grid-template-columns: 1fr; }
+      .steps-grid { grid-template-columns: 1fr; }
+      .features-grid { grid-template-columns: 1fr; }
+      .mod-hero-stats { gap: 1.5rem; }
+      .cta-banner { padding: 2rem 1.25rem; }
+    }
+  </style>
+</head>
+<body class="dash-body">
+
+<!-- ── NAVBAR ── -->
+<nav class="site-nav" id="siteNav">
+  <div class="nav-inner">
+    <a class="nav-brand" href="../index.html">
+      <div class="nav-logo-box"><img src="../impexio_logo.png" alt="IMPEXIO" class="nav-logo"/></div>
+      <span class="nav-brand-name">IMPEXIO</span>
+    </a>
+    <div class="nav-links" id="navLinks">
+      <div class="nav-dd-wrap">
+        <button class="nav-link nav-dd-btn" onclick="toggleDD('exportDD',event)">Export Modules ▾</button>
+        <div class="nav-dropdown" id="exportDD">
+          <a class="dd-item" href="cbm-info.html"><div class="dd-icon">📐</div><div><div class="dd-name">CBM Calculation</div><div class="dd-sub">Volume & container load</div></div></a>
+          <a class="dd-item" href="fob-info.html"><div class="dd-icon">💰</div><div><div class="dd-name">Container Expenses FOB</div><div class="dd-sub">Full FOB cost breakdown</div></div></a>
+          <a class="dd-item" href="ec-info.html"><div class="dd-icon">🧮</div><div><div class="dd-name">Export Costing</div><div class="dd-sub">Comprehensive cost sheet</div></div></a>
+          <a class="dd-item" href="ec2-info.html"><div class="dd-icon">📊</div><div><div class="dd-name">Export Costing 2</div><div class="dd-sub">LCL & FCL dual costing</div></div></a>
+          <a class="dd-item" href="pi-info.html"><div class="dd-icon">📄</div><div><div class="dd-name">Proforma Invoice</div><div class="dd-sub">Pre-shipment invoice</div></div></a>
+          <a class="dd-item" href="eq-info.html"><div class="dd-icon">📋</div><div><div class="dd-name">Export Quotation</div><div class="dd-sub">Formal price quotes</div></div></a>
+          <a class="dd-item" href="sci-info.html"><div class="dd-icon">✈️</div><div><div class="dd-name">Sample Courier Invoice</div><div class="dd-sub">Sample shipment docs</div></div></a>
+        </div>
+      </div>
+      <div class="nav-dd-wrap">
+        <button class="nav-link nav-dd-btn active" onclick="toggleDD('importDD',event)">Import Modules ▾</button>
+        <div class="nav-dropdown" id="importDD">
+          <a class="dd-item" href="ile-info.html"><div class="dd-icon">📩</div><div><div class="dd-name">Import Letter For Enquiry</div><div class="dd-sub">Formal supplier inquiry</div></div></a>
+          <a class="dd-item" href="../login.html"><div class="dd-icon">🛒</div><div><div class="dd-name">Import Purchase Order</div><div class="dd-sub">Official purchase order</div></div></a>
+        </div>
+      </div>
+      <a class="nav-link" href="../buyers.html">Buyer Directory</a>
+    </div>
+    <div class="nav-auth">
+      <a class="btn-nav-login" href="../login.html">Login</a>
+    </div>
+    <button class="nav-hamburger" id="navHamburger" onclick="toggleNav()"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<div class="info-page">
+
+  <!-- ── HERO ── -->
+  <section class="mod-hero">
+    <div class="mod-hero-inner">
+      <div>
+        <div class="mod-hero-badge">📩 Import Module</div>
+        <h1 class="mod-hero-title">
+          Import Letter<br/><span>For Enquiry</span>
+        </h1>
+        <p class="mod-hero-desc">
+          A professional, structured letter sent to overseas suppliers to request product information, pricing, availability and terms — the first formal step in any successful import transaction.
+        </p>
+        <div class="mod-hero-btns">
+          <a href="../login.html" class="btn-hero-primary">🚀 Login to Use Module</a>
+          <a href="#what" class="btn-hero-ghost">Learn More ↓</a>
+        </div>
+        <div class="mod-hero-stats">
+          <div><div class="mhs-val">2 min</div><div class="mhs-lbl">To Create</div></div>
+          <div><div class="mhs-val">100%</div><div class="mhs-lbl">Professional</div></div>
+          <div><div class="mhs-val">Print</div><div class="mhs-lbl">Ready</div></div>
+        </div>
+      </div>
+      <div class="mod-hero-visual">
+        <div class="mhv-header">
+          <div class="mhv-icon">📩</div>
+          <div>
+            <div class="mhv-title">Import Letter For Enquiry</div>
+            <div class="mhv-sub">ILE/2026/0012 — Sample Preview</div>
+          </div>
+        </div>
+        <div class="mhv-field">
+          <div class="mhv-field-label">To (Supplier)</div>
+          <div class="mhv-field-val">Global Ceramic Exports Ltd., China</div>
+        </div>
+        <div class="mhv-field">
+          <div class="mhv-field-label">Subject</div>
+          <div class="mhv-field-val">Enquiry for Ceramic Floor Tiles</div>
+        </div>
+        <div class="mhv-field">
+          <div class="mhv-field-label">Product / HS Code</div>
+          <div class="mhv-field-val">Ceramic Tiles — HS 6907.21</div>
+        </div>
+        <div class="mhv-divider"></div>
+        <div class="mhv-field">
+          <div class="mhv-field-label">Required Information</div>
+        </div>
+        <div class="mhv-tag-row">
+          <div class="mhv-tag">Price List</div>
+          <div class="mhv-tag">MOQ</div>
+          <div class="mhv-tag green">Lead Time</div>
+          <div class="mhv-tag">Payment Terms</div>
+          <div class="mhv-tag green">Samples</div>
+          <div class="mhv-tag">Port of Loading</div>
+        </div>
+        <div class="mhv-divider"></div>
+        <div class="mhv-field">
+          <div class="mhv-field-label">Delivery Requirement</div>
+          <div class="mhv-field-val">CIF Mundra Port — 40' HQ Container</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── BREADCRUMB ── -->
+  <div class="mod-breadcrumb">
+    <div class="mod-breadcrumb-inner">
+      <a href="../index.html">Home</a>
+      <span class="mod-breadcrumb-sep">›</span>
+      <span>Import Modules</span>
+      <span class="mod-breadcrumb-sep">›</span>
+      <span>Import Letter For Enquiry</span>
+    </div>
+  </div>
+
+  <!-- ── STICKY SECTION NAV ── -->
+  <div class="mod-nav-bar">
+    <div class="mod-nav-bar-inner">
+      <div class="mod-nav-link active" onclick="scrollTo('what')">What Is It?</div>
+      <div class="mod-nav-link" onclick="scrollTo('components')">Letter Components</div>
+      <div class="mod-nav-link" onclick="scrollTo('howworks')">How It Works</div>
+      <div class="mod-nav-link" onclick="scrollTo('features')">Features</div>
+      <div class="mod-nav-link" onclick="scrollTo('usecases')">Use Cases</div>
+    </div>
+  </div>
+
+  <!-- ── WHAT IS IT ── -->
+  <section class="info-section" id="what">
+    <div class="info-section-inner">
+      <div class="info-kicker"><div class="info-kicker-bar"></div> Overview</div>
+      <h2 class="info-heading">What is an Import Letter For Enquiry?</h2>
+      <p class="info-sub">The first formal communication between an importer and a potential overseas supplier — setting the tone for the entire trade relationship.</p>
+      <div class="what-grid">
+        <div class="what-text">
+          <p>An Import Letter For Enquiry (ILE) is a formal written communication sent by an importer to a prospective overseas supplier to gather product information, pricing, availability, and terms before placing a purchase order.</p>
+          <p>It serves as the official opening of trade negotiations — establishing your company's professional credibility and clearly communicating your import requirements. A well-drafted enquiry letter reduces back-and-forth, avoids misunderstandings, and accelerates the supplier response.</p>
+          <p>IMPEXIO's ILE module generates a print-ready, professionally formatted letter in minutes — covering all the essential information a supplier needs to send you a meaningful quotation or proforma invoice.</p>
+        </div>
+        <div class="what-highlight">
+          <div class="wh-title">📩 Key Information Requested</div>
+          <div class="wh-stat"><span class="wh-stat-icon">💰</span><span class="wh-stat-txt">Price list / CIF rate per unit</span></div>
+          <div class="wh-stat"><span class="wh-stat-icon">📦</span><span class="wh-stat-txt">Minimum Order Quantity (MOQ)</span></div>
+          <div class="wh-stat"><span class="wh-stat-icon">⏱️</span><span class="wh-stat-txt">Lead time & delivery schedule</span></div>
+          <div class="wh-stat"><span class="wh-stat-icon">💳</span><span class="wh-stat-txt">Payment terms & banking details</span></div>
+          <div class="wh-stat"><span class="wh-stat-icon">📋</span><span class="wh-stat-txt">Product catalogue & specifications</span></div>
+          <div class="wh-stat"><span class="wh-stat-icon">🧪</span><span class="wh-stat-txt">Sample availability & cost</span></div>
+          <div class="wh-stat"><span class="wh-stat-icon">🚢</span><span class="wh-stat-txt">Port of loading & incoterms</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── LETTER COMPONENTS ── -->
+  <section class="info-section alt" id="components">
+    <div class="info-section-inner">
+      <div class="info-kicker"><div class="info-kicker-bar"></div> Letter Structure</div>
+      <h2 class="info-heading">What the Letter Covers</h2>
+      <p class="info-sub">Every section of the letter is structured to give the supplier exactly what they need to respond with a proper quotation.</p>
+      <div class="comp-grid">
+        <div class="comp-card">
+          <div class="comp-icon">🏢</div>
+          <div>
+            <div class="comp-title">Buyer / Importer Details</div>
+            <div class="comp-desc">Your company name, address, contact person, GST number and reference — so the supplier knows exactly who is enquiring.</div>
+          </div>
+        </div>
+        <div class="comp-card">
+          <div class="comp-icon">🌏</div>
+          <div>
+            <div class="comp-title">Supplier / Manufacturer Details</div>
+            <div class="comp-desc">Full name and address of the overseas supplier or manufacturer being contacted for the enquiry.</div>
+          </div>
+        </div>
+        <div class="comp-card">
+          <div class="comp-icon">📦</div>
+          <div>
+            <div class="comp-title">Product Specification</div>
+            <div class="comp-desc">Detailed product description, HS Code, required specifications like grade, size, finish, colour and quantity needed.</div>
+          </div>
+        </div>
+        <div class="comp-card">
+          <div class="comp-icon">🚢</div>
+          <div>
+            <div class="comp-title">Shipment Requirements</div>
+            <div class="comp-desc">Port of loading, port of discharge, incoterms (CIF/FOB/EXW), preferred container type and expected delivery timeline.</div>
+          </div>
+        </div>
+        <div class="comp-card">
+          <div class="comp-icon">💳</div>
+          <div>
+            <div class="comp-title">Commercial Terms</div>
+            <div class="comp-desc">Requested payment terms, currency preference, pricing basis (per unit / per MT / per CBM) and any special commercial conditions.</div>
+          </div>
+        </div>
+        <div class="comp-card">
+          <div class="comp-icon">📋</div>
+          <div>
+            <div class="comp-title">Information Checklist</div>
+            <div class="comp-desc">A structured list of specific items you want from the supplier — price list, MOQ, lead time, samples, certifications, packing details and more.</div>
+          </div>
+        </div>
+        <div class="comp-card">
+          <div class="comp-icon">📅</div>
+          <div>
+            <div class="comp-title">Response Deadline</div>
+            <div class="comp-desc">A clear requested date by which you need the supplier's response — ensuring urgency and keeping your procurement timeline on track.</div>
+          </div>
+        </div>
+        <div class="comp-card">
+          <div class="comp-icon">📝</div>
+          <div>
+            <div class="comp-title">Remarks & Special Instructions</div>
+            <div class="comp-desc">Any additional notes — quality certifications needed, country of origin requirements, specific testing standards or custom requests.</div>
+          </div>
+        </div>
+        <div class="comp-card">
+          <div class="comp-icon">✍️</div>
+          <div>
+            <div class="comp-title">Authorization & Signature</div>
+            <div class="comp-desc">Prepared by and authorised signatory fields with your company name — giving the letter official credibility and legal standing.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Letter preview -->
+      <div style="margin-top: 3rem;">
+        <div class="info-kicker"><div class="info-kicker-bar"></div> Sample Preview</div>
+        <h3 style="font-family:var(--font-display);font-size:1.3rem;font-weight:700;color:var(--navy);margin-bottom:1.5rem;">How the Generated Letter Looks</h3>
+        <div class="letter-preview">
+          <div class="lp-header">
+            <div class="lp-title">📩 Import Letter For Enquiry — ILE/2026/0012</div>
+            <div class="lp-badge">DRAFT PREVIEW</div>
+          </div>
+          <div class="lp-body">
+            <div class="lp-row">
+              <div class="lp-field"><div class="lp-lbl">From (Importer)</div><div class="lp-val">Impexio Trade Solutions Pvt. Ltd.</div></div>
+              <div class="lp-field"><div class="lp-lbl">Date</div><div class="lp-val">21 Mar 2026</div></div>
+            </div>
+            <div class="lp-row">
+              <div class="lp-field"><div class="lp-lbl">To (Supplier)</div><div class="lp-val">Global Ceramic Exports Ltd., Guangzhou, China</div></div>
+              <div class="lp-field"><div class="lp-lbl">Ref. No.</div><div class="lp-val">ILE/2026/0012</div></div>
+            </div>
+            <div class="lp-divider"></div>
+            <div style="font-size:0.75rem;font-weight:700;color:var(--navy);margin-bottom:0.35rem;">Subject: Enquiry for Import of Ceramic Floor Tiles (HS Code: 6907.21)</div>
+            <div class="lp-text-area">Dear Sir / Madam,<br/><br/>We are pleased to introduce ourselves as an established import house based in India. We are interested in importing <strong>Ceramic Floor Tiles</strong> from your esteemed organisation and would appreciate if you could provide us with the following details at your earliest convenience...</div>
+            <div class="lp-divider"></div>
+            <table class="lp-prod-table">
+              <thead><tr><th>Product</th><th>HS Code</th><th>Qty Required</th><th>Unit</th><th>Incoterms</th></tr></thead>
+              <tbody>
+                <tr><td>Ceramic Floor Tiles 600×600mm</td><td>6907.21</td><td>5,000</td><td>SQM</td><td>CIF Mundra</td></tr>
+                <tr><td>Ceramic Wall Tiles 300×600mm</td><td>6907.22</td><td>2,500</td><td>SQM</td><td>CIF Mundra</td></tr>
+              </tbody>
+            </table>
+            <div class="lp-divider"></div>
+            <div class="lp-text-area" style="font-size:0.73rem;">
+              <strong>We request the following information:</strong><br/>
+              ✅ Price list (CIF Mundra) &nbsp;|&nbsp; ✅ MOQ &nbsp;|&nbsp; ✅ Lead time &nbsp;|&nbsp; ✅ Payment terms &nbsp;|&nbsp; ✅ Sample availability &nbsp;|&nbsp; ✅ Catalogue / Spec sheet
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── HOW IT WORKS ── -->
+  <section class="info-section" id="howworks">
+    <div class="info-section-inner">
+      <div class="info-kicker"><div class="info-kicker-bar"></div> Process</div>
+      <h2 class="info-heading">How It Works</h2>
+      <p class="info-sub">Four simple steps to generate a professional Import Letter For Enquiry ready to send to any overseas supplier.</p>
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-num">1</div>
+          <div class="step-icon">🏢</div>
+          <div class="step-title">Enter Header Info</div>
+          <div class="step-desc">Fill in your company details, the supplier's name and address, the reference number and date of the letter.</div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">2</div>
+          <div class="step-icon">📦</div>
+          <div class="step-title">Add Product Lines</div>
+          <div class="step-desc">Enter each product you want to import with its HS Code, required quantity, unit and any specific technical specifications.</div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">3</div>
+          <div class="step-icon">📋</div>
+          <div class="step-title">Set Terms & Checklist</div>
+          <div class="step-desc">Specify your shipment requirements, incoterms, payment terms, and tick the information checklist items you want from the supplier.</div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">4</div>
+          <div class="step-icon">🖨️</div>
+          <div class="step-title">Save & Print / Send</div>
+          <div class="step-desc">Save the letter to your records and print the professionally formatted, ready-to-send letter or export it as a PDF.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FEATURES ── -->
+  <section class="info-section alt" id="features">
+    <div class="info-section-inner">
+      <div class="info-kicker"><div class="info-kicker-bar"></div> Features</div>
+      <h2 class="info-heading">Module Features</h2>
+      <p class="info-sub">Everything you need to create professional import enquiry letters quickly and consistently.</p>
+      <div class="features-grid">
+        <div class="feat-box">
+          <div class="feat-box-icon">📋</div>
+          <div class="feat-box-title">Step-by-Step Wizard</div>
+          <div class="feat-box-desc">3-step guided form — Header Info, Product Lines, Terms & Remarks — so nothing is missed and every letter is complete.</div>
+        </div>
+        <div class="feat-box">
+          <div class="feat-box-icon">📦</div>
+          <div class="feat-box-title">Multi-Product Rows</div>
+          <div class="feat-box-desc">Add unlimited product rows with HS Code, quantity, unit and specifications for multi-product enquiry letters in one go.</div>
+        </div>
+        <div class="feat-box">
+          <div class="feat-box-icon">🧠</div>
+          <div class="feat-box-title">Master Data Auto-fill</div>
+          <div class="feat-box-desc">Your saved supplier, port, product and payment terms data auto-fills instantly — eliminating repetitive data entry across enquiries.</div>
+        </div>
+        <div class="feat-box">
+          <div class="feat-box-icon">💾</div>
+          <div class="feat-box-title">Record Management</div>
+          <div class="feat-box-desc">Every letter is saved with a unique reference number. Browse, search, edit, duplicate or re-print any past enquiry in seconds.</div>
+        </div>
+        <div class="feat-box">
+          <div class="feat-box-icon">🖨️</div>
+          <div class="feat-box-title">Print-Ready Format</div>
+          <div class="feat-box-desc">Generates a clean, professional letter layout formatted for print — on your company letterhead — ready to email or courier directly.</div>
+        </div>
+        <div class="feat-box">
+          <div class="feat-box-icon">📅</div>
+          <div class="feat-box-title">Response Deadline</div>
+          <div class="feat-box-desc">Set a response-by date in the letter — so suppliers know your timeline and you maintain urgency in your procurement process.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── USE CASES ── -->
+  <section class="info-section" id="usecases">
+    <div class="info-section-inner">
+      <div class="info-kicker"><div class="info-kicker-bar"></div> Use Cases</div>
+      <h2 class="info-heading">When Do You Need This?</h2>
+      <p class="info-sub">The Import Letter For Enquiry is the starting point for any structured import process.</p>
+      <div class="usecases-grid">
+        <div class="usecase-card">
+          <div class="uc-icon">🆕</div>
+          <div>
+            <div class="uc-title">Approaching a New Supplier</div>
+            <div class="uc-desc">When contacting an overseas manufacturer or trading company for the first time, a formal enquiry letter establishes your credibility and communicates your requirements professionally.</div>
+          </div>
+        </div>
+        <div class="usecase-card">
+          <div class="uc-icon">💰</div>
+          <div>
+            <div class="uc-title">Price Discovery & Comparison</div>
+            <div class="uc-desc">Send identical enquiry letters to multiple suppliers simultaneously to collect comparable quotes — enabling side-by-side price and terms analysis.</div>
+          </div>
+        </div>
+        <div class="usecase-card">
+          <div class="uc-icon">📦</div>
+          <div>
+            <div class="uc-title">New Product Sourcing</div>
+            <div class="uc-desc">When looking to import a new product category, the ILE helps you clearly define specifications and gather accurate information before committing to any order.</div>
+          </div>
+        </div>
+        <div class="usecase-card">
+          <div class="uc-icon">🔄</div>
+          <div>
+            <div class="uc-title">Annual Rate Revision</div>
+            <div class="uc-desc">Send annual or seasonal rate enquiries to your existing suppliers to renegotiate prices, review updated MOQs and confirm current terms for the new financial year.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Import vs Export comparison -->
+      <div style="margin-top:3.5rem;">
+        <div class="info-kicker"><div class="info-kicker-bar"></div> Module Relationship</div>
+        <h3 style="font-family:var(--font-display);font-size:1.3rem;font-weight:700;color:var(--navy);margin-bottom:0.5rem;">ILE vs Export Quotation (EQ)</h3>
+        <p style="font-size:0.9rem;color:var(--text-mid);margin-bottom:1rem;">Both are formal commercial documents — but they serve opposite directions in trade.</p>
+        <table class="compare-table">
+          <thead>
+            <tr><th>Aspect</th><th>Import Letter For Enquiry (ILE)</th><th>Export Quotation (EQ)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Direction</td><td>Buyer → Supplier (Import)</td><td>Seller → Buyer (Export)</td></tr>
+            <tr><td>Purpose</td><td>Request price & info from supplier</td><td>Offer price & terms to buyer</td></tr>
+            <tr><td>Who Creates It</td><td>Importer / Buyer</td><td>Exporter / Seller</td></tr>
+            <tr><td>Contains</td><td>Product specs, quantity needed, terms required</td><td>Price, MOQ, delivery, payment terms</td></tr>
+            <tr><td>Result</td><td>Supplier sends back a Quotation or PI</td><td>Buyer places a Purchase Order</td></tr>
+            <tr><td>In IMPEXIO</td><td class="ct-check">✅ Import Module</td><td class="ct-check">✅ Export Module</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CTA ── -->
+  <section class="info-section alt">
+    <div class="info-section-inner">
+      <div class="cta-banner">
+        <div class="cta-inner">
+          <div class="cta-title">Start Your Import Enquiry Process</div>
+          <div class="cta-sub">Create professional Import Letters For Enquiry in minutes — save time, look credible, source better.</div>
+          <div class="cta-btns">
+            <a href="../login.html" class="btn-hero-primary">🚀 Login to Use Module</a>
+            <a href="../index.html" class="btn-hero-ghost">← Back to Home</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /info-page -->
+
+<script>
+// ── Navbar scroll ──────────────────────────────────────────────
+window.addEventListener('scroll', () => {
+  document.getElementById('siteNav')?.classList.toggle('scrolled', window.scrollY > 30);
+});
+
+// ── Dropdown ──────────────────────────────────────────────────
+function toggleDD(id, event) {
+  if (event) event.stopPropagation();
+  document.querySelectorAll('.nav-dropdown').forEach(d => {
+    if (d.id !== id) d.classList.remove('open');
+  });
+  document.getElementById(id)?.classList.toggle('open');
+}
+document.addEventListener('click', () => {
+  document.querySelectorAll('.nav-dropdown').forEach(d => d.classList.remove('open'));
+});
+
+// ── Mobile nav ────────────────────────────────────────────────
+function toggleNav() {
+  document.getElementById('navLinks')?.classList.toggle('open');
+  document.getElementById('navHamburger')?.classList.toggle('open');
+}
+
+// ── Section scroll ────────────────────────────────────────────
+function scrollTo(id) {
+  const el = document.getElementById(id);
+  if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+}
+
+// ── Active section nav ────────────────────────────────────────
+const sections = ['what','components','howworks','features','usecases'];
+const navLinks = document.querySelectorAll('.mod-nav-link');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.id;
+      navLinks.forEach((l, i) => {
+        l.classList.toggle('active', sections[i] === id);
+      });
+    }
+  });
+}, { rootMargin: '-40% 0px -55% 0px' });
+sections.forEach(id => {
+  const el = document.getElementById(id);
+  if (el) observer.observe(el);
+});
+
+// ── Animate on scroll ─────────────────────────────────────────
+const animObs = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.style.opacity = '1';
+      entry.target.style.transform = 'translateY(0)';
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.comp-card, .step-card, .feat-box, .usecase-card').forEach((el, i) => {
+  el.style.opacity = '0';
+  el.style.transform = 'translateY(20px)';
+  el.style.transition = `opacity 0.5s ${i * 0.06}s ease, transform 0.5s ${i * 0.06}s ease`;
+  animObs.observe(el);
+});
+</script>
+</body>
+</html>

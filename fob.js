@@ -476,7 +476,7 @@ function showToast(icon, msg) {
 
 const FOB_MASTER_CONFIG = {
   company: {
-    label: 'Company', icon: '🏢', key: 'fob_master_company',
+    label: 'Company', icon: '🏢', key: 'impexio_master_company',
     fields: [
       { id:'name',     label:'Company Name',   placeholder:'e.g. Impexio Trade Solutions', req:true },
       { id:'branch',   label:'Branch / Office', placeholder:'e.g. GIFT City Branch' },
@@ -493,7 +493,7 @@ const FOB_MASTER_CONFIG = {
     }
   },
   port: {
-    label: 'Port', icon: '⚓', key: 'fob_master_port',
+    label: 'Port', icon: '⚓', key: 'impexio_master_port',
     fields: [
       { id:'name',    label:'Port Name',    placeholder:'e.g. Mundra Port', req:true },
       { id:'code',    label:'Port Code',    placeholder:'e.g. INMUN' },
@@ -508,7 +508,7 @@ const FOB_MASTER_CONFIG = {
     }
   },
   signatory: {
-    label: 'Signatory', icon: '✍️', key: 'fob_master_signatory',
+    label: 'Signatory', icon: '✍️', key: 'impexio_master_signatory',
     fields: [
       { id:'name',        label:'Full Name',       placeholder:'e.g. Rajesh Kumar Sharma', req:true },
       { id:'designation', label:'Designation',     placeholder:'e.g. Director / Manager' },

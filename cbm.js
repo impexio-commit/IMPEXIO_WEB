@@ -414,7 +414,7 @@ function showToastCbm(icon,msg){
 // ── Master config ──────────────────────────
 const MASTER_CONFIG = {
   company:  {
-    label: 'Company', icon: '🏢', key: 'master_company',
+    label: 'Company', icon: '🏢', key: 'impexio_master_company',
     fields: [
       { id:'name',     label:'Company Name',    req:true,  placeholder:'e.g. Impexio Trade Solutions' },
       { id:'addr1',    label:'Address Line 1',  req:false, placeholder:'Building, Street' },
@@ -434,7 +434,7 @@ const MASTER_CONFIG = {
     }
   },
   branch: {
-    label: 'Branch', icon: '🏗️', key: 'master_branch',
+    label: 'Branch', icon: '🏗️', key: 'impexio_master_branch',
     fields: [
       { id:'name',    label:'Branch Name',    req:true,  placeholder:'e.g. Ahmedabad Branch' },
       { id:'company', label:'Company',        req:false, placeholder:'Parent company name' },
@@ -447,7 +447,7 @@ const MASTER_CONFIG = {
     fill:    (r, targetId) => setFieldVal(targetId, r.name)
   },
   location: {
-    label: 'Location', icon: '📍', key: 'master_location',
+    label: 'Location', icon: '📍', key: 'impexio_master_location',
     fields: [
       { id:'name',    label:'Location Name',  req:true,  placeholder:'e.g. Mundra, Gujarat' },
       { id:'state',   label:'State',          req:false, placeholder:'e.g. Gujarat' },
@@ -460,7 +460,7 @@ const MASTER_CONFIG = {
     fill:    (r, targetId) => setFieldVal(targetId, r.name)
   },
   port: {
-    label: 'Port', icon: '⚓', key: 'master_port',
+    label: 'Port', icon: '⚓', key: 'impexio_master_port',
     fields: [
       { id:'name',    label:'Port Name',      req:true,  placeholder:'e.g. Mundra Port' },
       { id:'code',    label:'Port Code',      req:false, placeholder:'e.g. INMUN' },
@@ -473,7 +473,7 @@ const MASTER_CONFIG = {
     fill:    (r, targetId) => setFieldVal(targetId, r.name)
   },
   exporter: {
-    label: 'Exporter', icon: '🏭', key: 'master_exporter',
+    label: 'Exporter', icon: '🏭', key: 'impexio_master_exporter',
     fields: [
       { id:'name',    label:'Exporter Name',  req:true,  placeholder:'e.g. Impexio Trade Solutions' },
       { id:'addr1',   label:'Address Line 1', req:false, placeholder:'Building, Street' },
@@ -489,7 +489,7 @@ const MASTER_CONFIG = {
     fill:    (r, targetId) => setFieldVal(targetId, r.name)
   },
   importer: {
-    label: 'Importer', icon: '🌍', key: 'master_importer',
+    label: 'Importer', icon: '🌍', key: 'impexio_master_buyer',
     fields: [
       { id:'name',    label:'Importer / Buyer Name', req:true,  placeholder:'e.g. Global Traders LLC' },
       { id:'addr1',   label:'Address Line 1',        req:false, placeholder:'Building, Street' },
@@ -504,7 +504,7 @@ const MASTER_CONFIG = {
     fill:    (r, targetId) => setFieldVal(targetId, r.name)
   },
   expense: {
-    label: 'Expense', icon: '💸', key: 'master_expense',
+    label: 'Expense', icon: '💸', key: 'impexio_master_expense',
     fields: [
       { id:'name',    label:'Expense Name',   req:true,  placeholder:'e.g. THC Charges' },
       { id:'category',label:'Category',       req:false, placeholder:'Local / Customs / Port' },
@@ -517,7 +517,7 @@ const MASTER_CONFIG = {
     fill:    (r, targetId) => setFieldVal(targetId, r.name)
   },
   bank: {
-    label: 'Bank', icon: '🏦', key: 'master_bank',
+    label: 'Bank', icon: '🏦', key: 'impexio_master_bank',
     fields: [
       { id:'name',    label:'Bank Name',      req:true,  placeholder:'e.g. HDFC Bank' },
       { id:'branch',  label:'Branch',         req:false, placeholder:'e.g. Navrangpura Branch' },
@@ -532,7 +532,7 @@ const MASTER_CONFIG = {
     fill:    (r, targetId) => setFieldVal(targetId, r.name)
   },
   product: {
-    label: 'Product', icon: '📦', key: 'master_product',
+    label: 'Product', icon: '📦', key: 'impexio_master_product',
     fields: [
       { id:'name',    label:'Product Name',   req:true,  placeholder:'e.g. Ceramic Floor Tiles' },
       { id:'hscode',  label:'HS Code',        req:false, placeholder:'e.g. 6907.21' },
@@ -546,7 +546,7 @@ const MASTER_CONFIG = {
     fill:    (r, targetId) => setFieldVal(targetId, r.name)
   },
   hscode: {
-    label: 'HS Code', icon: '🔖', key: 'master_hscode',
+    label: 'HS Code', icon: '🔖', key: 'impexio_master_hscode',
     fields: [
       { id:'code',    label:'HS Code',        req:true,  placeholder:'e.g. 6907.21' },
       { id:'desc',    label:'Description',    req:true,  placeholder:'Product description for this HS code' },
@@ -559,7 +559,7 @@ const MASTER_CONFIG = {
     fill:    (r, targetId) => setFieldVal(targetId, r.code)
   },
   currency: {
-    label: 'Currency', icon: '💱', key: 'master_currency',
+    label: 'Currency', icon: '💱', key: 'impexio_master_currency',
     fields: [
       { id:'name',    label:'Currency Name',  req:true,  placeholder:'e.g. US Dollar' },
       { id:'code',    label:'Currency Code',  req:true,  placeholder:'e.g. USD' },

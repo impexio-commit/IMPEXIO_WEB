@@ -573,7 +573,7 @@ function showToast(icon, msg) {
 
 const PI_MASTER_CONFIG = {
   exporter: {
-    label:'Exporter', icon:'🏭', key:'pi_master_exporter',
+    label:'Exporter', icon:'🏭', key:'impexio_master_exporter',
     fields:[
       {id:'name',    label:'Exporter Name',   placeholder:'e.g. Impexio Trade Solutions Pvt. Ltd.', req:true},
       {id:'addr1',   label:'Address Line 1',  placeholder:'Building / Street'},
@@ -594,7 +594,7 @@ const PI_MASTER_CONFIG = {
     }
   },
   buyer: {
-    label:'Buyer', icon:'🌍', key:'pi_master_buyer',
+    label:'Buyer', icon:'🌍', key:'impexio_master_buyer',
     fields:[
       {id:'name',    label:'Buyer Name',      placeholder:'e.g. Global Traders LLC', req:true},
       {id:'addr1',   label:'Address Line 1',  placeholder:'Building / Street'},
@@ -613,7 +613,7 @@ const PI_MASTER_CONFIG = {
     }
   },
   port: {
-    label:'Port', icon:'⚓', key:'pi_master_port',
+    label:'Port', icon:'⚓', key:'impexio_master_port',
     fields:[
       {id:'name',    label:'Port Name',  placeholder:'e.g. Mundra Port', req:true},
       {id:'code',    label:'Port Code',  placeholder:'e.g. INMUN'},
@@ -625,7 +625,7 @@ const PI_MASTER_CONFIG = {
     fill:    (r, tid) => { const el=document.getElementById(tid); if(el){el.value=r.name;el.dispatchEvent(new Event('input'));} }
   },
   incoterms: {
-    label:'Incoterms', icon:'📜', key:'pi_master_incoterms',
+    label:'Incoterms', icon:'📜', key:'impexio_master_incoterms',
     fields:[
       {id:'term', label:'Incoterm',     placeholder:'e.g. FOB / CIF / EXW', req:true},
       {id:'desc', label:'Description',  placeholder:'e.g. Free On Board — Port of Loading'},
@@ -635,7 +635,7 @@ const PI_MASTER_CONFIG = {
     fill:    (r, tid) => { const el=document.getElementById(tid); if(el){el.value=r.term;el.dispatchEvent(new Event('input'));} }
   },
   payterms: {
-    label:'Payment Terms', icon:'💳', key:'pi_master_payterms',
+    label:'Payment Terms', icon:'💳', key:'impexio_master_payterms',
     fields:[
       {id:'term', label:'Payment Term',  placeholder:'e.g. 30% Advance, 70% against BL', req:true},
       {id:'note', label:'Note',          placeholder:'Additional note'},
@@ -645,7 +645,7 @@ const PI_MASTER_CONFIG = {
     fill:    (r, tid) => { const el=document.getElementById(tid); if(el){el.value=r.term;el.dispatchEvent(new Event('input'));} }
   },
   signatory: {
-    label:'Signatory', icon:'✍️', key:'pi_master_signatory',
+    label:'Signatory', icon:'✍️', key:'impexio_master_signatory',
     fields:[
       {id:'name',        label:'Full Name',    placeholder:'e.g. Rajesh Kumar Sharma', req:true},
       {id:'designation', label:'Designation',  placeholder:'e.g. Director / Manager'},
@@ -656,7 +656,7 @@ const PI_MASTER_CONFIG = {
     fill:    (r, tid) => { const el=document.getElementById(tid); if(el){el.value=r.name;el.dispatchEvent(new Event('input'));} }
   },
   product: {
-    label:'Product', icon:'📦', key:'pi_master_product',
+    label:'Product', icon:'📦', key:'impexio_master_product',
     fields:[
       {id:'name',   label:'Product Name',        placeholder:'e.g. Ceramic Floor Tiles', req:true},
       {id:'hscode', label:'HS Code',              placeholder:'e.g. 6907.21'},
