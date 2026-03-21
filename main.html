@@ -3,213 +3,568 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>IMPEXIO — Main Menu</title>
+  <title>IMPEXIO — Dashboard</title>
   <link rel="stylesheet" href="styles.css"/>
   <link rel="icon" href="impexio_logo.png" type="image/png"/>
   <style>
-    /* ── Buyer Directory Banner ── */
-    .master-banner {
-      background: linear-gradient(135deg, var(--navy) 0%, #1a3a5c 55%, #0f5c52 100%);
-      border-radius: var(--radius-lg);
-      padding: 1.5rem 2rem;
-      margin-bottom: 1.8rem;
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 1.5rem; position: relative; overflow: hidden;
-      box-shadow: var(--shadow-md);
-    }
-    .master-banner::before {
-      content: ''; position: absolute; top: -60px; right: -60px;
-      width: 220px; height: 220px;
-      background: rgba(201,168,76,0.1); border-radius: 50%; filter: blur(40px);
-    }
-    .mb-left   { display: flex; align-items: center; gap: 1.2rem; flex: 1; z-index: 2; }
-    .mb-icon   { width: 52px; height: 52px; background: rgba(201,168,76,0.18); border: 1.5px solid rgba(201,168,76,0.3); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.55rem; flex-shrink: 0; }
-    .mb-title  { font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; color: #fff; }
-    .mb-sub    { font-size: 0.76rem; color: rgba(255,255,255,0.58); margin-top: 0.15rem; }
-    .mb-stats  { display: flex; gap: 2rem; z-index: 2; flex-shrink: 0; }
-    .mb-stat-val { font-family: var(--font-mono); font-size: 1.1rem; font-weight: 700; color: var(--gold-light); text-align: center; }
-    .mb-stat-lbl { font-size: 0.58rem; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.08em; text-align: center; margin-top: 0.1rem; }
-    .mb-divider  { width: 1px; height: 36px; background: rgba(255,255,255,0.12); }
-    .mb-btn {
-      display: inline-flex; align-items: center; gap: 0.5rem;
-      padding: 0.65rem 1.6rem; background: var(--gold); color: var(--navy);
-      border-radius: 50px; font-size: 0.83rem; font-weight: 700;
-      transition: var(--transition); box-shadow: 0 4px 18px rgba(201,168,76,0.35);
-      z-index: 2; flex-shrink: 0; border: none; cursor: pointer;
-    }
-    .mb-btn:hover { background: var(--gold-light); transform: translateY(-2px); }
+    :root { --teal:#0f5c52; --blue-acc:#2a5298; --sidebar-w:220px; }
+    body.dash-body { background:#f0f2f8; display:flex; min-height:100vh; overflow-x:hidden; }
 
-    /* ── Export: all 8 in one row ── */
-    .tiles-row-8 {
-      display: grid;
-      grid-template-columns: repeat(8, 1fr);
-      gap: 0.75rem;
-    }
-    .tiles-row-8 .m-tile { padding: 1.1rem 0.6rem 0.9rem; }
-    .tiles-row-8 .m-tile-icon { font-size: 1.75rem; margin-bottom: 0.5rem; }
-    .tiles-row-8 .m-tile-name { font-size: 0.7rem; line-height: 1.35; }
+    /* SIDEBAR */
+    .db-sidebar { width:var(--sidebar-w); background:var(--navy); position:fixed; top:0; left:0; bottom:0; z-index:200; display:flex; flex-direction:column; transition:transform 0.3s; }
+    .db-sidebar-head { padding:1.2rem 1.2rem 1rem; border-bottom:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; gap:0.65rem; }
+    .db-logo-box { width:38px; height:38px; background:rgba(201,168,76,0.15); border:1px solid rgba(201,168,76,0.3); border-radius:10px; display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0; }
+    .db-logo-box img { width:34px; height:34px; object-fit:contain; mix-blend-mode:screen; filter:brightness(1.3); }
+    .db-brand-name { font-family:var(--font-display); font-size:1.1rem; font-weight:700; color:#fff; }
+    .db-brand-sub  { font-size:0.55rem; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:0.1em; }
+    .db-nav { padding:0.75rem 0; flex:1; overflow-y:auto; }
+    .db-nav-section { font-size:0.58rem; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:rgba(255,255,255,0.28); padding:0.65rem 1.2rem 0.3rem; }
+    .db-nav-item { display:flex; align-items:center; gap:0.65rem; padding:0.6rem 1.2rem; font-size:0.8rem; font-weight:500; color:rgba(255,255,255,0.6); cursor:pointer; transition:all 0.2s; border-left:3px solid transparent; }
+    .db-nav-item:hover { color:#fff; background:rgba(255,255,255,0.06); }
+    .db-nav-item.active { color:var(--gold-light); background:rgba(201,168,76,0.1); border-left-color:var(--gold); font-weight:700; }
+    .db-nav-icon { font-size:0.95rem; width:18px; text-align:center; flex-shrink:0; }
+    .db-nav-badge { margin-left:auto; background:var(--gold); color:var(--navy); border-radius:50px; padding:0.08rem 0.45rem; font-size:0.6rem; font-weight:800; }
+    .db-sidebar-foot { padding:0.85rem 1.2rem; border-top:1px solid rgba(255,255,255,0.08); }
+    .db-user-foot { display:flex; align-items:center; gap:0.6rem; cursor:pointer; padding:0.5rem 0.6rem; border-radius:var(--radius-sm); transition:background 0.2s; }
+    .db-user-foot:hover { background:rgba(255,255,255,0.06); }
+    .db-user-av { width:30px; height:30px; border-radius:50%; background:var(--gold); color:var(--navy); display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:800; flex-shrink:0; }
+    .db-user-name { font-size:0.78rem; font-weight:700; color:#fff; }
+    .db-user-role { font-size:0.6rem; color:rgba(255,255,255,0.45); }
+    .db-logout-btn { margin-left:auto; color:rgba(255,255,255,0.4); font-size:0.9rem; cursor:pointer; }
+    .db-logout-btn:hover { color:#ef4444; }
 
-    /* ── Import: 2 tiles ── */
-    .tiles-row-imp {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(140px, 200px));
-      gap: 0.85rem;
-    }
+    /* MAIN */
+    .db-main { margin-left:var(--sidebar-w); flex:1; display:flex; flex-direction:column; min-height:100vh; }
 
-    /* ── EXIM: 4 tiles ── */
-    .tiles-row-exim {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(140px, 210px));
-      gap: 0.85rem;
-    }
+    /* TOPBAR */
+    .db-topbar { background:var(--white); border-bottom:1px solid var(--border); padding:0 1.75rem; height:58px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; box-shadow:0 1px 8px rgba(15,37,64,0.06); }
+    .db-topbar-left { display:flex; align-items:center; gap:1rem; }
+    .db-hamburger { display:none; background:none; border:none; cursor:pointer; padding:0.35rem; }
+    .db-hamburger span { display:block; width:18px; height:2px; background:var(--navy); margin:3px 0; border-radius:2px; transition:all 0.3s; }
+    .db-page-title { font-family:var(--font-display); font-size:1.1rem; font-weight:700; color:var(--navy); }
+    .db-breadcrumb { font-size:0.72rem; color:var(--text-soft); }
+    .db-topbar-right { display:flex; align-items:center; gap:0.75rem; }
+    .db-chip { display:flex; align-items:center; gap:0.3rem; background:var(--ivory2); border:1px solid var(--border); border-radius:50px; padding:0.25rem 0.7rem; font-size:0.72rem; font-weight:600; color:var(--text-mid); }
+    .db-chip strong { color:var(--navy); }
+    .db-notif-btn { width:32px; height:32px; border-radius:50%; background:var(--ivory2); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:0.9rem; position:relative; }
+    .db-notif-dot { position:absolute; top:4px; right:4px; width:7px; height:7px; background:#ef4444; border-radius:50%; border:1.5px solid #fff; }
 
-    @media (max-width: 1280px) { .tiles-row-8 { grid-template-columns: repeat(4,1fr); } }
-    @media (max-width: 900px)  {
-      .tiles-row-8  { grid-template-columns: repeat(3,1fr); }
-      .tiles-row-exim { grid-template-columns: repeat(2,1fr); }
-      .master-banner { flex-direction: column; align-items: flex-start; }
-      .mb-stats { display: none; }
+    /* CONTENT */
+    .db-content { padding:1.5rem 1.75rem; flex:1; }
+
+    /* WELCOME */
+    .db-welcome { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.25rem; }
+    .db-welcome h2 { font-family:var(--font-display); font-size:1.4rem; font-weight:700; color:var(--navy); }
+    .db-welcome p  { font-size:0.8rem; color:var(--text-soft); margin-top:0.15rem; }
+    .db-welcome-date { font-size:0.75rem; color:var(--text-soft); background:var(--white); border:1px solid var(--border); border-radius:50px; padding:0.35rem 0.85rem; }
+
+    /* BUYER BANNER */
+    .db-buyer-banner { background:linear-gradient(135deg,var(--navy) 0%,#1a3a5c 50%,var(--teal) 100%); border-radius:var(--radius-lg); padding:1.1rem 1.5rem; display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:1.25rem; position:relative; overflow:hidden; }
+    .db-buyer-banner::before { content:''; position:absolute; top:-40px; right:-40px; width:160px; height:160px; background:rgba(201,168,76,0.1); border-radius:50%; filter:blur(30px); }
+    .db-buyer-left { display:flex; align-items:center; gap:0.85rem; z-index:2; flex:1; }
+    .db-buyer-icon { width:42px; height:42px; background:rgba(201,168,76,0.2); border:1px solid rgba(201,168,76,0.3); border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0; }
+    .db-buyer-title { font-family:var(--font-display); font-size:1rem; font-weight:700; color:#fff; }
+    .db-buyer-sub   { font-size:0.68rem; color:rgba(255,255,255,0.55); margin-top:0.1rem; }
+    .db-buyer-stats { display:flex; align-items:center; gap:1.25rem; z-index:2; flex-shrink:0; }
+    .db-buyer-stat-val { font-family:var(--font-mono); font-size:1.1rem; font-weight:700; color:var(--gold-light); text-align:center; }
+    .db-buyer-stat-lbl { font-size:0.55rem; color:rgba(255,255,255,0.45); text-transform:uppercase; letter-spacing:0.08em; text-align:center; }
+    .db-buyer-div { width:1px; height:30px; background:rgba(255,255,255,0.12); }
+    .db-buyer-btn { display:inline-flex; align-items:center; gap:0.4rem; padding:0.55rem 1.25rem; background:var(--gold); color:var(--navy); border-radius:50px; font-size:0.78rem; font-weight:700; border:none; cursor:pointer; transition:all 0.2s; z-index:2; flex-shrink:0; }
+    .db-buyer-btn:hover { background:var(--gold-light); transform:translateY(-1px); }
+
+    /* STAT CARDS */
+    .db-stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-bottom:1.25rem; }
+    .db-stat-card { background:var(--white); border-radius:var(--radius-lg); padding:1.2rem 1.4rem; border:1px solid var(--border); box-shadow:var(--shadow-sm); position:relative; overflow:hidden; transition:var(--transition); }
+    .db-stat-card:hover { transform:translateY(-3px); box-shadow:var(--shadow-md); }
+    .db-stat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
+    .db-stat-card.c1::before { background:var(--navy); }
+    .db-stat-card.c2::before { background:var(--gold); }
+    .db-stat-card.c3::before { background:var(--teal); }
+    .db-stat-card.c4::before { background:var(--blue-acc); }
+    .db-stat-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:0.85rem; }
+    .db-stat-icon { width:42px; height:42px; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:1.2rem; }
+    .db-stat-icon.c1 { background:rgba(15,37,64,0.08); }
+    .db-stat-icon.c2 { background:rgba(201,168,76,0.12); }
+    .db-stat-icon.c3 { background:rgba(15,92,82,0.1); }
+    .db-stat-icon.c4 { background:rgba(42,82,152,0.1); }
+    .db-stat-trend { display:flex; align-items:center; gap:0.25rem; font-size:0.68rem; font-weight:700; border-radius:50px; padding:0.15rem 0.5rem; }
+    .up   { background:#dcfce7; color:#16a34a; }
+    .down { background:#fef2f2; color:#dc2626; }
+    .db-stat-val { font-family:var(--font-display); font-size:1.75rem; font-weight:700; color:var(--navy); line-height:1; margin-bottom:0.3rem; }
+    .db-stat-lbl { font-size:0.72rem; color:var(--text-soft); font-weight:500; }
+    .db-stat-sub { font-size:0.65rem; color:var(--text-soft); margin-top:0.5rem; padding-top:0.5rem; border-top:1px solid var(--border-soft); }
+
+    /* PANEL */
+    .db-panel { background:var(--white); border-radius:var(--radius-lg); border:1px solid var(--border); box-shadow:var(--shadow-sm); overflow:hidden; }
+    .db-panel-head { padding:0.9rem 1.25rem; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--border-soft); }
+    .db-panel-title { font-weight:700; font-size:0.85rem; color:var(--navy); display:flex; align-items:center; gap:0.45rem; }
+    .db-panel-act { font-size:0.72rem; color:var(--blue-acc); font-weight:600; cursor:pointer; }
+    .db-panel-body { padding:1.1rem 1.25rem; }
+
+    /* GRIDS */
+    .db-grid-3col { display:grid; grid-template-columns:1fr 1fr 320px; gap:1rem; margin-bottom:1.25rem; }
+    .db-grid-2col { display:grid; grid-template-columns:1.4fr 1fr; gap:1rem; margin-bottom:1.25rem; }
+    .db-grid-3eq  { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:1.25rem; }
+
+    /* CHARTS SVG */
+    .chart-area { width:100%; height:130px; }
+
+    /* PROGRESS */
+    .prog-item { margin-bottom:0.75rem; }
+    .prog-item:last-child { margin-bottom:0; }
+    .prog-top { display:flex; justify-content:space-between; margin-bottom:0.3rem; }
+    .prog-label { font-size:0.75rem; font-weight:600; color:var(--text); }
+    .prog-val   { font-size:0.72rem; font-weight:700; color:var(--navy); font-family:var(--font-mono); }
+    .prog-track { height:6px; background:var(--border-soft); border-radius:10px; overflow:hidden; }
+    .prog-fill  { height:100%; border-radius:10px; transition:width 1.2s cubic-bezier(.4,0,.2,1); width:0; }
+
+    /* DONUT */
+    .donut-wrap { display:flex; align-items:center; gap:1.25rem; }
+    .donut-svg  { width:90px; height:90px; flex-shrink:0; }
+    .donut-legend { flex:1; display:flex; flex-direction:column; gap:0.45rem; }
+    .legend-item { display:flex; align-items:center; gap:0.5rem; font-size:0.75rem; }
+    .legend-dot  { width:9px; height:9px; border-radius:2px; flex-shrink:0; }
+    .legend-lbl  { flex:1; color:var(--text-mid); font-weight:500; }
+    .legend-val  { font-weight:700; color:var(--navy); font-family:var(--font-mono); font-size:0.72rem; }
+
+    /* COUNTRY */
+    .country-item { display:flex; align-items:center; gap:0.6rem; padding:0.45rem 0; border-bottom:1px solid var(--border-soft); }
+    .country-item:last-child { border-bottom:none; }
+    .country-flag { font-size:1rem; width:20px; }
+    .country-name { font-size:0.78rem; font-weight:600; color:var(--text); flex:1; }
+    .country-bar  { width:70px; height:4px; background:var(--border-soft); border-radius:4px; overflow:hidden; }
+    .country-fill { height:100%; border-radius:4px; background:linear-gradient(90deg,var(--navy),var(--blue-acc)); }
+    .country-val  { font-size:0.75rem; font-weight:700; color:var(--navy); font-family:var(--font-mono); min-width:40px; text-align:right; }
+    .country-pct  { font-size:0.65rem; color:var(--text-soft); min-width:28px; text-align:right; }
+
+    /* ACTIVITY */
+    .act-feed { display:flex; flex-direction:column; gap:0.65rem; }
+    .act-item { display:flex; align-items:flex-start; gap:0.65rem; }
+    .act-icon { width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:0.85rem; flex-shrink:0; }
+    .act-title { font-size:0.78rem; font-weight:600; color:var(--text); margin-bottom:0.1rem; }
+    .act-sub   { font-size:0.67rem; color:var(--text-soft); }
+    .act-time  { font-size:0.62rem; color:var(--text-soft); white-space:nowrap; }
+
+    /* TABLE */
+    .db-table { width:100%; border-collapse:collapse; }
+    .db-table th { font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-soft); padding:0.5rem 0.65rem; border-bottom:1px solid var(--border); text-align:left; }
+    .db-table td { font-size:0.78rem; padding:0.55rem 0.65rem; border-bottom:1px solid var(--border-soft); color:var(--text); }
+    .db-table tr:last-child td { border-bottom:none; }
+    .db-table tr:hover td { background:var(--ivory2); }
+    .badge { display:inline-flex; align-items:center; padding:0.18rem 0.55rem; border-radius:50px; font-size:0.65rem; font-weight:700; }
+    .badge-g { background:#dcfce7; color:#16a34a; }
+    .badge-a { background:#fef3c7; color:#92400e; }
+    .badge-n { background:rgba(15,37,64,0.08); color:var(--navy); }
+
+    /* MODULE TILES */
+    .mod-sect { margin-bottom:1.25rem; }
+    .mod-sect-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:0.85rem; }
+    .mod-sect-title { font-family:var(--font-display); font-size:1rem; font-weight:700; color:var(--navy); display:flex; align-items:center; gap:0.4rem; }
+    .mod-grid-8 { display:grid; grid-template-columns:repeat(8,1fr); gap:0.6rem; }
+    .mod-grid-2 { display:grid; grid-template-columns:repeat(2,minmax(120px,180px)); gap:0.6rem; }
+    .mod-grid-4 { display:grid; grid-template-columns:repeat(4,minmax(120px,1fr)); gap:0.6rem; }
+    .mod-tile { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); padding:0.85rem 0.4rem 0.75rem; text-align:center; cursor:pointer; transition:var(--transition); position:relative; overflow:hidden; }
+    .mod-tile::after { content:''; position:absolute; bottom:0; left:0; right:0; height:2px; background:linear-gradient(90deg,var(--navy),var(--gold)); transform:scaleX(0); transition:transform 0.25s; }
+    .mod-tile:hover { transform:translateY(-4px); box-shadow:var(--shadow-md); border-color:rgba(201,168,76,0.3); }
+    .mod-tile:hover::after { transform:scaleX(1); }
+    .mod-icon { font-size:1.5rem; margin-bottom:0.4rem; }
+    .mod-name { font-size:0.62rem; font-weight:600; color:var(--text); line-height:1.3; }
+
+    /* SIDEBAR OVERLAY */
+    #dbOv { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:199; }
+
+    /* RESPONSIVE */
+    @media (max-width:1200px) {
+      .db-grid-3col { grid-template-columns:1fr 1fr; }
+      .db-grid-3col > :last-child { grid-column:1/-1; }
+      .db-grid-3eq { grid-template-columns:repeat(2,1fr); }
+      .mod-grid-8 { grid-template-columns:repeat(4,1fr); }
     }
-    @media (max-width: 640px)  {
-      .tiles-row-8  { grid-template-columns: repeat(2,1fr); }
-      .tiles-row-imp { grid-template-columns: repeat(2,1fr); }
+    @media (max-width:900px) {
+      .db-sidebar { transform:translateX(-100%); }
+      .db-sidebar.open { transform:translateX(0); }
+      .db-main { margin-left:0; }
+      .db-hamburger { display:block; }
+      .db-stats-row { grid-template-columns:repeat(2,1fr); }
+      .db-grid-3col,.db-grid-2col,.db-grid-3eq { grid-template-columns:1fr; }
+      .db-buyer-stats { display:none; }
+      .db-chip { display:none; }
+      .mod-grid-8 { grid-template-columns:repeat(4,1fr); }
+      .mod-grid-4 { grid-template-columns:repeat(2,1fr); }
+    }
+    @media (max-width:540px) {
+      .db-content { padding:1rem; }
+      .db-stats-row { grid-template-columns:1fr 1fr; gap:0.65rem; }
+      .mod-grid-8 { grid-template-columns:repeat(3,1fr); }
+      .db-stat-val { font-size:1.4rem; }
+      .db-welcome-date { display:none; }
     }
   </style>
 </head>
 <body class="dash-body">
 
-<!-- TOP BAR -->
-<div class="dash-topbar">
-  <div class="dtb-brand">
-    <div class="dtb-logo-box"><img src="impexio_logo.png" alt="IMPEXIO" class="dtb-logo"/></div>
-    <div class="dtb-name">IMPEXIO</div>
+<div id="dbOv" onclick="toggleSidebar()"></div>
+
+<!-- ═══ SIDEBAR ═══ -->
+<aside class="db-sidebar" id="dbSidebar">
+  <div class="db-sidebar-head">
+    <div class="db-logo-box"><img src="impexio_logo.png" alt=""/></div>
+    <div>
+      <div class="db-brand-name">IMPEXIO</div>
+      <div class="db-brand-sub">Trade Suite v1.0</div>
+    </div>
   </div>
-  <div class="dtb-meta" id="dtbMeta"></div>
-  <div class="dtb-right">
-    <div class="dtb-user">
-      <div class="dtb-avatar" id="dtbAv">A</div>
+  <nav class="db-nav">
+    <div class="db-nav-section">Overview</div>
+    <div class="db-nav-item active"><span class="db-nav-icon">📊</span> Dashboard</div>
+    <div class="db-nav-section">Export Modules</div>
+    <div class="db-nav-item" onclick="window.location.href='cbm.html'"><span class="db-nav-icon">📐</span> CBM Calculation</div>
+    <div class="db-nav-item" onclick="window.location.href='fob.html'"><span class="db-nav-icon">💰</span> Container FOB</div>
+    <div class="db-nav-item" onclick="window.location.href='ec.html'"><span class="db-nav-icon">🧮</span> Export Costing</div>
+    <div class="db-nav-item" onclick="window.location.href='ec2.html'"><span class="db-nav-icon">📊</span> Export Costing 2</div>
+    <div class="db-nav-item" onclick="window.location.href='pi.html'"><span class="db-nav-icon">📄</span> Proforma Invoice</div>
+    <div class="db-nav-item" onclick="window.location.href='eq.html'"><span class="db-nav-icon">📋</span> Export Quotation</div>
+    <div class="db-nav-item" onclick="window.location.href='sci.html'"><span class="db-nav-icon">✈️</span> Courier Invoice</div>
+    <div class="db-nav-section">Import Modules</div>
+    <div class="db-nav-item" onclick="openMod('Import Letter For Inquiry')"><span class="db-nav-icon">📩</span> Letter For Inquiry</div>
+    <div class="db-nav-item" onclick="openMod('Import Purchase Order')"><span class="db-nav-icon">🛒</span> Purchase Order</div>
+    <div class="db-nav-section">EXIM Marketing</div>
+    <div class="db-nav-item" onclick="openMod('Marketing Analysis')"><span class="db-nav-icon">📈</span> Marketing Analysis</div>
+    <div class="db-nav-item" onclick="openMod('Target Markets')"><span class="db-nav-icon">🎯</span> Target Markets</div>
+    <div class="db-nav-section">Directory</div>
+    <div class="db-nav-item" onclick="window.location.href='buyers.html'"><span class="db-nav-icon">🌐</span> Buyer Directory <span class="db-nav-badge" id="sideCount">0</span></div>
+  </nav>
+  <div class="db-sidebar-foot">
+    <div class="db-user-foot" onclick="goToAdmin()">
+      <div class="db-user-av" id="sideAv">A</div>
       <div>
-        <div class="dtb-uname" id="dtbUname">Admin</div>
-        <div class="dtb-role"  id="dtbRole">Administrator</div>
+        <div class="db-user-name" id="sideUname">Admin</div>
+        <div class="db-user-role" id="sideRole">Administrator</div>
+      </div>
+      <div class="db-logout-btn" onclick="event.stopPropagation();doLogout()" title="Logout">⏻</div>
+    </div>
+  </div>
+</aside>
+
+<!-- ═══ MAIN ═══ -->
+<div class="db-main">
+  <!-- TOPBAR -->
+  <div class="db-topbar">
+    <div class="db-topbar-left">
+      <button class="db-hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+      <div>
+        <div class="db-page-title">Analytics Dashboard</div>
+        <div class="db-breadcrumb">IMPEXIO &rsaquo; Dashboard</div>
       </div>
     </div>
-    <button class="btn-logout" onclick="doLogout()">⏻ Logout</button>
+    <div class="db-topbar-right">
+      <div class="db-chip" id="chipCo">🏢 <strong>—</strong></div>
+      <div class="db-chip" id="chipYr">📅 <strong>—</strong></div>
+      <div class="db-notif-btn">🔔<div class="db-notif-dot"></div></div>
+      <div class="db-chip" style="cursor:pointer;" onclick="goToAdmin()">👤 <strong id="topUser">Admin</strong></div>
+    </div>
   </div>
+
+  <!-- CONTENT -->
+  <div class="db-content">
+
+    <!-- WELCOME -->
+    <div class="db-welcome">
+      <div>
+        <h2>Welcome back, <span id="wName">Admin</span>! 👋</h2>
+        <p>Here's your IMPEXIO trade summary for today</p>
+      </div>
+      <div class="db-welcome-date" id="todayDate">—</div>
+    </div>
+
+    <!-- BUYER BANNER -->
+    <div class="db-buyer-banner">
+      <div class="db-buyer-left">
+        <div class="db-buyer-icon">🌐</div>
+        <div>
+          <div class="db-buyer-title">Buyer Directory</div>
+          <div class="db-buyer-sub">Your complete international trade contact database</div>
+        </div>
+      </div>
+      <div class="db-buyer-stats">
+        <div>
+          <div class="db-buyer-stat-val" id="bdCount">0</div>
+          <div class="db-buyer-stat-lbl">Total Buyers</div>
+        </div>
+        <div class="db-buyer-div"></div>
+        <div>
+          <div class="db-buyer-stat-val" id="bdCtrs">0</div>
+          <div class="db-buyer-stat-lbl">Countries</div>
+        </div>
+      </div>
+      <button class="db-buyer-btn" onclick="window.location.href='buyers.html'">🔍 Open Directory</button>
+    </div>
+
+    <!-- STAT CARDS -->
+    <div class="db-stats-row">
+      <div class="db-stat-card c1">
+        <div class="db-stat-top">
+          <div class="db-stat-icon c1">📦</div>
+          <div class="db-stat-trend up">↑ 12%</div>
+        </div>
+        <div class="db-stat-val" id="sDocs">142</div>
+        <div class="db-stat-lbl">Total Documents</div>
+        <div class="db-stat-sub">📄 38 generated this month</div>
+      </div>
+      <div class="db-stat-card c2">
+        <div class="db-stat-top">
+          <div class="db-stat-icon c2">💰</div>
+          <div class="db-stat-trend up">↑ 8%</div>
+        </div>
+        <div class="db-stat-val">₹48.2L</div>
+        <div class="db-stat-lbl">Total FOB Value</div>
+        <div class="db-stat-sub">💱 $56,900 USD equivalent</div>
+      </div>
+      <div class="db-stat-card c3">
+        <div class="db-stat-top">
+          <div class="db-stat-icon c3">🌍</div>
+          <div class="db-stat-trend up">↑ 3 new</div>
+        </div>
+        <div class="db-stat-val" id="sCtrs">6</div>
+        <div class="db-stat-lbl">Export Countries</div>
+        <div class="db-stat-sub">🗺️ Active destinations</div>
+      </div>
+      <div class="db-stat-card c4">
+        <div class="db-stat-top">
+          <div class="db-stat-icon c4">📐</div>
+          <div class="db-stat-trend down">↓ 2%</div>
+        </div>
+        <div class="db-stat-val">284.5</div>
+        <div class="db-stat-lbl">Total CBM Shipped</div>
+        <div class="db-stat-sub">📦 Across 6 shipments this year</div>
+      </div>
+    </div>
+
+    <!-- CHARTS ROW -->
+    <div class="db-grid-3col">
+      <!-- FOB Trend -->
+      <div class="db-panel">
+        <div class="db-panel-head">
+          <div class="db-panel-title">📈 Monthly FOB Value (₹ Lakhs)</div>
+          <div class="db-panel-act">FY 2025-26</div>
+        </div>
+        <div class="db-panel-body">
+          <svg class="chart-area" viewBox="0 0 400 130" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0f2540" stop-opacity="0.18"/><stop offset="100%" stop-color="#0f2540" stop-opacity="0"/></linearGradient>
+              <linearGradient id="g2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#c9a84c" stop-opacity="0.15"/><stop offset="100%" stop-color="#c9a84c" stop-opacity="0"/></linearGradient>
+            </defs>
+            <line x1="0" y1="25" x2="400" y2="25" stroke="#eef1f8" stroke-width="1"/>
+            <line x1="0" y1="55" x2="400" y2="55" stroke="#eef1f8" stroke-width="1"/>
+            <line x1="0" y1="85" x2="400" y2="85" stroke="#eef1f8" stroke-width="1"/>
+            <path d="M0,95 C45,88 90,70 135,65 C180,58 220,72 270,42 C310,28 355,25 400,20 L400,130 L0,130Z" fill="url(#g1)"/>
+            <path d="M0,105 C45,98 90,82 135,78 C180,72 220,84 270,58 C310,45 355,40 400,36 L400,130 L0,130Z" fill="url(#g2)"/>
+            <polyline points="0,95 45,88 90,70 135,65 180,58 225,45 270,42 315,28 360,25 400,20" fill="none" stroke="#0f2540" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+            <polyline points="0,105 45,98 90,82 135,78 180,72 225,60 270,58 315,45 360,40 400,36" fill="none" stroke="#c9a84c" stroke-width="2" stroke-linejoin="round" stroke-dasharray="5,3"/>
+            <circle cx="90" cy="70" r="3.5" fill="#0f2540"/><circle cx="180" cy="58" r="3.5" fill="#0f2540"/>
+            <circle cx="270" cy="42" r="3.5" fill="#0f2540"/><circle cx="400" cy="20" r="4.5" fill="#0f2540" stroke="#fff" stroke-width="2"/>
+            <text x="5" y="126" font-size="8" fill="#9aadcc">Apr</text><text x="85" y="126" font-size="8" fill="#9aadcc">Jun</text>
+            <text x="170" y="126" font-size="8" fill="#9aadcc">Aug</text><text x="260" y="126" font-size="8" fill="#9aadcc">Nov</text>
+            <text x="370" y="126" font-size="8" fill="#9aadcc">Mar</text>
+          </svg>
+          <div style="display:flex;gap:1.25rem;margin-top:0.5rem;">
+            <div style="display:flex;align-items:center;gap:0.35rem;font-size:0.7rem;color:var(--text-soft);"><span style="width:16px;height:2.5px;background:var(--navy);display:inline-block;border-radius:2px;"></span> FOB</div>
+            <div style="display:flex;align-items:center;gap:0.35rem;font-size:0.7rem;color:var(--text-soft);"><span style="width:16px;height:0;border-top:2px dashed var(--gold);display:inline-block;"></span> CIF</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Shipment Bars -->
+      <div class="db-panel">
+        <div class="db-panel-head">
+          <div class="db-panel-title">🚢 Shipment Activity</div>
+          <div class="db-panel-act">Last 7 months</div>
+        </div>
+        <div class="db-panel-body">
+          <svg class="chart-area" viewBox="0 0 300 130" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="bg1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0f2540"/><stop offset="100%" stop-color="#2a5298"/></linearGradient>
+              <linearGradient id="bg2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#c9a84c"/><stop offset="100%" stop-color="#e8c97a"/></linearGradient>
+            </defs>
+            <rect x="5"  y="72" width="13" height="48" rx="3" fill="url(#bg1)" opacity="0.85"/>
+            <rect x="20" y="88" width="13" height="32" rx="3" fill="url(#bg2)" opacity="0.75"/>
+            <rect x="48" y="58" width="13" height="62" rx="3" fill="url(#bg1)" opacity="0.85"/>
+            <rect x="63" y="72" width="13" height="48" rx="3" fill="url(#bg2)" opacity="0.75"/>
+            <rect x="91" y="42" width="13" height="78" rx="3" fill="url(#bg1)" opacity="0.85"/>
+            <rect x="106" y="62" width="13" height="58" rx="3" fill="url(#bg2)" opacity="0.75"/>
+            <rect x="134" y="52" width="13" height="68" rx="3" fill="url(#bg1)" opacity="0.85"/>
+            <rect x="149" y="68" width="13" height="52" rx="3" fill="url(#bg2)" opacity="0.75"/>
+            <rect x="177" y="32" width="13" height="88" rx="3" fill="url(#bg1)" opacity="0.85"/>
+            <rect x="192" y="52" width="13" height="68" rx="3" fill="url(#bg2)" opacity="0.75"/>
+            <rect x="220" y="20" width="13" height="100" rx="3" fill="url(#bg1)"/>
+            <rect x="235" y="38" width="13" height="82"  rx="3" fill="url(#bg2)"/>
+            <rect x="263" y="35" width="13" height="85" rx="3" fill="url(#bg1)" opacity="0.9"/>
+            <rect x="278" y="50" width="13" height="70" rx="3" fill="url(#bg2)" opacity="0.8"/>
+            <text x="8"   y="128" font-size="7" fill="#9aadcc">Sep</text>
+            <text x="52"  y="128" font-size="7" fill="#9aadcc">Oct</text>
+            <text x="96"  y="128" font-size="7" fill="#9aadcc">Nov</text>
+            <text x="140" y="128" font-size="7" fill="#9aadcc">Dec</text>
+            <text x="181" y="128" font-size="7" fill="#9aadcc">Jan</text>
+            <text x="225" y="128" font-size="7" fill="#9aadcc">Feb</text>
+            <text x="267" y="128" font-size="7" fill="#9aadcc">Mar</text>
+          </svg>
+          <div style="display:flex;gap:1.25rem;margin-top:0.5rem;">
+            <div style="display:flex;align-items:center;gap:0.35rem;font-size:0.7rem;color:var(--text-soft);"><span style="width:10px;height:10px;background:var(--navy);border-radius:2px;display:inline-block;"></span> Export</div>
+            <div style="display:flex;align-items:center;gap:0.35rem;font-size:0.7rem;color:var(--text-soft);"><span style="width:10px;height:10px;background:var(--gold);border-radius:2px;display:inline-block;"></span> Import</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Donut -->
+      <div class="db-panel">
+        <div class="db-panel-head"><div class="db-panel-title">📄 Document Breakdown</div></div>
+        <div class="db-panel-body">
+          <div class="donut-wrap">
+            <svg class="donut-svg" viewBox="0 0 90 90">
+              <circle cx="45" cy="45" r="35" fill="none" stroke="#eef1f8" stroke-width="12"/>
+              <circle cx="45" cy="45" r="35" fill="none" stroke="#0f2540" stroke-width="12" stroke-dasharray="79.2 140.7" stroke-dashoffset="0" transform="rotate(-90 45 45)"/>
+              <circle cx="45" cy="45" r="35" fill="none" stroke="#c9a84c" stroke-width="12" stroke-dasharray="52.8 167.1" stroke-dashoffset="-79.2" transform="rotate(-90 45 45)"/>
+              <circle cx="45" cy="45" r="35" fill="none" stroke="#2a5298" stroke-width="12" stroke-dasharray="39.6 180.3" stroke-dashoffset="-132" transform="rotate(-90 45 45)"/>
+              <circle cx="45" cy="45" r="35" fill="none" stroke="#0f5c52" stroke-width="12" stroke-dasharray="26.4 193.5" stroke-dashoffset="-171.6" transform="rotate(-90 45 45)"/>
+              <text x="45" y="42" text-anchor="middle" font-size="11" font-weight="700" fill="#0f2540">142</text>
+              <text x="45" y="53" text-anchor="middle" font-size="7" fill="#6b7fa3">Total</text>
+            </svg>
+            <div class="donut-legend">
+              <div class="legend-item"><div class="legend-dot" style="background:#0f2540;"></div><div class="legend-lbl">Proforma Invoice</div><div class="legend-val">51</div></div>
+              <div class="legend-item"><div class="legend-dot" style="background:#c9a84c;"></div><div class="legend-lbl">Export Quotation</div><div class="legend-val">34</div></div>
+              <div class="legend-item"><div class="legend-dot" style="background:#2a5298;"></div><div class="legend-lbl">CBM Calculation</div><div class="legend-val">32</div></div>
+              <div class="legend-item"><div class="legend-dot" style="background:#0f5c52;"></div><div class="legend-lbl">Courier Invoice</div><div class="legend-val">25</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COUNTRIES + ACTIVITY -->
+    <div class="db-grid-2col">
+      <div class="db-panel">
+        <div class="db-panel-head"><div class="db-panel-title">🌍 Top Export Destinations</div><div class="db-panel-act">FY 2025-26</div></div>
+        <div class="db-panel-body" style="padding-top:0.5rem;">
+          <div class="country-item"><div class="country-flag">🇦🇪</div><div class="country-name">United Arab Emirates</div><div class="country-bar"><div class="country-fill" style="width:88%;"></div></div><div class="country-val">₹14.2L</div><div class="country-pct">32%</div></div>
+          <div class="country-item"><div class="country-flag">🇺🇸</div><div class="country-name">United States</div><div class="country-bar"><div class="country-fill" style="width:65%;"></div></div><div class="country-val">₹10.8L</div><div class="country-pct">24%</div></div>
+          <div class="country-item"><div class="country-flag">🇩🇪</div><div class="country-name">Germany</div><div class="country-bar"><div class="country-fill" style="width:50%;"></div></div><div class="country-val">₹8.1L</div><div class="country-pct">18%</div></div>
+          <div class="country-item"><div class="country-flag">🇬🇧</div><div class="country-name">United Kingdom</div><div class="country-bar"><div class="country-fill" style="width:35%;"></div></div><div class="country-val">₹5.5L</div><div class="country-pct">12%</div></div>
+          <div class="country-item"><div class="country-flag">🇸🇬</div><div class="country-name">Singapore</div><div class="country-bar"><div class="country-fill" style="width:22%;"></div></div><div class="country-val">₹3.8L</div><div class="country-pct">8%</div></div>
+          <div class="country-item"><div class="country-flag">🇦🇺</div><div class="country-name">Australia</div><div class="country-bar"><div class="country-fill" style="width:14%;"></div></div><div class="country-val">₹2.9L</div><div class="country-pct">6%</div></div>
+        </div>
+      </div>
+      <div class="db-panel">
+        <div class="db-panel-head"><div class="db-panel-title">⚡ Recent Activity</div></div>
+        <div class="db-panel-body" style="padding-top:0.5rem;">
+          <div class="act-feed">
+            <div class="act-item"><div class="act-icon" style="background:rgba(15,37,64,0.08);">📄</div><div style="flex:1;"><div class="act-title">PI/2026/0042 Created</div><div class="act-sub">Global Traders LLC — Dubai · ₹6.8L</div></div><div class="act-time">2h ago</div></div>
+            <div class="act-item"><div class="act-icon" style="background:rgba(201,168,76,0.12);">📋</div><div style="flex:1;"><div class="act-title">EQ/2026/0038 Sent</div><div class="act-sub">Euro Ceramics GmbH — Germany · $18,350</div></div><div class="act-time">5h ago</div></div>
+            <div class="act-item"><div class="act-icon" style="background:rgba(15,92,82,0.1);">📐</div><div style="flex:1;"><div class="act-title">CBM/2026/0091 Saved</div><div class="act-sub">40' HC Container — 48.5 m³ · 720 cartons</div></div><div class="act-time">Yesterday</div></div>
+            <div class="act-item"><div class="act-icon" style="background:rgba(42,82,152,0.1);">🧮</div><div style="flex:1;"><div class="act-title">Export Costing Updated</div><div class="act-sub">FOB ₹4.52L · CIF ₹5.12L · USD ₹85</div></div><div class="act-time">2 days ago</div></div>
+            <div class="act-item"><div class="act-icon" style="background:rgba(239,68,68,0.08);">✈️</div><div style="flex:1;"><div class="act-title">SCI/2026/0031 Printed</div><div class="act-sub">Sample — Frankfurt · $31.50</div></div><div class="act-time">3 days ago</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3 PANELS -->
+    <div class="db-grid-3eq">
+      <!-- Module Usage -->
+      <div class="db-panel">
+        <div class="db-panel-head"><div class="db-panel-title">🔧 Module Usage</div><div class="db-panel-act">This Month</div></div>
+        <div class="db-panel-body">
+          <div class="prog-item"><div class="prog-top"><span class="prog-label">📄 Proforma Invoice</span><span class="prog-val">38</span></div><div class="prog-track"><div class="prog-fill" data-w="85" style="background:linear-gradient(90deg,#0f2540,#2a5298);"></div></div></div>
+          <div class="prog-item"><div class="prog-top"><span class="prog-label">📋 Export Quotation</span><span class="prog-val">26</span></div><div class="prog-track"><div class="prog-fill" data-w="65" style="background:linear-gradient(90deg,#c9a84c,#e8c97a);"></div></div></div>
+          <div class="prog-item"><div class="prog-top"><span class="prog-label">📐 CBM Calculation</span><span class="prog-val">24</span></div><div class="prog-track"><div class="prog-fill" data-w="55" style="background:linear-gradient(90deg,#0f5c52,#22c55e);"></div></div></div>
+          <div class="prog-item"><div class="prog-top"><span class="prog-label">🧮 Export Costing</span><span class="prog-val">18</span></div><div class="prog-track"><div class="prog-fill" data-w="42" style="background:linear-gradient(90deg,#2a5298,#60a5fa);"></div></div></div>
+          <div class="prog-item"><div class="prog-top"><span class="prog-label">✈️ Courier Invoice</span><span class="prog-val">12</span></div><div class="prog-track"><div class="prog-fill" data-w="28" style="background:linear-gradient(90deg,#7c3aed,#a78bfa);"></div></div></div>
+        </div>
+      </div>
+      <!-- FOB/CIF Summary -->
+      <div class="db-panel">
+        <div class="db-panel-head"><div class="db-panel-title">💱 FOB vs CIF Summary</div><div class="db-panel-act">FY 2025-26</div></div>
+        <div class="db-panel-body">
+          <div style="margin-bottom:1rem;">
+            <div style="font-size:0.7rem;color:var(--text-soft);margin-bottom:0.4rem;">Avg USD Rate</div>
+            <div style="font-family:var(--font-mono);font-size:1.5rem;font-weight:700;color:var(--navy);">₹85.40 <span style="font-size:0.8rem;color:var(--text-soft);font-family:var(--font-body);">per $</span></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:1rem;">
+            <div style="background:rgba(15,37,64,0.05);border-radius:var(--radius-sm);padding:0.75rem;">
+              <div style="font-size:0.65rem;color:var(--text-soft);margin-bottom:0.3rem;">TOTAL FOB</div>
+              <div style="font-family:var(--font-mono);font-size:0.95rem;font-weight:700;color:var(--navy);">₹48.2L</div>
+              <div style="font-size:0.65rem;color:var(--text-soft);">$56,900</div>
+            </div>
+            <div style="background:rgba(201,168,76,0.08);border-radius:var(--radius-sm);padding:0.75rem;">
+              <div style="font-size:0.65rem;color:var(--text-soft);margin-bottom:0.3rem;">TOTAL CIF</div>
+              <div style="font-family:var(--font-mono);font-size:0.95rem;font-weight:700;color:#7a5c10;">₹56.8L</div>
+              <div style="font-size:0.65rem;color:var(--text-soft);">$66,550</div>
+            </div>
+          </div>
+          <div style="background:var(--ivory2);border-radius:var(--radius-sm);padding:0.65rem 0.85rem;font-size:0.75rem;color:var(--text-mid);">
+            🚢 Avg freight + insurance = <strong>₹8.6L</strong> (17.8%)
+          </div>
+        </div>
+      </div>
+      <!-- Container Summary -->
+      <div class="db-panel">
+        <div class="db-panel-head"><div class="db-panel-title">📦 Container Summary</div></div>
+        <div class="db-panel-body" style="padding:0;">
+          <table class="db-table">
+            <thead><tr><th>Type</th><th>Count</th><th>CBM</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>40' HC</td><td>8</td><td>528.0</td><td><span class="badge badge-g">Active</span></td></tr>
+              <tr><td>40' GP</td><td>5</td><td>285.5</td><td><span class="badge badge-g">Active</span></td></tr>
+              <tr><td>20' STD</td><td>3</td><td>78.0</td><td><span class="badge badge-a">Transit</span></td></tr>
+              <tr><td>LCL</td><td>12</td><td>148.6</td><td><span class="badge badge-n">Booked</span></td></tr>
+              <tr><td>Courier</td><td>18</td><td>—</td><td><span class="badge badge-g">Done</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODULE TILES -->
+    <div class="mod-sect">
+      <div class="mod-sect-head">
+        <div class="mod-sect-title">📦 Export Modules</div>
+        <div style="font-size:0.72rem;color:var(--text-soft);">Click to open</div>
+      </div>
+      <div class="mod-grid-8">
+        <div class="mod-tile" onclick="window.location.href='cbm.html'"><div class="mod-icon">📐</div><div class="mod-name">CBM Calculation</div></div>
+        <div class="mod-tile" onclick="window.location.href='fob.html'"><div class="mod-icon">💰</div><div class="mod-name">Container FOB</div></div>
+        <div class="mod-tile" onclick="window.location.href='ec.html'"><div class="mod-icon">🧮</div><div class="mod-name">Export Costing</div></div>
+        <div class="mod-tile" onclick="window.location.href='ec2.html'"><div class="mod-icon">📊</div><div class="mod-name">Export Costing 2</div></div>
+        <div class="mod-tile" onclick="openMod('Export Data Filter')"><div class="mod-icon">🔍</div><div class="mod-name">Data Filter</div></div>
+        <div class="mod-tile" onclick="window.location.href='pi.html'"><div class="mod-icon">📄</div><div class="mod-name">Proforma Invoice</div></div>
+        <div class="mod-tile" onclick="window.location.href='eq.html'"><div class="mod-icon">📋</div><div class="mod-name">Export Quotation</div></div>
+        <div class="mod-tile" onclick="window.location.href='sci.html'"><div class="mod-icon">✈️</div><div class="mod-name">Courier Invoice</div></div>
+      </div>
+    </div>
+
+    <div class="mod-sect">
+      <div class="mod-sect-head"><div class="mod-sect-title">🚢 Import Modules</div></div>
+      <div class="mod-grid-2">
+        <div class="mod-tile" onclick="openMod('Import Letter For Inquiry')"><div class="mod-icon">📩</div><div class="mod-name">Import Letter For Inquiry</div></div>
+        <div class="mod-tile" onclick="openMod('Import Purchase Order')"><div class="mod-icon">🛒</div><div class="mod-name">Import Purchase Order</div></div>
+      </div>
+    </div>
+
+    <div class="mod-sect">
+      <div class="mod-sect-head"><div class="mod-sect-title">🌐 EXIM Marketing</div></div>
+      <div class="mod-grid-4">
+        <div class="mod-tile" onclick="openMod('Marketing Analysis')"><div class="mod-icon">📈</div><div class="mod-name">Marketing Analysis</div></div>
+        <div class="mod-tile" onclick="openMod('Target Markets')"><div class="mod-icon">🎯</div><div class="mod-name">Target Markets</div></div>
+        <div class="mod-tile" onclick="openMod('Export Supplier')"><div class="mod-icon">🏭</div><div class="mod-name">Export Supplier</div></div>
+        <div class="mod-tile" onclick="openMod('Import Supplier')"><div class="mod-icon">🌏</div><div class="mod-name">Import Supplier</div></div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<div id="toast" style="position:fixed;bottom:2rem;right:2rem;background:var(--navy);color:#fff;padding:0.9rem 1.5rem;border-radius:var(--radius);font-size:0.875rem;font-weight:600;box-shadow:0 16px 56px rgba(15,37,64,0.2);transform:translateY(80px);opacity:0;transition:all 0.35s cubic-bezier(.4,0,.2,1);z-index:9999;display:flex;align-items:center;gap:0.6rem;border-left:4px solid var(--gold);">
+  <span id="toastIcon">🚀</span><span id="toastMsg">Opening module…</span>
 </div>
-
-
-
-<!-- CONTENT -->
-<div class="dash-content">
-
-  <!-- ══ BUYER DIRECTORY BANNER ══ -->
-  <div class="master-banner">
-    <div class="mb-left">
-      <div class="mb-icon">🌐</div>
-      <div>
-        <div class="mb-title">Buyer Directory</div>
-        <div class="mb-sub">Search &amp; filter your complete trade contact database by Country, State, City, Area or Pincode</div>
-      </div>
-    </div>
-    <div class="mb-stats">
-      <div class="mb-stat-val" id="bd-count" style="font-family:var(--font-mono);font-size:1.2rem;font-weight:700;color:var(--gold-light);">0</div>
-      <div class="mb-stat-lbl">Total Buyers</div>
-      <div class="mb-divider"></div>
-      <div>
-        <div class="mb-stat-val" id="bd-countries" style="font-family:var(--font-mono);font-size:1.2rem;font-weight:700;color:var(--gold-light);">0</div>
-        <div class="mb-stat-lbl">Countries</div>
-      </div>
-    </div>
-    <button class="mb-btn" onclick="window.location.href='buyers.html'">🔍 Open Buyer Directory</button>
-  </div>
-
-  <!-- ══ HEADING ══ -->
-  <div class="dash-menu-head">Main Menu</div>
-  <div class="dash-menu-sub">Select a module below to get started</div>
-
-  <!-- ══ EXPORT MODULES — 8 in one row ══ -->
-  <div class="menu-sect">
-    <div class="msect-lbl">📦 Export Modules</div>
-    <div class="tiles-row-8">
-
-      <div class="m-tile" onclick="window.location.href='cbm.html'">
-        <div class="m-tile-icon">📐</div>
-        <div class="m-tile-name">CBM Calculation</div>
-      </div>
-      <div class="m-tile" onclick="window.location.href='fob.html'">
-        <div class="m-tile-icon">💰</div>
-        <div class="m-tile-name">Container Expenses FOB</div>
-      </div>
-      <div class="m-tile" onclick="window.location.href='ec.html'">
-        <div class="m-tile-icon">🧮</div>
-        <div class="m-tile-name">Export Costing</div>
-      </div>
-      <div class="m-tile" onclick="window.location.href='ec2.html'">
-        <div class="m-tile-icon">📊</div>
-        <div class="m-tile-name">Export Costing 2</div>
-      </div>
-      <div class="m-tile" onclick="openMod('Export Data Filter Format')">
-        <div class="m-tile-icon">🔍</div>
-        <div class="m-tile-name">Export Data Filter Format</div>
-      </div>
-      <div class="m-tile" onclick="window.location.href='pi.html'">
-        <div class="m-tile-icon">📄</div>
-        <div class="m-tile-name">Export Proforma Invoice</div>
-      </div>
-      <div class="m-tile" onclick="window.location.href='eq.html'">
-        <div class="m-tile-icon">📋</div>
-        <div class="m-tile-name">Export Quotation</div>
-      </div>
-      <div class="m-tile" onclick="window.location.href='sci.html'">
-        <div class="m-tile-icon">✈️</div>
-        <div class="m-tile-name">Sample Courier Invoice</div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- ══ IMPORT MODULES ══ -->
-  <div class="menu-sect">
-    <div class="msect-lbl">🚢 Import Modules</div>
-    <div class="tiles-row-imp">
-      <div class="m-tile" onclick="openMod('Import Letter For Inquiry')">
-        <div class="m-tile-icon">📩</div>
-        <div class="m-tile-name">Import Letter For Inquiry</div>
-      </div>
-      <div class="m-tile" onclick="openMod('Import Purchase Order')">
-        <div class="m-tile-icon">🛒</div>
-        <div class="m-tile-name">Import Purchase Order</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ══ EXIM MARKETING — 4 tiles ══ -->
-  <div class="menu-sect">
-    <div class="msect-lbl">🌐 EXIM Marketing</div>
-    <div class="tiles-row-exim">
-      <div class="m-tile" onclick="openMod('Marketing Analysis')">
-        <div class="m-tile-icon">📈</div>
-        <div class="m-tile-name">Marketing Analysis</div>
-      </div>
-      <div class="m-tile" onclick="openMod('Target Markets')">
-        <div class="m-tile-icon">🎯</div>
-        <div class="m-tile-name">Target Markets</div>
-      </div>
-      <div class="m-tile" onclick="openMod('Export Supplier')">
-        <div class="m-tile-icon">🏭</div>
-        <div class="m-tile-name">Export Supplier</div>
-      </div>
-      <div class="m-tile" onclick="openMod('Import Supplier')">
-        <div class="m-tile-icon">🌏</div>
-        <div class="m-tile-name">Import Supplier</div>
-      </div>
-    </div>
-  </div>
-
-</div>
-
-<!-- Toast -->
-<div id="toast"><span id="toastIcon">🚀</span><span id="toastMsg">Opening module…</span></div>
 
 <script src="app.js"></script>
 <script>
@@ -217,42 +572,71 @@ document.addEventListener('DOMContentLoaded', () => {
   loadSess();
   if (!sess.username || !sess.year) { window.location.href = 'login.html'; return; }
   const c = sess.company, y = sess.year;
-  const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
-  set('ds-client',  sess.clientCode || '—');
-  set('ds-company', c ? c.name : '—');
-  set('ds-year',    y ? `FY ${y.label}` : '—');
-  set('ds-user',    sess.username || '—');
-  set('ds-role',    sess.role || '—');
-  set('dtbUname',   sess.username || 'Admin');
-  set('dtbRole',    sess.role || 'Administrator');
-  const av = document.getElementById('dtbAv');
-  if (av) av.textContent = (sess.username||'A')[0].toUpperCase();
-  const meta = document.getElementById('dtbMeta');
-  if (meta && c && y) {
-    meta.innerHTML = `<div class="dtb-chip">🏷️ <strong>${sess.clientCode||''}</strong></div><div class="dtb-chip">🏢 <strong>${c.name.split(' ').slice(0,3).join(' ')}</strong></div><div class="dtb-chip">📅 <strong>FY ${y.label}</strong></div>`;
-  }
-  // Buyer stats
+
+  // Topbar
+  const setH = (id, v) => { const e=document.getElementById(id); if(e) e.innerHTML=v; };
+  setH('chipCo', '🏢 <strong>' + (c ? c.name.split(' ').slice(0,3).join(' ') : '—') + '</strong>');
+  setH('chipYr', '📅 <strong>FY ' + (y ? y.label : '—') + '</strong>');
+  setH('topUser', sess.username || 'Admin');
+  setH('wName', sess.username || 'Admin');
+
+  // Sidebar user
+  const av = document.getElementById('sideAv'); if(av) av.textContent = (sess.username||'A')[0].toUpperCase();
+  const su = document.getElementById('sideUname'); if(su) su.textContent = sess.username||'Admin';
+  const sr = document.getElementById('sideRole'); if(sr) sr.textContent = sess.role||'Administrator';
+
+  // Date
+  const dt = document.getElementById('todayDate');
+  if(dt) dt.textContent = new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+  // Buyers
   try {
     const buyers = JSON.parse(localStorage.getItem('impexio_buyers')||'[]');
     const ctrs = [...new Set(buyers.map(b=>b.country).filter(Boolean))].length;
-    set('bd-count',     buyers.length);
-    set('bd-countries', ctrs);
-  } catch(e) {}
-  // Tile animation
-  document.querySelectorAll('.m-tile').forEach((el,i) => {
+    const set = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+    set('bdCount', buyers.length);
+    set('bdCtrs', ctrs);
+    set('sideCount', buyers.length);
+    set('sDocs', 142 + buyers.length);
+    set('sCtrs', ctrs || 6);
+  } catch(e){}
+
+  // Progress bars
+  setTimeout(() => {
+    document.querySelectorAll('.prog-fill').forEach(el => { el.style.width = (el.dataset.w||0) + '%'; });
+  }, 400);
+
+  // Animations
+  document.querySelectorAll('.db-stat-card').forEach((el,i) => {
     el.style.opacity='0'; el.style.transform='translateY(16px)';
-    el.style.transition=`opacity 0.35s ${i*0.04}s ease,transform 0.35s ${i*0.04}s ease`;
+    el.style.transition=`opacity 0.4s ${i*0.08}s ease,transform 0.4s ${i*0.08}s ease`;
+    requestAnimationFrame(()=>{ el.style.opacity='1'; el.style.transform='translateY(0)'; });
+  });
+  document.querySelectorAll('.mod-tile').forEach((el,i) => {
+    el.style.opacity='0'; el.style.transform='translateY(10px)';
+    el.style.transition=`opacity 0.35s ${i*0.03}s ease,transform 0.35s ${i*0.03}s ease`;
     requestAnimationFrame(()=>{ el.style.opacity='1'; el.style.transform='translateY(0)'; });
   });
 });
 
+function toggleSidebar() {
+  const sb = document.getElementById('dbSidebar');
+  const ov = document.getElementById('dbOv');
+  const open = sb.classList.toggle('open');
+  ov.style.display = open ? 'block' : 'none';
+}
 function openMod(name) {
-  const t=document.getElementById('toast');
+  const t = document.getElementById('toast');
   document.getElementById('toastIcon').textContent='🚀';
-  document.getElementById('toastMsg').textContent=`Opening: ${name}`;
-  t.classList.add('show');
+  document.getElementById('toastMsg').textContent='Opening: '+name;
+  t.style.transform='translateY(0)'; t.style.opacity='1';
   clearTimeout(t._t);
-  t._t=setTimeout(()=>t.classList.remove('show'),3000);
+  t._t=setTimeout(()=>{ t.style.transform='translateY(80px)'; t.style.opacity='0'; },3000);
+}
+function goToAdmin() {
+  const s = JSON.parse(sessionStorage.getItem('impexio')||'{}');
+  if(s.role!=='Administrator'){ alert('Access Denied. Only Administrators can access Admin Master.'); return; }
+  window.location.href='login-master/admin-master.html';
 }
 function doLogout() {
   if(confirm('Logout from IMPEXIO?')){ sessionStorage.removeItem('impexio'); window.location.href='index.html'; }

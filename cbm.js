@@ -813,3 +813,227 @@ document.addEventListener('DOMContentLoaded', function() {
   s.textContent = '.mf-inp-err{border-color:#ef4444!important;box-shadow:0 0 0 3px rgba(239,68,68,0.12)!important;}';
   document.head.appendChild(s);
 })();
+
+// ══════════════════════════════════════════════════════════════
+//  AUTOCOMPLETE DROPDOWN — Click field → show saved options
+//  Maps each input field ID → master type
+// ══════════════════════════════════════════════════════════════
+
+const FIELD_MASTER_MAP = {
+  'f_company':    { type: 'company',    display: r => r.name,        sub: r => [r.branch, r.addr1].filter(Boolean).join(' · ') },
+  'f_branch':     { type: 'branch',     display: r => r.name,        sub: r => r.office || '' },
+  'f_location':   { type: 'location',   display: r => r.name,        sub: r => r.state  || '' },
+  'f_exporter':   { type: 'exporter',   display: r => r.name,        sub: r => r.city   || '' },
+  'f_preparedby': { type: 'exporter',   display: r => r.name,        sub: r => r.designation || '' },
+  'f_signatory':  { type: 'exporter',   display: r => r.name,        sub: r => r.designation || '' },
+};
+
+// ── Create dropdown element ───────────────────────────────────
+function createACDropdown() {
+  const el = document.createElement('div');
+  el.id = 'acDropdown';
+  el.style.cssText = `
+    position: fixed; z-index: 99999;
+    background: #fff;
+    border: 1.5px solid #dde3f0;
+    border-radius: 12px;
+    box-shadow: 0 16px 48px rgba(15,37,64,0.16);
+    min-width: 260px; max-width: 380px;
+    max-height: 280px; overflow-y: auto;
+    display: none;
+    font-family: 'Outfit', sans-serif;
+  `;
+  document.body.appendChild(el);
+  return el;
+}
+
+const acDropdown = createACDropdown();
+let acCurrentField = null;
+let acCurrentType  = null;
+
+// ── Position dropdown below input ────────────────────────────
+function positionDropdown(inputEl) {
+  const rect = inputEl.getBoundingClientRect();
+  acDropdown.style.left  = rect.left + 'px';
+  acDropdown.style.top   = (rect.bottom + 4) + 'px';
+  acDropdown.style.width = Math.max(rect.width, 260) + 'px';
+}
+
+// ── Render dropdown items ─────────────────────────────────────
+function renderACDropdown(fieldId, query) {
+  const map = FIELD_MASTER_MAP[fieldId];
+  if (!map) return closeACDropdown();
+
+  const data = getMasterData(map.type);
+  if (!data.length) return closeACDropdown();
+
+  // Filter by query
+  const q = (query || '').toLowerCase().trim();
+  const filtered = q
+    ? data.filter(r => map.display(r).toLowerCase().includes(q))
+    : data;
+
+  if (!filtered.length) return closeACDropdown();
+
+  acDropdown.innerHTML = `
+    <div style="padding:0.45rem 0.75rem;font-size:0.62rem;font-weight:700;text-transform:uppercase;
+      letter-spacing:0.1em;color:#6b7fa3;border-bottom:1px solid #eef1f8;
+      display:flex;align-items:center;justify-content:space-between;">
+      <span>📋 Saved ${map.type.charAt(0).toUpperCase()+map.type.slice(1)} Records</span>
+      <span style="color:#9aadcc;">${filtered.length} found</span>
+    </div>
+    ${filtered.map((r, i) => {
+      const sub = map.sub(r);
+      return `<div class="ac-item" data-idx="${data.indexOf(r)}"
+        onmousedown="event.preventDefault();pickACItem('${fieldId}',${data.indexOf(r)})"
+        style="padding:0.6rem 0.85rem;cursor:pointer;transition:background 0.15s;
+          border-bottom:1px solid #f4f3ee;display:flex;align-items:center;gap:0.65rem;">
+        <div style="width:28px;height:28px;border-radius:7px;background:#f0f2f8;
+          display:flex;align-items:center;justify-content:center;font-size:0.85rem;flex-shrink:0;">
+          ${MASTER_CONFIG[map.type]?.icon || '📋'}
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:0.82rem;font-weight:600;color:#0f2540;
+            white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${map.display(r)}</div>
+          ${sub ? `<div style="font-size:0.68rem;color:#6b7fa3;margin-top:0.1rem;
+            white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${sub}</div>` : ''}
+        </div>
+        <div style="font-size:0.65rem;color:#c9a84c;font-weight:700;flex-shrink:0;">↗ Use</div>
+      </div>`;
+    }).join('')}
+  `;
+
+  // Hover effect
+  acDropdown.querySelectorAll('.ac-item').forEach(el => {
+    el.addEventListener('mouseover', () => el.style.background = '#f4f3ee');
+    el.addEventListener('mouseout',  () => el.style.background = '');
+  });
+
+  acDropdown.style.display = 'block';
+  positionDropdown(document.getElementById(fieldId));
+}
+
+// ── Pick item from dropdown ───────────────────────────────────
+function pickACItem(fieldId, dataIdx) {
+  const map = FIELD_MASTER_MAP[fieldId];
+  if (!map) return;
+  const data = getMasterData(map.type);
+  const r = data[dataIdx];
+  if (!r) return;
+
+  // For company field — fill multiple fields
+  if (fieldId === 'f_company' && MASTER_CONFIG['company']) {
+    MASTER_CONFIG['company'].fill(r, fieldId);
+  } else {
+    setFieldVal(fieldId, map.display(r));
+  }
+
+  closeACDropdown();
+  showToastCbm(MASTER_CONFIG[map.type]?.icon || '✅', map.display(r) + ' selected');
+}
+
+// ── Close dropdown ────────────────────────────────────────────
+function closeACDropdown() {
+  acDropdown.style.display = 'none';
+  acCurrentField = null;
+}
+
+// ── Attach events to all mapped fields ───────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    Object.keys(FIELD_MASTER_MAP).forEach(fieldId => {
+      const el = document.getElementById(fieldId);
+      if (!el) return;
+
+      // Click → show all saved options
+      el.addEventListener('focus', () => {
+        acCurrentField = fieldId;
+        renderACDropdown(fieldId, el.value);
+      });
+
+      // Type → filter options
+      el.addEventListener('input', () => {
+        if (acCurrentField === fieldId) {
+          renderACDropdown(fieldId, el.value);
+        }
+      });
+
+      // Click on already focused field → reopen
+      el.addEventListener('click', () => {
+        acCurrentField = fieldId;
+        renderACDropdown(fieldId, el.value);
+      });
+    });
+
+    // Close on outside click
+    document.addEventListener('click', (e) => {
+      if (!acDropdown.contains(e.target) &&
+          !Object.keys(FIELD_MASTER_MAP).some(id => document.getElementById(id) === e.target)) {
+        closeACDropdown();
+      }
+    });
+
+    // Reposition on scroll/resize
+    window.addEventListener('scroll', () => {
+      if (acCurrentField && acDropdown.style.display !== 'none') {
+        positionDropdown(document.getElementById(acCurrentField));
+      }
+    }, true);
+
+    window.addEventListener('resize', () => {
+      if (acCurrentField && acDropdown.style.display !== 'none') {
+        positionDropdown(document.getElementById(acCurrentField));
+      }
+    });
+
+    // Keyboard navigation
+    Object.keys(FIELD_MASTER_MAP).forEach(fieldId => {
+      const el = document.getElementById(fieldId);
+      if (!el) return;
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') { closeACDropdown(); return; }
+        if (acDropdown.style.display === 'none') return;
+
+        const items = acDropdown.querySelectorAll('.ac-item');
+        const active = acDropdown.querySelector('.ac-item.ac-active');
+        let idx = -1;
+        items.forEach((item, i) => { if (item === active) idx = i; });
+
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          const next = idx < items.length - 1 ? idx + 1 : 0;
+          items.forEach(i => i.classList.remove('ac-active'));
+          items[next].classList.add('ac-active');
+          items[next].style.background = '#f4f3ee';
+          items[next].scrollIntoView({ block: 'nearest' });
+        }
+        if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          const prev = idx > 0 ? idx - 1 : items.length - 1;
+          items.forEach(i => i.classList.remove('ac-active'));
+          items[prev].classList.add('ac-active');
+          items[prev].style.background = '#f4f3ee';
+          items[prev].scrollIntoView({ block: 'nearest' });
+        }
+        if (e.key === 'Enter' && active) {
+          e.preventDefault();
+          active.dispatchEvent(new MouseEvent('mousedown'));
+        }
+      });
+    });
+
+  }, 300); // small delay to ensure DOM is ready
+});
+
+// ── Inject AC styles ─────────────────────────────────────────
+(function(){
+  const s = document.createElement('style');
+  s.textContent = `
+    #acDropdown { scrollbar-width: thin; scrollbar-color: #dde3f0 transparent; }
+    #acDropdown::-webkit-scrollbar { width: 4px; }
+    #acDropdown::-webkit-scrollbar-thumb { background: #dde3f0; border-radius: 4px; }
+    .ac-item.ac-active { background: #f4f3ee !important; }
+  `;
+  document.head.appendChild(s);
+})();
+
