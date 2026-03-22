@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>IMPEXIO — Import Letter For Enquiry Module</title>
+  <title>IMPEXIO — Import Purchase Order Module</title>
   <link rel="stylesheet" href="../styles.css"/>
   <link rel="icon" href="../impexio_logo.png" type="image/png"/>
   <style>
@@ -12,7 +12,7 @@
 
     /* ── HERO ── */
     .mod-hero {
-      background: linear-gradient(135deg, #0f2540 0%, #1a3a5c 50%, #0a3a1a 100%);
+      background: linear-gradient(135deg, #0f2540 0%, #1c2e4a 45%, #1a0f3a 100%);
       padding: 5rem 2.5rem 4rem; position: relative; overflow: hidden;
     }
     .mod-hero::before {
@@ -22,7 +22,7 @@
     }
     .mod-hero::after {
       content:''; position:absolute; bottom:-60px; left:10%; width:300px; height:300px;
-      background:radial-gradient(circle, rgba(34,197,94,0.08) 0%, transparent 65%);
+      background:radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 65%);
       border-radius:50%; filter:blur(40px); pointer-events:none;
     }
     .mod-hero-inner {
@@ -80,9 +80,12 @@
     .mhv-lbl   { font-size:0.58rem; text-transform:uppercase; letter-spacing:0.1em; color:rgba(255,255,255,0.38); margin-bottom:0.18rem; }
     .mhv-val   { font-size:0.8rem; color:rgba(255,255,255,0.85); background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); border-radius:6px; padding:0.28rem 0.6rem; font-family:var(--font-mono); }
     .mhv-divider { height:1px; background:rgba(255,255,255,0.08); margin:0.75rem 0; }
-    .mhv-tags  { display:flex; gap:0.35rem; flex-wrap:wrap; margin-top:0.4rem; }
-    .mhv-tag   { background:rgba(201,168,76,0.15); border:1px solid rgba(201,168,76,0.3); border-radius:50px; padding:0.15rem 0.55rem; font-size:0.62rem; font-weight:700; color:var(--gold-light); }
-    .mhv-tag.g { background:rgba(34,197,94,0.12); border-color:rgba(34,197,94,0.3); color:#86efac; }
+    .mhv-tbl { width:100%; border-collapse:collapse; margin-top:0.5rem; }
+    .mhv-tbl th { font-size:0.58rem; text-transform:uppercase; letter-spacing:0.08em; color:rgba(255,255,255,0.38); padding:0.25rem 0.35rem; border-bottom:1px solid rgba(255,255,255,0.08); text-align:left; }
+    .mhv-tbl td { font-size:0.72rem; color:rgba(255,255,255,0.78); padding:0.3rem 0.35rem; border-bottom:1px solid rgba(255,255,255,0.05); font-family:var(--font-mono); }
+    .mhv-tbl td:first-child { font-family:var(--font-body); color:rgba(255,255,255,0.65); }
+    .mhv-tbl tr.tot td { color:#fff; font-weight:700; background:rgba(255,255,255,0.06); }
+    .mhv-status { display:inline-flex; align-items:center; gap:0.3rem; background:rgba(34,197,94,0.15); border:1px solid rgba(34,197,94,0.3); border-radius:50px; padding:0.15rem 0.6rem; font-size:0.62rem; font-weight:700; color:#86efac; }
 
     /* ── BREADCRUMB ── */
     .mod-breadcrumb { background:var(--white); border-bottom:1px solid var(--border); padding:0.7rem 2.5rem; }
@@ -112,7 +115,7 @@
     .what-text p { font-size:0.95rem; color:var(--text-mid); line-height:1.8; margin-bottom:1rem; }
     .what-text p:last-child { margin-bottom:0; }
     .what-highlight { background:var(--navy); border-radius:var(--radius-lg); padding:2rem; color:#fff; position:relative; overflow:hidden; }
-    .what-highlight::before { content:'📩'; position:absolute; bottom:-10px; right:10px; font-size:5rem; opacity:0.07; }
+    .what-highlight::before { content:'🛒'; position:absolute; bottom:-10px; right:10px; font-size:5rem; opacity:0.07; }
     .wh-title { font-family:var(--font-display); font-size:1.1rem; font-weight:700; color:var(--gold-light); margin-bottom:1rem; }
     .wh-stat  { display:flex; align-items:center; gap:0.75rem; padding:0.6rem 0; border-bottom:1px solid rgba(255,255,255,0.08); }
     .wh-stat:last-child { border-bottom:none; }
@@ -120,32 +123,34 @@
     .wh-stat-txt  { font-size:0.84rem; color:rgba(255,255,255,0.8); }
     .wh-stat-val  { font-family:var(--font-mono); font-size:0.82rem; font-weight:700; color:var(--gold-light); margin-left:auto; }
 
-    /* ── COMPONENTS GRID ── */
-    .comp-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.25rem; }
-    .comp-card {
+    /* ── PO SECTIONS GRID ── */
+    .po-sect-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.25rem; }
+    .po-sect-card {
       background:var(--white); border:1px solid var(--border); border-radius:var(--radius);
       padding:1.35rem; display:flex; align-items:flex-start; gap:0.85rem; transition:var(--transition);
     }
-    .comp-card:hover { border-color:var(--navy-light); box-shadow:var(--shadow-sm); transform:translateY(-3px); }
-    .comp-icon  { width:40px; height:40px; border-radius:10px; background:var(--navy); display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; }
-    .comp-title { font-weight:700; font-size:0.88rem; color:var(--navy); margin-bottom:0.28rem; }
-    .comp-desc  { font-size:0.78rem; color:var(--text-mid); line-height:1.55; }
+    .po-sect-card:hover { border-color:var(--navy-light); box-shadow:var(--shadow-sm); transform:translateY(-3px); }
+    .po-sect-icon  { width:40px; height:40px; border-radius:10px; background:var(--navy); display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; }
+    .po-sect-title { font-weight:700; font-size:0.88rem; color:var(--navy); margin-bottom:0.28rem; }
+    .po-sect-desc  { font-size:0.78rem; color:var(--text-mid); line-height:1.55; }
 
-    /* ── LETTER PREVIEW ── */
-    .letter-preview { background:var(--white); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; box-shadow:var(--shadow-md); }
-    .lp-head { background:linear-gradient(90deg,var(--navy),#1a3a5c); padding:1rem 1.5rem; display:flex; align-items:center; justify-content:space-between; }
-    .lp-head-title { font-family:var(--font-display); font-size:0.95rem; font-weight:700; color:#fff; }
-    .lp-head-badge { background:rgba(201,168,76,0.2); border:1px solid rgba(201,168,76,0.35); border-radius:50px; padding:0.2rem 0.65rem; font-size:0.62rem; font-weight:700; color:var(--gold-light); }
-    .lp-body  { padding:1.5rem; }
-    .lp-row   { display:flex; gap:1rem; margin-bottom:0.75rem; }
-    .lp-field { flex:1; }
-    .lp-lbl   { font-size:0.58rem; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:var(--text-soft); margin-bottom:0.18rem; }
-    .lp-val   { font-size:0.8rem; color:var(--text); background:var(--ivory2); border:1px solid var(--border-soft); border-radius:6px; padding:0.28rem 0.6rem; font-family:var(--font-mono); }
-    .lp-text  { background:var(--ivory2); border:1px solid var(--border-soft); border-radius:8px; padding:0.75rem 0.85rem; font-size:0.78rem; color:var(--text-mid); line-height:1.65; margin-top:0.5rem; }
-    .lp-div   { height:1px; background:var(--border-soft); margin:1rem 0; }
-    .lp-tbl   { width:100%; border-collapse:collapse; margin-top:0.5rem; }
-    .lp-tbl th { font-size:0.58rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-soft); padding:0.35rem 0.5rem; border-bottom:1px solid var(--border); text-align:left; }
-    .lp-tbl td { font-size:0.75rem; padding:0.4rem 0.5rem; border-bottom:1px solid var(--border-soft); color:var(--text); font-family:var(--font-mono); }
+    /* ── PO PREVIEW ── */
+    .po-preview { background:var(--white); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; box-shadow:var(--shadow-md); }
+    .po-prev-head { background:linear-gradient(90deg,var(--navy),#1c2e4a); padding:1rem 1.5rem; display:flex; align-items:center; justify-content:space-between; }
+    .po-prev-title { font-family:var(--font-display); font-size:0.95rem; font-weight:700; color:#fff; }
+    .po-prev-badge { background:rgba(201,168,76,0.2); border:1px solid rgba(201,168,76,0.35); border-radius:50px; padding:0.2rem 0.65rem; font-size:0.62rem; font-weight:700; color:var(--gold-light); }
+    .po-prev-body { padding:1.5rem; }
+    .po-prev-row  { display:flex; gap:1rem; margin-bottom:0.75rem; }
+    .po-prev-field { flex:1; }
+    .po-prev-lbl  { font-size:0.58rem; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:var(--text-soft); margin-bottom:0.18rem; }
+    .po-prev-val  { font-size:0.8rem; color:var(--text); background:var(--ivory2); border:1px solid var(--border-soft); border-radius:6px; padding:0.28rem 0.6rem; font-family:var(--font-mono); }
+    .po-prev-div  { height:1px; background:var(--border-soft); margin:1rem 0; }
+    .po-prev-tbl  { width:100%; border-collapse:collapse; }
+    .po-prev-tbl th { font-size:0.6rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-soft); padding:0.4rem 0.5rem; border-bottom:1px solid var(--border); text-align:left; background:var(--ivory2); }
+    .po-prev-tbl td { font-size:0.78rem; padding:0.45rem 0.5rem; border-bottom:1px solid var(--border-soft); color:var(--text); }
+    .po-prev-tbl td.num { font-family:var(--font-mono); text-align:right; }
+    .po-prev-tbl tr.tot td { font-weight:700; color:var(--navy); background:rgba(15,37,64,0.04); }
+    .po-prev-terms { background:var(--ivory2); border:1px solid var(--border-soft); border-radius:8px; padding:0.75rem 0.85rem; font-size:0.75rem; color:var(--text-mid); line-height:1.65; margin-top:0.75rem; }
 
     /* ── STEPS ── */
     .steps-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1.5rem; position:relative; }
@@ -175,14 +180,13 @@
     .uc-title { font-weight:700; font-size:0.92rem; color:var(--navy); margin-bottom:0.3rem; }
     .uc-desc  { font-size:0.8rem; color:var(--text-mid); line-height:1.6; }
 
-    /* ── COMPARE TABLE ── */
+    /* ── ILE vs IPO TABLE ── */
     .compare-table { width:100%; border-collapse:collapse; margin-top:1.5rem; border-radius:var(--radius); overflow:hidden; }
     .compare-table th { background:var(--navy); color:#fff; padding:0.85rem 1.1rem; font-size:0.82rem; font-weight:700; text-align:left; }
     .compare-table td { padding:0.75rem 1.1rem; font-size:0.83rem; color:var(--text); border-bottom:1px solid var(--border-soft); }
     .compare-table tr:nth-child(even) td { background:var(--ivory2); }
     .compare-table tr:hover td { background:#eef1f8; }
     .ct-yes { color:#16a34a; font-weight:700; }
-    .ct-arr { color:var(--navy); font-weight:700; }
 
     /* ── CTA ── */
     .cta-banner { background:linear-gradient(135deg,var(--navy) 0%,#1a3a5c 50%,#0f5c52 100%); border-radius:var(--radius-xl); padding:3.5rem; text-align:center; position:relative; overflow:hidden; }
@@ -203,7 +207,7 @@
       .mod-hero-inner { grid-template-columns:1fr; }
       .mod-hero-visual { display:none; }
       .what-grid { grid-template-columns:1fr; }
-      .comp-grid { grid-template-columns:repeat(2,1fr); }
+      .po-sect-grid { grid-template-columns:repeat(2,1fr); }
       .steps-grid { grid-template-columns:repeat(2,1fr); }
       .steps-grid::before { display:none; }
       .features-grid { grid-template-columns:repeat(2,1fr); }
@@ -214,7 +218,7 @@
       .mod-breadcrumb { padding:0.7rem 1.5rem; }
     }
     @media (max-width:640px) {
-      .comp-grid { grid-template-columns:1fr; }
+      .po-sect-grid { grid-template-columns:1fr; }
       .steps-grid { grid-template-columns:1fr; }
       .features-grid { grid-template-columns:1fr; }
       .mod-hero-stats { gap:1.5rem; }
@@ -255,7 +259,7 @@
       <div class="nav-dropdown">
         <div class="dd-label">Import Modules</div>
         <div class="dd-item" onclick="window.location.href='ile-info.html'"><div class="dd-icon">📩</div>Import Letter For Enquiry</div>
-        <div class="dd-item" onclick="window.location.href='../login.html'"><div class="dd-icon">🛒</div>Import Purchase Order</div>
+        <div class="dd-item" onclick="window.location.href='ipo-info.html'"><div class="dd-icon">🛒</div>Import Purchase Order</div>
       </div>
     </li>
     <li class="nav-item" id="ni-exim">
@@ -289,7 +293,7 @@
   <div class="mob-link" onclick="toggleMobDD('mdd-import')">🚢 IMPORT <span>▾</span></div>
   <div class="mob-drop" id="mdd-import">
     <div class="mob-dd-item" onclick="window.location.href='ile-info.html'">📩 Import Letter For Enquiry</div>
-    <div class="mob-dd-item" onclick="window.location.href='../login.html'">🛒 Import Purchase Order</div>
+    <div class="mob-dd-item" onclick="window.location.href='ipo-info.html'">🛒 Import Purchase Order</div>
   </div>
   <div class="mob-link" onclick="toggleMobDD('mdd-exim')">🌐 EXIM MARKETING <span>▾</span></div>
   <div class="mob-drop" id="mdd-exim">
@@ -308,7 +312,7 @@
     <span class="mod-breadcrumb-sep">›</span>
     <a onclick="window.location.href='../index.html'">Import Modules</a>
     <span class="mod-breadcrumb-sep">›</span>
-    <span style="color:var(--navy);font-weight:600;">Import Letter For Enquiry</span>
+    <span style="color:var(--navy);font-weight:600;">Import Purchase Order</span>
   </div>
 </div>
 
@@ -316,7 +320,7 @@
 <div class="mod-nav-bar">
   <div class="mod-nav-bar-inner">
     <span class="mod-nav-link active" onclick="scrollTo('sec-about')">About</span>
-    <span class="mod-nav-link" onclick="scrollTo('sec-components')">Letter Components</span>
+    <span class="mod-nav-link" onclick="scrollTo('sec-sections')">PO Sections</span>
     <span class="mod-nav-link" onclick="scrollTo('sec-how')">How It Works</span>
     <span class="mod-nav-link" onclick="scrollTo('sec-features')">Features</span>
     <span class="mod-nav-link" onclick="scrollTo('sec-usecases')">Use Cases</span>
@@ -328,64 +332,59 @@
 <div class="mod-hero" id="sec-about">
   <div class="mod-hero-inner">
     <div>
-      <div class="mod-hero-badge">📩 Import Module &nbsp;·&nbsp; Import Letter For Enquiry</div>
+      <div class="mod-hero-badge">🛒 Import Module &nbsp;·&nbsp; Import Purchase Order</div>
       <h1 class="mod-hero-title">
-        Start Every Import with a<br/>
-        <span>Professional Enquiry</span>
+        Place Every Import Order with a<br/>
+        <span>Legally Binding PO</span>
       </h1>
       <p class="mod-hero-desc">
-        A formal, structured letter sent to overseas suppliers requesting product info, pricing, availability and terms — the first step in every successful import transaction.
+        A formal, structured Purchase Order sent to your overseas supplier — confirming product details, quantities, pricing, delivery terms and payment conditions in one legally binding document.
       </p>
       <div class="mod-hero-btns">
         <button class="btn-hero-primary" onclick="window.location.href='../login.html'">🔐 Login to Use Module →</button>
-        <button class="btn-hero-ghost" onclick="document.getElementById('sec-components').scrollIntoView({behavior:'smooth'})">See Letter Components ↓</button>
+        <button class="btn-hero-ghost" onclick="document.getElementById('sec-sections').scrollIntoView({behavior:'smooth'})">See PO Sections ↓</button>
       </div>
       <div class="mod-hero-stats">
-        <div><div class="mhs-val">2 min</div><div class="mhs-lbl">To Create</div></div>
-        <div><div class="mhs-val">9</div><div class="mhs-lbl">Letter Sections</div></div>
+        <div><div class="mhs-val">3 min</div><div class="mhs-lbl">To Create</div></div>
+        <div><div class="mhs-val">10</div><div class="mhs-lbl">PO Sections</div></div>
+        <div><div class="mhs-val">Legal</div><div class="mhs-lbl">Binding Doc</div></div>
         <div><div class="mhs-val">Print</div><div class="mhs-lbl">Ready</div></div>
-        <div><div class="mhs-val">Multi</div><div class="mhs-lbl">Product Lines</div></div>
       </div>
     </div>
 
     <!-- Hero Visual -->
     <div class="mod-hero-visual">
       <div class="mhv-header">
-        <div class="mhv-icon">📩</div>
+        <div class="mhv-icon">🛒</div>
         <div>
-          <div class="mhv-title">Import Letter For Enquiry</div>
-          <div class="mhv-sub">ILE/2026/0012 — Sample Preview</div>
+          <div class="mhv-title">Import Purchase Order</div>
+          <div class="mhv-sub">IPO/2026/0008 — Sample Preview</div>
         </div>
       </div>
       <div class="mhv-field">
-        <div class="mhv-lbl">To (Supplier)</div>
+        <div class="mhv-lbl">Supplier</div>
         <div class="mhv-val">Global Ceramic Exports Ltd., China</div>
       </div>
       <div class="mhv-field">
-        <div class="mhv-lbl">Subject</div>
-        <div class="mhv-val">Enquiry for Ceramic Floor Tiles</div>
-      </div>
-      <div class="mhv-field">
-        <div class="mhv-lbl">Product / HS Code</div>
-        <div class="mhv-val">Ceramic Tiles — HS 6907.21</div>
-      </div>
-      <div class="mhv-divider"></div>
-      <div class="mhv-field">
-        <div class="mhv-lbl">Information Required From Supplier</div>
-      </div>
-      <div class="mhv-tags">
-        <div class="mhv-tag">Price List</div>
-        <div class="mhv-tag">MOQ</div>
-        <div class="mhv-tag g">Lead Time</div>
-        <div class="mhv-tag">Payment Terms</div>
-        <div class="mhv-tag g">Samples</div>
-        <div class="mhv-tag">Port of Loading</div>
-        <div class="mhv-tag">Catalogue</div>
-      </div>
-      <div class="mhv-divider"></div>
-      <div class="mhv-field">
-        <div class="mhv-lbl">Delivery Requirement</div>
+        <div class="mhv-lbl">Delivery Terms</div>
         <div class="mhv-val">CIF Mundra Port — 40' HQ Container</div>
+      </div>
+      <div class="mhv-divider"></div>
+      <table class="mhv-tbl">
+        <thead><tr><th>Product</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead>
+        <tbody>
+          <tr><td>Ceramic Floor Tiles 600×600</td><td>5,000</td><td>$3.20</td><td>$16,000</td></tr>
+          <tr><td>Ceramic Wall Tiles 300×600</td><td>2,500</td><td>$2.85</td><td>$7,125</td></tr>
+          <tr class="tot"><td>TOTAL</td><td>7,500</td><td></td><td>$23,125</td></tr>
+        </tbody>
+      </table>
+      <div class="mhv-divider"></div>
+      <div class="mhv-field">
+        <div class="mhv-lbl">Payment Terms</div>
+        <div class="mhv-val">30% Advance — 70% against BL copy</div>
+      </div>
+      <div style="margin-top:0.65rem;">
+        <div class="mhv-status">✅ Purchase Order Issued</div>
       </div>
     </div>
   </div>
@@ -394,79 +393,85 @@
 <!-- ══ WHAT IS IT ══ -->
 <div class="info-section" id="sec-about2">
   <div class="info-section-inner">
-    <div class="info-kicker"><div class="info-kicker-bar"></div>What is an Import Letter For Enquiry?</div>
-    <h2 class="info-heading">Your First Step in Any Import Transaction</h2>
+    <div class="info-kicker"><div class="info-kicker-bar"></div>What is an Import Purchase Order?</div>
+    <h2 class="info-heading">The Official Document That Confirms Your Import</h2>
     <div class="what-grid">
       <div class="what-text">
-        <p>An Import Letter For Enquiry (ILE) is a formal written communication sent by an importer to a prospective overseas supplier to gather product information, pricing, availability, and terms before placing a purchase order.</p>
-        <p>It serves as the official opening of trade negotiations — establishing your company's credibility and clearly communicating your import requirements. A well-drafted enquiry letter reduces back-and-forth, avoids misunderstandings, and accelerates the supplier response.</p>
-        <p>IMPEXIO's ILE module generates a print-ready, professionally formatted letter in minutes — covering all the essential information a supplier needs to send you a meaningful quotation or proforma invoice.</p>
+        <p>An Import Purchase Order (IPO) is a formal commercial document issued by a buyer (importer) to an overseas supplier (exporter) to officially confirm the purchase of specific goods at agreed prices and terms.</p>
+        <p>Unlike an enquiry letter which requests information, a Purchase Order is a legally binding commitment — it tells the supplier exactly what to produce, in what quantity, at what price, when and how to ship, and on what payment terms.</p>
+        <p>IMPEXIO's IPO module generates a professional, complete Purchase Order covering all 10 essential sections — from buyer and supplier details to product lines, shipment requirements, quality standards, and full commercial terms — in a print-ready format.</p>
       </div>
       <div class="what-highlight">
-        <div class="wh-title">📩 Key Info Requested from Supplier</div>
-        <div class="wh-stat"><span class="wh-stat-icon">💰</span><span class="wh-stat-txt">Price list / CIF rate per unit</span></div>
-        <div class="wh-stat"><span class="wh-stat-icon">📦</span><span class="wh-stat-txt">Minimum Order Quantity (MOQ)</span></div>
-        <div class="wh-stat"><span class="wh-stat-icon">⏱️</span><span class="wh-stat-txt">Lead time & delivery schedule</span></div>
-        <div class="wh-stat"><span class="wh-stat-icon">💳</span><span class="wh-stat-txt">Payment terms & banking details</span></div>
-        <div class="wh-stat"><span class="wh-stat-icon">📋</span><span class="wh-stat-txt">Product catalogue & specifications</span></div>
-        <div class="wh-stat"><span class="wh-stat-icon">🧪</span><span class="wh-stat-txt">Sample availability & cost</span></div>
-        <div class="wh-stat"><span class="wh-stat-icon">🚢</span><span class="wh-stat-txt">Port of loading & incoterms</span></div>
+        <div class="wh-title">🛒 What the PO Confirms</div>
+        <div class="wh-stat"><span class="wh-stat-icon">📦</span><span class="wh-stat-txt">Exact product & specifications</span></div>
+        <div class="wh-stat"><span class="wh-stat-icon">🔢</span><span class="wh-stat-txt">Quantity ordered per item</span></div>
+        <div class="wh-stat"><span class="wh-stat-icon">💰</span><span class="wh-stat-txt">Agreed unit price & total value</span></div>
+        <div class="wh-stat"><span class="wh-stat-icon">🚢</span><span class="wh-stat-txt">Delivery terms & port details</span></div>
+        <div class="wh-stat"><span class="wh-stat-icon">📅</span><span class="wh-stat-txt">Shipment & delivery deadline</span></div>
+        <div class="wh-stat"><span class="wh-stat-icon">💳</span><span class="wh-stat-txt">Payment terms & currency</span></div>
+        <div class="wh-stat"><span class="wh-stat-icon">📋</span><span class="wh-stat-txt">Quality & packing requirements</span></div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ══ LETTER COMPONENTS ══ -->
-<div class="info-section alt" id="sec-components">
+<!-- ══ PO SECTIONS ══ -->
+<div class="info-section alt" id="sec-sections">
   <div class="info-section-inner">
-    <div class="info-kicker"><div class="info-kicker-bar"></div>Letter Structure</div>
-    <h2 class="info-heading">What the Letter Covers</h2>
-    <p class="info-sub">Every section is structured to give the supplier exactly what they need to respond with a proper quotation.</p>
-    <div class="comp-grid">
-      <div class="comp-card"><div class="comp-icon">🏢</div><div><div class="comp-title">Buyer / Importer Details</div><p class="comp-desc">Your company name, address, contact person, GST number and letter reference — so the supplier knows exactly who is enquiring.</p></div></div>
-      <div class="comp-card"><div class="comp-icon">🌏</div><div><div class="comp-title">Supplier / Manufacturer Details</div><p class="comp-desc">Full name and address of the overseas supplier or manufacturer being contacted for this enquiry.</p></div></div>
-      <div class="comp-card"><div class="comp-icon">📦</div><div><div class="comp-title">Product Specification</div><p class="comp-desc">Detailed product description, HS Code, required specifications like grade, size, finish, colour and quantity needed.</p></div></div>
-      <div class="comp-card"><div class="comp-icon">🚢</div><div><div class="comp-title">Shipment Requirements</div><p class="comp-desc">Port of loading, port of discharge, incoterms (CIF/FOB/EXW), preferred container type and expected delivery timeline.</p></div></div>
-      <div class="comp-card"><div class="comp-icon">💳</div><div><div class="comp-title">Commercial Terms</div><p class="comp-desc">Requested payment terms, currency preference, pricing basis (per unit / per MT / per CBM) and any special commercial conditions.</p></div></div>
-      <div class="comp-card"><div class="comp-icon">📋</div><div><div class="comp-title">Information Checklist</div><p class="comp-desc">A structured list of specific items you want from the supplier — price list, MOQ, lead time, samples, certifications, packing details and more.</p></div></div>
-      <div class="comp-card"><div class="comp-icon">📅</div><div><div class="comp-title">Response Deadline</div><p class="comp-desc">A clear requested date by which you need the supplier's response — ensuring urgency and keeping your procurement timeline on track.</p></div></div>
-      <div class="comp-card"><div class="comp-icon">📝</div><div><div class="comp-title">Remarks & Special Instructions</div><p class="comp-desc">Quality certifications needed, country of origin requirements, specific testing standards or any other custom requests.</p></div></div>
-      <div class="comp-card"><div class="comp-icon">✍️</div><div><div class="comp-title">Authorization & Signature</div><p class="comp-desc">Prepared by and authorised signatory fields with your company name — giving the letter official credibility and legal standing.</p></div></div>
+    <div class="info-kicker"><div class="info-kicker-bar"></div>PO Structure</div>
+    <h2 class="info-heading">What the Purchase Order Contains</h2>
+    <p class="info-sub">Every section of the PO is structured to eliminate ambiguity and give the supplier everything they need to fulfil the order correctly.</p>
+    <div class="po-sect-grid">
+      <div class="po-sect-card"><div class="po-sect-icon">🏢</div><div><div class="po-sect-title">Buyer / Importer Details</div><p class="po-sect-desc">Your company name, address, GST/IEC number, contact person and PO reference — establishing the legal identity of the buyer.</p></div></div>
+      <div class="po-sect-card"><div class="po-sect-icon">🌏</div><div><div class="po-sect-title">Supplier / Seller Details</div><p class="po-sect-desc">Full name, address and contact of the overseas supplier being issued the Purchase Order.</p></div></div>
+      <div class="po-sect-card"><div class="po-sect-icon">📦</div><div><div class="po-sect-title">Product Line Items</div><p class="po-sect-desc">Detailed product description, HS Code, ordered quantity, unit, agreed unit price and line total — with grand total amount and currency.</p></div></div>
+      <div class="po-sect-card"><div class="po-sect-icon">🚢</div><div><div class="po-sect-title">Shipment & Delivery Terms</div><p class="po-sect-desc">Port of loading, port of discharge, incoterms (CIF/FOB/EXW), container type, shipment deadline and expected delivery date.</p></div></div>
+      <div class="po-sect-card"><div class="po-sect-icon">💳</div><div><div class="po-sect-title">Payment Terms</div><p class="po-sect-desc">Payment method (TT/LC/DP), advance percentage, balance payment trigger, currency and banking details reference.</p></div></div>
+      <div class="po-sect-card"><div class="po-sect-icon">📋</div><div><div class="po-sect-title">Quality & Standards</div><p class="po-sect-desc">Required quality certifications, inspection requirements, testing standards, country of origin requirements and compliance conditions.</p></div></div>
+      <div class="po-sect-card"><div class="po-sect-icon">📦</div><div><div class="po-sect-title">Packing & Labelling</div><p class="po-sect-desc">Packing specifications, carton size, inner pack quantity, master pack details, labelling requirements and marks & numbers.</p></div></div>
+      <div class="po-sect-card"><div class="po-sect-icon">📄</div><div><div class="po-sect-title">Documents Required</div><p class="po-sect-desc">List of shipping documents the supplier must provide — Commercial Invoice, Packing List, BL, COO, Test Reports, Phyto Certificate etc.</p></div></div>
+      <div class="po-sect-card"><div class="po-sect-icon">📝</div><div><div class="po-sect-title">Special Instructions</div><p class="po-sect-desc">Any additional conditions — penalty for late shipment, amendment procedure, partial shipment allowance, force majeure clause.</p></div></div>
+      <div class="po-sect-card"><div class="po-sect-icon">✍️</div><div><div class="po-sect-title">Authorization & Signature</div><p class="po-sect-desc">Authorised signatory and company stamp — making the PO a legally valid document with full binding authority.</p></div></div>
     </div>
 
-    <!-- Letter Preview -->
+    <!-- PO Preview -->
     <div style="margin-top:3rem;">
       <div class="info-kicker"><div class="info-kicker-bar"></div>Sample Preview</div>
-      <h3 style="font-family:var(--font-display);font-size:1.3rem;font-weight:700;color:var(--navy);margin-bottom:1.5rem;">How the Generated Letter Looks</h3>
-      <div class="letter-preview">
-        <div class="lp-head">
-          <div class="lp-head-title">📩 Import Letter For Enquiry — ILE/2026/0012</div>
-          <div class="lp-head-badge">PREVIEW</div>
+      <h3 style="font-family:var(--font-display);font-size:1.3rem;font-weight:700;color:var(--navy);margin-bottom:1.5rem;">How the Generated PO Looks</h3>
+      <div class="po-preview">
+        <div class="po-prev-head">
+          <div class="po-prev-title">🛒 Import Purchase Order — IPO/2026/0008</div>
+          <div class="po-prev-badge">PREVIEW</div>
         </div>
-        <div class="lp-body">
-          <div class="lp-row">
-            <div class="lp-field"><div class="lp-lbl">From (Importer)</div><div class="lp-val">Impexio Trade Solutions Pvt. Ltd.</div></div>
-            <div class="lp-field"><div class="lp-lbl">Date</div><div class="lp-val">21 Mar 2026</div></div>
+        <div class="po-prev-body">
+          <div class="po-prev-row">
+            <div class="po-prev-field"><div class="po-prev-lbl">Buyer (Importer)</div><div class="po-prev-val">Impexio Trade Solutions Pvt. Ltd., GIFT City</div></div>
+            <div class="po-prev-field"><div class="po-prev-lbl">PO Date</div><div class="po-prev-val">21 Mar 2026</div></div>
           </div>
-          <div class="lp-row">
-            <div class="lp-field"><div class="lp-lbl">To (Supplier)</div><div class="lp-val">Global Ceramic Exports Ltd., Guangzhou, China</div></div>
-            <div class="lp-field"><div class="lp-lbl">Ref. No.</div><div class="lp-val">ILE/2026/0012</div></div>
+          <div class="po-prev-row">
+            <div class="po-prev-field"><div class="po-prev-lbl">Supplier</div><div class="po-prev-val">Global Ceramic Exports Ltd., Guangzhou, China</div></div>
+            <div class="po-prev-field"><div class="po-prev-lbl">PO No.</div><div class="po-prev-val">IPO/2026/0008</div></div>
           </div>
-          <div class="lp-div"></div>
-          <div style="font-size:0.75rem;font-weight:700;color:var(--navy);margin-bottom:0.35rem;">Subject: Enquiry for Import of Ceramic Floor Tiles (HS Code: 6907.21)</div>
-          <div class="lp-text">Dear Sir / Madam,<br/><br/>We are pleased to introduce ourselves as an established import house based in India. We are interested in importing <strong>Ceramic Floor Tiles</strong> from your esteemed organisation and would appreciate if you could provide us with the following details at your earliest convenience...</div>
-          <div class="lp-div"></div>
-          <table class="lp-tbl">
-            <thead><tr><th>Product</th><th>HS Code</th><th>Qty Required</th><th>Unit</th><th>Incoterms</th></tr></thead>
+          <div class="po-prev-div"></div>
+          <table class="po-prev-tbl">
+            <thead>
+              <tr><th>Product Description</th><th>HS Code</th><th>Qty</th><th>Unit</th><th>Rate (CIF)</th><th>Amount</th></tr>
+            </thead>
             <tbody>
-              <tr><td>Ceramic Floor Tiles 600×600mm</td><td>6907.21</td><td>5,000</td><td>SQM</td><td>CIF Mundra</td></tr>
-              <tr><td>Ceramic Wall Tiles 300×600mm</td><td>6907.22</td><td>2,500</td><td>SQM</td><td>CIF Mundra</td></tr>
+              <tr><td>Ceramic Floor Tiles 600×600mm Glossy</td><td>6907.21</td><td>5,000</td><td>SQM</td><td class="num">$3.20</td><td class="num">$16,000.00</td></tr>
+              <tr><td>Ceramic Wall Tiles 300×600mm Matt</td><td>6907.22</td><td>2,500</td><td>SQM</td><td class="num">$2.85</td><td class="num">$7,125.00</td></tr>
+              <tr class="tot"><td colspan="5">TOTAL ORDER VALUE</td><td class="num">$23,125.00</td></tr>
             </tbody>
           </table>
-          <div class="lp-div"></div>
-          <div class="lp-text" style="font-size:0.73rem;">
-            <strong>We request the following information:</strong><br/>
-            ✅ Price list (CIF Mundra) &nbsp;|&nbsp; ✅ MOQ &nbsp;|&nbsp; ✅ Lead time &nbsp;|&nbsp; ✅ Payment terms &nbsp;|&nbsp; ✅ Sample availability &nbsp;|&nbsp; ✅ Catalogue
+          <div class="po-prev-div"></div>
+          <div class="po-prev-row">
+            <div class="po-prev-field"><div class="po-prev-lbl">Delivery Terms</div><div class="po-prev-val">CIF Mundra Port, India</div></div>
+            <div class="po-prev-field"><div class="po-prev-lbl">Shipment By</div><div class="po-prev-val">30 Apr 2026</div></div>
+          </div>
+          <div class="po-prev-terms">
+            <strong>Payment Terms:</strong> 30% advance — 70% balance against copy of BL &amp; shipping documents &nbsp;|&nbsp;
+            <strong>Container:</strong> 40' HQ &nbsp;|&nbsp; <strong>Incoterms:</strong> CIF &nbsp;|&nbsp;
+            <strong>Currency:</strong> USD
           </div>
         </div>
       </div>
@@ -478,32 +483,32 @@
 <div class="info-section" id="sec-how">
   <div class="info-section-inner">
     <div class="info-kicker"><div class="info-kicker-bar"></div>Process</div>
-    <h2 class="info-heading">4 Steps to Your Professional Enquiry Letter</h2>
-    <p class="info-sub">A step-by-step wizard guides you through every section — nothing is missed, every letter is complete and ready to send.</p>
+    <h2 class="info-heading">4 Steps to Your Official Purchase Order</h2>
+    <p class="info-sub">A step-by-step wizard guides you through every section — ensuring your PO is complete, professional and legally sound.</p>
     <div class="steps-grid">
       <div class="step-card">
         <div class="step-num">1</div>
         <div class="step-icon">🏢</div>
         <div class="step-title">Enter Header Info</div>
-        <div class="step-desc">Fill in your company details, the supplier's name and address, the reference number and the date of the letter.</div>
+        <div class="step-desc">Fill in buyer and supplier details, PO number, date and the reference to the original enquiry or quotation it is based on.</div>
       </div>
       <div class="step-card">
         <div class="step-num">2</div>
         <div class="step-icon">📦</div>
         <div class="step-title">Add Product Lines</div>
-        <div class="step-desc">Enter each product you want to import with HS Code, required quantity, unit and any specific technical specifications.</div>
+        <div class="step-desc">Enter each product with HS Code, ordered quantity, unit, agreed unit rate and the line-wise amount. Grand total calculates automatically.</div>
       </div>
       <div class="step-card">
         <div class="step-num">3</div>
         <div class="step-icon">📋</div>
-        <div class="step-title">Set Terms & Checklist</div>
-        <div class="step-desc">Specify incoterms, payment terms, shipment details and tick the information checklist items you want from the supplier.</div>
+        <div class="step-title">Set Terms & Conditions</div>
+        <div class="step-desc">Specify delivery terms, payment terms, shipment deadline, quality requirements, packing specs and documents required.</div>
       </div>
       <div class="step-card">
         <div class="step-num">4</div>
         <div class="step-icon">🖨️</div>
-        <div class="step-title">Save & Print / Send</div>
-        <div class="step-desc">Save to your records and print the professionally formatted letter — ready to email or courier directly to the supplier.</div>
+        <div class="step-title">Save & Issue</div>
+        <div class="step-desc">Save to your records and print the professionally formatted, legally binding PO — ready to send directly to your supplier.</div>
       </div>
     </div>
   </div>
@@ -514,37 +519,37 @@
   <div class="info-section-inner">
     <div class="info-kicker"><div class="info-kicker-bar"></div>Features</div>
     <h2 class="info-heading">Module Features</h2>
-    <p class="info-sub">Everything you need to create professional import enquiry letters quickly, consistently and without errors.</p>
+    <p class="info-sub">Everything you need to create professional, legally binding Import Purchase Orders quickly and without errors.</p>
     <div class="features-grid">
       <div class="feat-box">
         <div class="feat-box-icon">📋</div>
-        <div class="feat-box-title">Step-by-Step Wizard</div>
-        <p class="feat-box-desc">3-step guided form — Header Info, Product Lines, Terms & Remarks — so nothing is missed and every letter is complete and professional.</p>
+        <div class="feat-box-title">4-Step Wizard</div>
+        <p class="feat-box-desc">Guided form covers Header, Product Lines, Terms & Conditions, and Authorization — every section is complete and nothing is missed.</p>
       </div>
       <div class="feat-box">
-        <div class="feat-box-icon">📦</div>
-        <div class="feat-box-title">Multi-Product Rows</div>
-        <p class="feat-box-desc">Add unlimited product rows with HS Code, quantity, unit and specifications for multi-product enquiry letters all in one document.</p>
+        <div class="feat-box-icon">🔢</div>
+        <div class="feat-box-title">Auto Total Calculation</div>
+        <p class="feat-box-desc">Enter quantity and rate — line totals and the grand total order value calculate automatically in real time. No manual maths needed.</p>
       </div>
       <div class="feat-box">
         <div class="feat-box-icon">🧠</div>
         <div class="feat-box-title">Master Data Auto-fill</div>
-        <p class="feat-box-desc">Saved supplier, port, product and payment terms data auto-fills instantly — eliminating repetitive data entry across multiple enquiries.</p>
+        <p class="feat-box-desc">Saved supplier, product, port and payment terms data fills instantly — dramatically reducing data entry time across multiple orders.</p>
       </div>
       <div class="feat-box">
         <div class="feat-box-icon">💾</div>
-        <div class="feat-box-title">Record Management</div>
-        <p class="feat-box-desc">Every letter is saved with a unique reference number. Browse, search, edit, duplicate or reprint any past enquiry in seconds.</p>
+        <div class="feat-box-title">PO Record Management</div>
+        <p class="feat-box-desc">Every PO is saved with a unique number. Browse, search, edit, duplicate or reprint any past purchase order in seconds.</p>
       </div>
       <div class="feat-box">
         <div class="feat-box-icon">🖨️</div>
         <div class="feat-box-title">Print-Ready Format</div>
-        <p class="feat-box-desc">Generates a clean, professional letter layout formatted for print — on your company letterhead — ready to email or courier directly to the supplier.</p>
+        <p class="feat-box-desc">Generates a clean, professional PO on your company letterhead — formatted for print and ready to email or courier to the supplier.</p>
       </div>
       <div class="feat-box">
-        <div class="feat-box-icon">📅</div>
-        <div class="feat-box-title">Response Deadline</div>
-        <p class="feat-box-desc">Set a response-by date — so suppliers know your timeline and you maintain urgency in your procurement process.</p>
+        <div class="feat-box-icon">📄</div>
+        <div class="feat-box-title">Documents Checklist</div>
+        <p class="feat-box-desc">Include a required shipping documents checklist in the PO — so your supplier knows exactly what documents to submit with the shipment.</p>
       </div>
     </div>
   </div>
@@ -554,53 +559,51 @@
 <div class="info-section" id="sec-usecases">
   <div class="info-section-inner">
     <div class="info-kicker"><div class="info-kicker-bar"></div>Use Cases</div>
-    <h2 class="info-heading">When Do You Need This?</h2>
-    <p class="info-sub">The Import Letter For Enquiry is the starting point for any structured, professional import process.</p>
+    <h2 class="info-heading">When Do You Use a Purchase Order?</h2>
+    <p class="info-sub">An Import Purchase Order is required for every confirmed import transaction — big or small.</p>
     <div class="usecases-grid">
       <div class="usecase-card">
-        <div class="uc-icon">🆕</div>
+        <div class="uc-icon">🏭</div>
         <div>
-          <div class="uc-title">Approaching a New Supplier</div>
-          <p class="uc-desc">When contacting an overseas manufacturer for the first time, a formal enquiry letter establishes your credibility and communicates your requirements professionally.</p>
-        </div>
-      </div>
-      <div class="usecase-card">
-        <div class="uc-icon">💰</div>
-        <div>
-          <div class="uc-title">Price Discovery & Comparison</div>
-          <p class="uc-desc">Send identical enquiry letters to multiple suppliers simultaneously to collect comparable quotes — enabling side-by-side price and terms analysis.</p>
-        </div>
-      </div>
-      <div class="usecase-card">
-        <div class="uc-icon">📦</div>
-        <div>
-          <div class="uc-title">New Product Sourcing</div>
-          <p class="uc-desc">When importing a new product category, the ILE helps you clearly define specifications and gather accurate information before committing to any order.</p>
+          <div class="uc-title">Placing a Regular Import Order</div>
+          <p class="uc-desc">For every confirmed import from an overseas supplier, issue a formal PO to legally commit to the purchase and give the supplier clear instructions to proceed with production and shipment.</p>
         </div>
       </div>
       <div class="usecase-card">
         <div class="uc-icon">🔄</div>
         <div>
-          <div class="uc-title">Annual Rate Revision</div>
-          <p class="uc-desc">Send annual or seasonal rate enquiries to existing suppliers to renegotiate prices, review updated MOQs and confirm terms for the new financial year.</p>
+          <div class="uc-title">Repeat / Blanket Orders</div>
+          <p class="uc-desc">For suppliers you import from regularly, duplicate previous POs and update quantities and dates — saving time on recurring orders while maintaining full documentation.</p>
+        </div>
+      </div>
+      <div class="usecase-card">
+        <div class="uc-icon">📊</div>
+        <div>
+          <div class="uc-title">Multi-Product Orders</div>
+          <p class="uc-desc">When importing multiple products in a single shipment, a PO consolidates all line items in one document — making it easy for the supplier to pack and invoice correctly.</p>
+        </div>
+      </div>
+      <div class="usecase-card">
+        <div class="uc-icon">🏦</div>
+        <div>
+          <div class="uc-title">Bank & LC Documentation</div>
+          <p class="uc-desc">A formally issued PO is required when opening a Letter of Credit (LC) with your bank — it forms the base document for the entire LC transaction and must match the PI exactly.</p>
         </div>
       </div>
     </div>
 
-    <!-- ILE vs EQ comparison -->
+    <!-- ILE → IPO → PI flow comparison -->
     <div style="margin-top:3.5rem;">
-      <div class="info-kicker"><div class="info-kicker-bar"></div>Module Relationship</div>
-      <h3 style="font-family:var(--font-display);font-size:1.3rem;font-weight:700;color:var(--navy);margin-bottom:0.5rem;">ILE vs Export Quotation (EQ)</h3>
-      <p style="font-size:0.9rem;color:var(--text-mid);margin-bottom:0.5rem;">Both are formal commercial documents — but they serve opposite directions in trade.</p>
+      <div class="info-kicker"><div class="info-kicker-bar"></div>Import Document Flow</div>
+      <h3 style="font-family:var(--font-display);font-size:1.3rem;font-weight:700;color:var(--navy);margin-bottom:0.5rem;">Where IPO Fits in the Import Process</h3>
+      <p style="font-size:0.9rem;color:var(--text-mid);margin-bottom:1rem;">The Purchase Order is step 3 in the standard import document chain.</p>
       <table class="compare-table">
-        <thead><tr><th>Aspect</th><th>Import Letter For Enquiry (ILE)</th><th>Export Quotation (EQ)</th></tr></thead>
+        <thead><tr><th>Step</th><th>Document</th><th>Direction</th><th>Purpose</th><th>In IMPEXIO</th></tr></thead>
         <tbody>
-          <tr><td>Direction</td><td class="ct-arr">Buyer → Supplier (Import)</td><td class="ct-arr">Seller → Buyer (Export)</td></tr>
-          <tr><td>Purpose</td><td>Request price &amp; info from supplier</td><td>Offer price &amp; terms to buyer</td></tr>
-          <tr><td>Who Creates It</td><td>Importer / Buyer</td><td>Exporter / Seller</td></tr>
-          <tr><td>Contains</td><td>Product specs, quantity needed, terms required</td><td>Price, MOQ, delivery, payment terms</td></tr>
-          <tr><td>Result</td><td>Supplier sends back a Quotation or PI</td><td>Buyer places a Purchase Order</td></tr>
-          <tr><td>In IMPEXIO</td><td class="ct-yes">✅ Import Module</td><td class="ct-yes">✅ Export Module</td></tr>
+          <tr><td><strong>1</strong></td><td>Import Letter For Enquiry (ILE)</td><td>Buyer → Supplier</td><td>Request price & info</td><td class="ct-yes">✅ ILE Module</td></tr>
+          <tr><td><strong>2</strong></td><td>Proforma Invoice (PI)</td><td>Supplier → Buyer</td><td>Supplier's formal quote</td><td class="ct-yes">✅ PI Module (Export)</td></tr>
+          <tr><td><strong>3</strong></td><td>Import Purchase Order (IPO)</td><td>Buyer → Supplier</td><td>Official order confirmation</td><td class="ct-yes">✅ IPO Module</td></tr>
+          <tr><td><strong>4</strong></td><td>Commercial Invoice + BL</td><td>Supplier → Buyer</td><td>Shipment & payment docs</td><td style="color:var(--text-soft);">Coming Soon</td></tr>
         </tbody>
       </table>
     </div>
@@ -612,9 +615,9 @@
   <div class="info-section-inner">
     <div class="cta-banner">
       <div class="cta-inner">
-        <div class="cta-icon">📩</div>
-        <h2 class="cta-title">Start Your Import Enquiry Process</h2>
-        <p class="cta-sub">Create professional Import Letters For Enquiry in minutes — save time, look credible, source better.</p>
+        <div class="cta-icon">🛒</div>
+        <h2 class="cta-title">Issue Professional Purchase Orders</h2>
+        <p class="cta-sub">Create legally binding Import Purchase Orders in minutes — protect your business, instruct your suppliers clearly, and import with confidence.</p>
         <div class="cta-btns">
           <button class="btn-cta-primary" onclick="window.location.href='../login.html'">🔐 Login &amp; Start Now →</button>
           <button class="btn-cta-ghost"   onclick="window.location.href='../index.html'">← Back to Home</button>
@@ -628,17 +631,15 @@
 <footer class="footer">
   <div style="border-top:1px solid rgba(255,255,255,0.07);max-width:100%;padding:1.2rem 2.5rem;display:flex;justify-content:space-between;font-size:0.78rem;background:#091929;color:rgba(255,255,255,0.45);">
     <span>© 2026 <strong style="color:rgba(255,255,255,0.8);">IMPEXIO</strong>. All rights reserved.</span>
-    <span>Import Letter For Enquiry &nbsp;|&nbsp; Import Modules</span>
+    <span>Import Purchase Order &nbsp;|&nbsp; Import Modules</span>
   </div>
 </footer>
 
 <script>
-// Navbar scroll
 window.addEventListener('scroll', function() {
   var n = document.getElementById('navbar');
   if (n) n.classList.toggle('scrolled', window.scrollY > 20);
-  // Section nav active state
-  var sections = ['sec-about','sec-components','sec-how','sec-features','sec-usecases','sec-cta'];
+  var sections = ['sec-about','sec-sections','sec-how','sec-features','sec-usecases','sec-cta'];
   var links = document.querySelectorAll('.mod-nav-link');
   sections.forEach(function(id, i) {
     var el = document.getElementById(id);
@@ -650,8 +651,6 @@ window.addEventListener('scroll', function() {
     }
   });
 });
-
-// Dropdown
 function toggleDD(id, event) {
   if (event) event.stopPropagation();
   var el = document.getElementById(id);
@@ -665,8 +664,6 @@ document.addEventListener('click', function(e) {
     document.querySelectorAll('.nav-item.open').forEach(function(i){ i.classList.remove('open'); });
   }
 });
-
-// Mobile nav
 function toggleMob() {
   var m = document.getElementById('navMob');
   var h = document.getElementById('ham');
@@ -678,19 +675,13 @@ function toggleMobDD(id) {
   var el = document.getElementById(id);
   if (el) el.classList.toggle('open');
 }
-
-// Smooth scroll
 function scrollTo(id) {
   var el = document.getElementById(id);
   if (el) el.scrollIntoView({ behavior: 'smooth' });
 }
-
-// Hide login btn on mobile, show hamburger
 var style = document.createElement('style');
 style.textContent = '@media(max-width:900px){.nav-auth .btn-nav-login{display:none}.nav-mobile{display:none}.nav-mobile.open{display:block}}@media(min-width:901px){.nav-mobile{display:none!important}.hamburger{display:none!important}}';
 document.head.appendChild(style);
-
-// Animate on scroll
 var animObs = new IntersectionObserver(function(entries) {
   entries.forEach(function(entry) {
     if (entry.isIntersecting) {
@@ -699,7 +690,7 @@ var animObs = new IntersectionObserver(function(entries) {
     }
   });
 }, { threshold: 0.1 });
-document.querySelectorAll('.comp-card, .step-card, .feat-box, .usecase-card').forEach(function(el, i) {
+document.querySelectorAll('.po-sect-card, .step-card, .feat-box, .usecase-card').forEach(function(el, i) {
   el.style.opacity = '0';
   el.style.transform = 'translateY(18px)';
   el.style.transition = 'opacity 0.5s ' + (i * 0.06) + 's ease, transform 0.5s ' + (i * 0.06) + 's ease';

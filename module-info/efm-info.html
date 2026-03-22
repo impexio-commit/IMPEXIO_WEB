@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IMPEXIO — Export Follow-up Mail Module</title>
+  <link rel="stylesheet" href="../styles.css"/>
+  <link rel="icon" href="../impexio_logo.png" type="image/png"/>
+  <style>
+
+    .info-page { padding-top: var(--nav-h); }
+
+    /* ── HERO ── */
+    .mod-hero {
+      background: linear-gradient(135deg, #0f2540 0%, #1a2e4a 40%, #2a1a0f 100%);
+      padding: 5rem 2.5rem 4rem; position: relative; overflow: hidden;
+    }
+    .mod-hero::before {
+      content:''; position:absolute; top:-80px; right:-80px; width:420px; height:420px;
+      background:radial-gradient(circle, rgba(201,168,76,0.14) 0%, transparent 65%);
+      border-radius:50%; filter:blur(50px); pointer-events:none;
+    }
+    .mod-hero::after {
+      content:''; position:absolute; bottom:-60px; left:10%; width:300px; height:300px;
+      background:radial-gradient(circle, rgba(234,88,12,0.08) 0%, transparent 65%);
+      border-radius:50%; filter:blur(40px); pointer-events:none;
+    }
+    .mod-hero-inner {
+      max-width:1100px; margin:0 auto;
+      display:grid; grid-template-columns:1fr 420px;
+      align-items:center; gap:4rem; position:relative; z-index:2;
+    }
+    .mod-hero-badge {
+      display:inline-flex; align-items:center; gap:0.5rem;
+      background:rgba(201,168,76,0.15); border:1px solid rgba(201,168,76,0.3);
+      border-radius:50px; padding:0.35rem 1rem; font-size:0.72rem; font-weight:700;
+      text-transform:uppercase; letter-spacing:0.12em; color:var(--gold-light); margin-bottom:1.5rem;
+    }
+    .mod-hero-title {
+      font-family:var(--font-display); font-size:clamp(2.2rem,4vw,3.5rem);
+      font-weight:700; color:#fff; line-height:1.15; margin-bottom:1.2rem;
+    }
+    .mod-hero-title span { color:var(--gold-light); font-style:italic; }
+    .mod-hero-desc { font-size:1.05rem; color:rgba(255,255,255,0.72); line-height:1.75; margin-bottom:2.2rem; max-width:500px; }
+    .mod-hero-btns { display:flex; gap:1rem; flex-wrap:wrap; }
+    .btn-hero-primary {
+      display:inline-flex; align-items:center; gap:0.5rem; padding:0.85rem 2rem;
+      background:var(--gold); color:var(--navy); border-radius:50px; font-size:0.95rem;
+      font-weight:700; box-shadow:0 6px 24px rgba(201,168,76,0.35);
+      transition:all 0.28s; border:none; cursor:pointer;
+    }
+    .btn-hero-primary:hover { background:var(--gold-light); transform:translateY(-3px); }
+    .btn-hero-ghost {
+      display:inline-flex; align-items:center; gap:0.5rem; padding:0.85rem 2rem;
+      border:1.5px solid rgba(255,255,255,0.25); border-radius:50px;
+      font-size:0.95rem; font-weight:600; color:rgba(255,255,255,0.85);
+      transition:all 0.28s; cursor:pointer; background:none;
+    }
+    .btn-hero-ghost:hover { border-color:#fff; color:#fff; }
+    .mod-hero-stats {
+      display:flex; gap:2.5rem; margin-top:2.5rem;
+      padding-top:2rem; border-top:1px solid rgba(255,255,255,0.1);
+    }
+    .mhs-val { font-family:var(--font-display); font-size:1.8rem; font-weight:700; color:var(--gold-light); }
+    .mhs-lbl { font-size:0.72rem; color:rgba(255,255,255,0.45); text-transform:uppercase; letter-spacing:0.08em; margin-top:0.1rem; }
+
+    /* ── HERO VISUAL — email mockup ── */
+    .mod-hero-visual {
+      background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12);
+      border-radius:20px; overflow:hidden; backdrop-filter:blur(10px);
+    }
+    .mhv-email-bar {
+      background:rgba(255,255,255,0.08); padding:0.65rem 1rem;
+      display:flex; align-items:center; gap:0.5rem;
+      border-bottom:1px solid rgba(255,255,255,0.08);
+    }
+    .mhv-dot { width:9px; height:9px; border-radius:50%; }
+    .mhv-dot.r { background:#ef4444; } .mhv-dot.y { background:#f59e0b; } .mhv-dot.g { background:#22c55e; }
+    .mhv-email-title { font-size:0.65rem; color:rgba(255,255,255,0.45); margin-left:0.5rem; font-family:var(--font-mono); }
+    .mhv-email-body { padding:1.1rem 1.25rem; }
+    .mhv-field { margin-bottom:0.55rem; display:flex; gap:0.5rem; align-items:baseline; }
+    .mhv-flbl  { font-size:0.6rem; text-transform:uppercase; letter-spacing:0.08em; color:rgba(255,255,255,0.35); min-width:38px; flex-shrink:0; }
+    .mhv-fval  { font-size:0.78rem; color:rgba(255,255,255,0.82); font-family:var(--font-mono); }
+    .mhv-div   { height:1px; background:rgba(255,255,255,0.08); margin:0.75rem 0; }
+    .mhv-subject { font-size:0.88rem; font-weight:700; color:#fff; margin-bottom:0.75rem; font-family:var(--font-display); }
+    .mhv-body-text { font-size:0.75rem; color:rgba(255,255,255,0.72); line-height:1.7; }
+    .mhv-body-text strong { color:var(--gold-light); }
+    .mhv-tag-row { display:flex; gap:0.35rem; flex-wrap:wrap; margin-top:0.65rem; }
+    .mhv-tag { background:rgba(201,168,76,0.15); border:1px solid rgba(201,168,76,0.3); border-radius:50px; padding:0.15rem 0.55rem; font-size:0.62rem; font-weight:700; color:var(--gold-light); }
+    .mhv-tag.o { background:rgba(234,88,12,0.15); border-color:rgba(234,88,12,0.3); color:#fdba74; }
+
+    /* ── BREADCRUMB ── */
+    .mod-breadcrumb { background:var(--white); border-bottom:1px solid var(--border); padding:0.7rem 2.5rem; }
+    .mod-breadcrumb-inner { max-width:1100px; margin:0 auto; display:flex; align-items:center; gap:0.5rem; font-size:0.78rem; color:var(--text-soft); }
+    .mod-breadcrumb a { color:var(--navy-light); font-weight:600; cursor:pointer; }
+    .mod-breadcrumb a:hover { text-decoration:underline; }
+    .mod-breadcrumb-sep { color:var(--border); }
+
+    /* ── SECTION NAV ── */
+    .mod-nav-bar { background:var(--white); border-bottom:1px solid var(--border); position:sticky; top:var(--nav-h); z-index:90; overflow-x:auto; }
+    .mod-nav-bar-inner { max-width:1100px; margin:0 auto; display:flex; align-items:center; padding:0 2.5rem; }
+    .mod-nav-link { padding:0.9rem 1.1rem; font-size:0.82rem; font-weight:600; color:var(--text-soft); border-bottom:2px solid transparent; cursor:pointer; transition:var(--transition); white-space:nowrap; }
+    .mod-nav-link:hover { color:var(--navy); }
+    .mod-nav-link.active { color:var(--navy); border-bottom-color:var(--gold); }
+
+    /* ── SECTIONS ── */
+    .info-section { padding:5rem 2.5rem; }
+    .info-section-inner { max-width:1100px; margin:0 auto; }
+    .info-section.alt { background:var(--ivory2); }
+    .info-kicker { display:inline-flex; align-items:center; gap:0.5rem; font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.14em; color:var(--navy-light); margin-bottom:0.85rem; }
+    .info-kicker-bar { width:24px; height:2px; background:var(--gold); border-radius:2px; }
+    .info-heading { font-family:var(--font-display); font-size:clamp(1.7rem,3vw,2.4rem); font-weight:700; color:var(--navy); line-height:1.2; margin-bottom:0.85rem; }
+    .info-sub { font-size:0.97rem; color:var(--text-mid); line-height:1.75; max-width:560px; margin-bottom:3rem; }
+
+    /* ── WHAT IS IT ── */
+    .what-grid { display:grid; grid-template-columns:1fr 1fr; gap:3rem; align-items:center; }
+    .what-text p { font-size:0.95rem; color:var(--text-mid); line-height:1.8; margin-bottom:1rem; }
+    .what-text p:last-child { margin-bottom:0; }
+    .what-highlight { background:var(--navy); border-radius:var(--radius-lg); padding:2rem; color:#fff; position:relative; overflow:hidden; }
+    .what-highlight::before { content:'📧'; position:absolute; bottom:-10px; right:10px; font-size:5rem; opacity:0.07; }
+    .wh-title { font-family:var(--font-display); font-size:1.1rem; font-weight:700; color:var(--gold-light); margin-bottom:1rem; }
+    .wh-stat  { display:flex; align-items:center; gap:0.75rem; padding:0.6rem 0; border-bottom:1px solid rgba(255,255,255,0.08); }
+    .wh-stat:last-child { border-bottom:none; }
+    .wh-stat-icon { font-size:1.1rem; }
+    .wh-stat-txt  { font-size:0.84rem; color:rgba(255,255,255,0.8); }
+    .wh-stat-val  { font-family:var(--font-mono); font-size:0.82rem; font-weight:700; color:var(--gold-light); margin-left:auto; }
+
+    /* ── MAIL TYPES GRID ── */
+    .mail-types-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.25rem; }
+    .mail-type-card {
+      background:var(--white); border:1px solid var(--border); border-radius:var(--radius-lg);
+      overflow:hidden; transition:var(--transition);
+    }
+    .mail-type-card:hover { transform:translateY(-4px); box-shadow:var(--shadow-md); border-color:rgba(201,168,76,0.3); }
+    .mtc-head { padding:1rem 1.25rem; display:flex; align-items:center; gap:0.75rem; }
+    .mtc-icon  { width:38px; height:38px; border-radius:10px; background:var(--navy); display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0; }
+    .mtc-title { font-weight:700; font-size:0.9rem; color:var(--navy); }
+    .mtc-when  { font-size:0.68rem; color:var(--text-soft); margin-top:0.1rem; }
+    .mtc-body  { padding:0 1.25rem 1.1rem; font-size:0.8rem; color:var(--text-mid); line-height:1.6; }
+    .mtc-tag   { display:inline-flex; align-items:center; gap:0.25rem; margin-top:0.65rem; background:var(--ivory2); border:1px solid var(--border); border-radius:50px; padding:0.18rem 0.6rem; font-size:0.65rem; font-weight:700; color:var(--navy); }
+
+    /* ── EMAIL PREVIEW CARD ── */
+    .email-preview {
+      background:var(--white); border:1px solid var(--border); border-radius:var(--radius-lg);
+      overflow:hidden; box-shadow:var(--shadow-md);
+    }
+    .ep-topbar {
+      background:var(--navy); padding:0.7rem 1.25rem;
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .ep-topbar-title { font-family:var(--font-display); font-size:0.9rem; font-weight:700; color:#fff; }
+    .ep-topbar-badge { background:rgba(201,168,76,0.2); border:1px solid rgba(201,168,76,0.35); border-radius:50px; padding:0.18rem 0.6rem; font-size:0.62rem; font-weight:700; color:var(--gold-light); }
+    .ep-body { padding:1.5rem; }
+    .ep-header-row { display:flex; gap:0.5rem; align-items:baseline; margin-bottom:0.45rem; }
+    .ep-lbl { font-size:0.62rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-soft); min-width:52px; flex-shrink:0; }
+    .ep-val { font-size:0.82rem; color:var(--text); }
+    .ep-subject { font-size:0.95rem; font-weight:700; color:var(--navy); font-family:var(--font-display); margin:0.85rem 0 0.65rem; }
+    .ep-div { height:1px; background:var(--border-soft); margin:0.75rem 0; }
+    .ep-salutation { font-size:0.85rem; color:var(--text); margin-bottom:0.65rem; font-style:italic; }
+    .ep-para { font-size:0.82rem; color:var(--text-mid); line-height:1.7; margin-bottom:0.65rem; }
+    .ep-highlight-box { background:var(--ivory2); border-left:3px solid var(--gold); border-radius:0 8px 8px 0; padding:0.75rem 1rem; margin:0.75rem 0; }
+    .ep-highlight-box p { font-size:0.8rem; color:var(--text); margin:0; line-height:1.6; }
+    .ep-cta-line { font-size:0.82rem; color:var(--navy); font-weight:700; margin:0.65rem 0; }
+    .ep-sign { font-size:0.82rem; color:var(--text-mid); margin-top:0.85rem; }
+    .ep-sign strong { color:var(--navy); display:block; }
+
+    /* ── FOLLOW-UP TIMELINE ── */
+    .timeline { display:flex; flex-direction:column; gap:0; }
+    .tl-item { display:flex; gap:1.5rem; }
+    .tl-left { display:flex; flex-direction:column; align-items:center; width:52px; flex-shrink:0; }
+    .tl-dot  { width:44px; height:44px; border-radius:50%; background:var(--navy); border:3px solid var(--gold); display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0; z-index:1; }
+    .tl-line { width:2px; flex:1; background:linear-gradient(180deg, var(--gold), var(--navy)); min-height:32px; }
+    .tl-item:last-child .tl-line { display:none; }
+    .tl-content { flex:1; padding-bottom:2rem; }
+    .tl-day    { font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:var(--gold); margin-bottom:0.3rem; }
+    .tl-title  { font-family:var(--font-display); font-size:1rem; font-weight:700; color:var(--navy); margin-bottom:0.4rem; }
+    .tl-desc   { font-size:0.83rem; color:var(--text-mid); line-height:1.65; }
+
+    /* ── STEPS ── */
+    .steps-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1.5rem; position:relative; }
+    .steps-grid::before { content:''; position:absolute; top:28px; left:10%; right:10%; height:2px; background:linear-gradient(90deg,var(--navy),var(--gold),var(--navy)); z-index:0; }
+    .step-card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius-lg); padding:1.75rem 1.25rem; text-align:center; position:relative; z-index:1; transition:var(--transition); }
+    .step-card:hover { transform:translateY(-6px); box-shadow:var(--shadow-lg); border-color:rgba(201,168,76,0.4); }
+    .step-num  { width:52px; height:52px; border-radius:50%; background:var(--navy); color:#fff; display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-size:1.1rem; font-weight:700; margin:0 auto 1.1rem; border:3px solid var(--gold); box-shadow:0 4px 14px rgba(15,37,64,0.2); }
+    .step-icon  { font-size:1.6rem; margin-bottom:0.65rem; }
+    .step-title { font-family:var(--font-display); font-size:1rem; font-weight:700; color:var(--navy); margin-bottom:0.5rem; }
+    .step-desc  { font-size:0.82rem; color:var(--text-mid); line-height:1.65; }
+
+    /* ── FEATURES ── */
+    .features-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.25rem; }
+    .feat-box { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); padding:1.5rem; transition:var(--transition); position:relative; overflow:hidden; }
+    .feat-box::after { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,var(--navy),var(--gold)); transform:scaleX(0); transform-origin:left; transition:transform 0.3s; }
+    .feat-box:hover { transform:translateY(-4px); box-shadow:var(--shadow-md); }
+    .feat-box:hover::after { transform:scaleX(1); }
+    .feat-box-icon  { font-size:1.75rem; margin-bottom:0.75rem; }
+    .feat-box-title { font-family:var(--font-display); font-size:1.05rem; font-weight:700; color:var(--navy); margin-bottom:0.45rem; }
+    .feat-box-desc  { font-size:0.83rem; color:var(--text-mid); line-height:1.65; }
+
+    /* ── USE CASES ── */
+    .usecases-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:1.25rem; }
+    .usecase-card { display:flex; align-items:flex-start; gap:1rem; background:var(--white); border:1px solid var(--border); border-radius:var(--radius); padding:1.35rem 1.5rem; transition:var(--transition); }
+    .usecase-card:hover { border-color:var(--navy-light); box-shadow:var(--shadow-sm); }
+    .uc-icon  { width:44px; height:44px; border-radius:12px; background:var(--navy); display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0; }
+    .uc-title { font-weight:700; font-size:0.92rem; color:var(--navy); margin-bottom:0.3rem; }
+    .uc-desc  { font-size:0.8rem; color:var(--text-mid); line-height:1.6; }
+
+    /* ── TIPS BOX ── */
+    .tips-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:1.25rem; margin-top:3rem; }
+    .tip-card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); padding:1.25rem 1.5rem; display:flex; gap:0.85rem; }
+    .tip-icon { font-size:1.4rem; flex-shrink:0; }
+    .tip-title { font-weight:700; font-size:0.88rem; color:var(--navy); margin-bottom:0.25rem; }
+    .tip-desc  { font-size:0.8rem; color:var(--text-mid); line-height:1.6; }
+
+    /* ── CTA ── */
+    .cta-banner { background:linear-gradient(135deg,var(--navy) 0%,#1a3a5c 50%,#0f5c52 100%); border-radius:var(--radius-xl); padding:3.5rem; text-align:center; position:relative; overflow:hidden; }
+    .cta-banner::before { content:''; position:absolute; top:-60px; right:-60px; width:300px; height:300px; background:rgba(201,168,76,0.1); border-radius:50%; filter:blur(50px); }
+    .cta-banner::after  { content:''; position:absolute; bottom:-50px; left:-50px; width:250px; height:250px; background:rgba(255,255,255,0.04); border-radius:50%; filter:blur(40px); }
+    .cta-inner  { position:relative; z-index:2; }
+    .cta-icon   { font-size:2.8rem; margin-bottom:1rem; }
+    .cta-title  { font-family:var(--font-display); font-size:clamp(1.6rem,3vw,2.4rem); font-weight:700; color:#fff; margin-bottom:0.75rem; }
+    .cta-sub    { font-size:1rem; color:rgba(255,255,255,0.65); margin-bottom:2.2rem; max-width:480px; margin-left:auto; margin-right:auto; line-height:1.7; }
+    .cta-btns   { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; }
+    .btn-cta-primary { display:inline-flex; align-items:center; gap:0.5rem; padding:1rem 2.5rem; background:var(--gold); color:var(--navy); border-radius:50px; font-size:1rem; font-weight:700; box-shadow:0 6px 24px rgba(201,168,76,0.4); transition:all 0.28s; border:none; cursor:pointer; }
+    .btn-cta-primary:hover { background:var(--gold-light); transform:translateY(-3px); }
+    .btn-cta-ghost { display:inline-flex; align-items:center; gap:0.5rem; padding:1rem 2.5rem; border:1.5px solid rgba(255,255,255,0.3); border-radius:50px; font-size:1rem; font-weight:600; color:rgba(255,255,255,0.85); transition:all 0.28s; cursor:pointer; background:none; }
+    .btn-cta-ghost:hover { border-color:#fff; color:#fff; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width:900px) {
+      .mod-hero-inner { grid-template-columns:1fr; }
+      .mod-hero-visual { display:none; }
+      .what-grid { grid-template-columns:1fr; }
+      .mail-types-grid { grid-template-columns:repeat(2,1fr); }
+      .steps-grid { grid-template-columns:repeat(2,1fr); }
+      .steps-grid::before { display:none; }
+      .features-grid { grid-template-columns:repeat(2,1fr); }
+      .usecases-grid { grid-template-columns:1fr; }
+      .tips-grid { grid-template-columns:1fr; }
+      .mod-hero { padding:3rem 1.5rem 2.5rem; }
+      .info-section { padding:3rem 1.5rem; }
+      .cta-banner { padding:2.5rem 1.5rem; }
+      .mod-breadcrumb { padding:0.7rem 1.5rem; }
+    }
+    @media (max-width:640px) {
+      .mail-types-grid { grid-template-columns:1fr; }
+      .steps-grid { grid-template-columns:1fr; }
+      .features-grid { grid-template-columns:1fr; }
+      .mod-hero-stats { gap:1.5rem; }
+    }
+  </style>
+</head>
+<body class="info-page">
+
+<!-- ══ NAVBAR ══ -->
+<nav class="navbar" id="navbar">
+  <a href="../index.html" class="nav-brand">
+    <div class="nav-logo-wrap"><img src="../impexio_logo.png" alt="IMPEXIO" class="nav-logo"/></div>
+    <div>
+      <div class="nav-brand-name">IMPEXIO</div>
+      <div class="nav-brand-sub">Trade Document Suite</div>
+    </div>
+  </a>
+  <ul class="nav-menu">
+    <li class="nav-item"><span class="nav-link" onclick="window.location.href='../index.html'">🏠 HOME</span></li>
+    <li class="nav-item" id="ni-export">
+      <span class="nav-link" onclick="toggleDD('ni-export',event)">📦 EXPORT <span class="nav-chevron">▾</span></span>
+      <div class="nav-dropdown">
+        <div class="dd-label">Export Modules</div>
+        <div class="dd-item" onclick="window.location.href='cbm-info.html'"><div class="dd-icon">📐</div>CBM Calculation</div>
+        <div class="dd-item" onclick="window.location.href='fob-info.html'"><div class="dd-icon">💰</div>Container Expenses FOB</div>
+        <div class="dd-item" onclick="window.location.href='ec-info.html'"><div class="dd-icon">🧮</div>Export Costing</div>
+        <div class="dd-item" onclick="window.location.href='ec2-info.html'"><div class="dd-icon">📊</div>Export Costing 2</div>
+        <div class="dd-item" onclick="window.location.href='../login.html'"><div class="dd-icon">🔍</div>Export Data Filter Format</div>
+        <div class="dd-item" onclick="window.location.href='pi-info.html'"><div class="dd-icon">📄</div>Export Proforma Invoice</div>
+        <div class="dd-item" onclick="window.location.href='eq-info.html'"><div class="dd-icon">📋</div>Export Quotation</div>
+        <div class="dd-item" onclick="window.location.href='sci-info.html'"><div class="dd-icon">✈️</div>Sample Courier Invoice</div>
+      </div>
+    </li>
+    <li class="nav-item" id="ni-import">
+      <span class="nav-link" onclick="toggleDD('ni-import',event)">🚢 IMPORT <span class="nav-chevron">▾</span></span>
+      <div class="nav-dropdown">
+        <div class="dd-label">Import Modules</div>
+        <div class="dd-item" onclick="window.location.href='ile-info.html'"><div class="dd-icon">📩</div>Import Letter For Enquiry</div>
+        <div class="dd-item" onclick="window.location.href='ipo-info.html'"><div class="dd-icon">🛒</div>Import Purchase Order</div>
+      </div>
+    </li>
+    <li class="nav-item" id="ni-exim">
+      <span class="nav-link active" onclick="toggleDD('ni-exim',event)">🌐 EXIM MARKETING <span class="nav-chevron">▾</span></span>
+      <div class="nav-dropdown">
+        <div class="dd-label">EXIM Marketing</div>
+        <div class="dd-item" onclick="window.location.href='efm-info.html'"><div class="dd-icon">📧</div>Export Follow-up Mail</div>
+        <div class="dd-item" onclick="window.location.href='../login.html'"><div class="dd-icon">🎯</div>Export Marketing</div>
+      </div>
+    </li>
+  </ul>
+  <div class="nav-auth">
+    <button class="btn-nav-login" onclick="window.location.href='../login.html'">🔐 Login</button>
+    <div class="hamburger" id="ham" onclick="toggleMob()"><span></span><span></span><span></span></div>
+  </div>
+</nav>
+
+<!-- ══ MOBILE NAV ══ -->
+<div class="nav-mobile" id="navMob">
+  <div class="mob-link" onclick="window.location.href='../index.html'">🏠 HOME</div>
+  <div class="mob-link" onclick="toggleMobDD('mdd-export')">📦 EXPORT <span>▾</span></div>
+  <div class="mob-drop" id="mdd-export">
+    <div class="mob-dd-item" onclick="window.location.href='cbm-info.html'">📐 CBM Calculation</div>
+    <div class="mob-dd-item" onclick="window.location.href='fob-info.html'">💰 Container Expenses FOB</div>
+    <div class="mob-dd-item" onclick="window.location.href='ec-info.html'">🧮 Export Costing</div>
+    <div class="mob-dd-item" onclick="window.location.href='ec2-info.html'">📊 Export Costing 2</div>
+    <div class="mob-dd-item" onclick="window.location.href='pi-info.html'">📄 Proforma Invoice</div>
+    <div class="mob-dd-item" onclick="window.location.href='eq-info.html'">📋 Export Quotation</div>
+    <div class="mob-dd-item" onclick="window.location.href='sci-info.html'">✈️ Courier Invoice</div>
+  </div>
+  <div class="mob-link" onclick="toggleMobDD('mdd-import')">🚢 IMPORT <span>▾</span></div>
+  <div class="mob-drop" id="mdd-import">
+    <div class="mob-dd-item" onclick="window.location.href='ile-info.html'">📩 Import Letter For Enquiry</div>
+    <div class="mob-dd-item" onclick="window.location.href='ipo-info.html'">🛒 Import Purchase Order</div>
+  </div>
+  <div class="mob-link" onclick="toggleMobDD('mdd-exim')">🌐 EXIM MARKETING <span>▾</span></div>
+  <div class="mob-drop" id="mdd-exim">
+    <div class="mob-dd-item" onclick="window.location.href='efm-info.html'">📧 Export Follow-up Mail</div>
+    <div class="mob-dd-item" onclick="window.location.href='../login.html'">🎯 Export Marketing</div>
+  </div>
+  <div class="mob-auth">
+    <button class="btn-nav-login" onclick="window.location.href='../login.html'" style="width:100%;justify-content:center;">🔐 Login</button>
+  </div>
+</div>
+
+<!-- ══ BREADCRUMB ══ -->
+<div class="mod-breadcrumb">
+  <div class="mod-breadcrumb-inner">
+    <a onclick="window.location.href='../index.html'">🏠 Home</a>
+    <span class="mod-breadcrumb-sep">›</span>
+    <a onclick="window.location.href='../index.html'">EXIM Marketing</a>
+    <span class="mod-breadcrumb-sep">›</span>
+    <span style="color:var(--navy);font-weight:600;">Export Follow-up Mail</span>
+  </div>
+</div>
+
+<!-- ══ SECTION NAV ══ -->
+<div class="mod-nav-bar">
+  <div class="mod-nav-bar-inner">
+    <span class="mod-nav-link active" onclick="scrollTo('sec-about')">About</span>
+    <span class="mod-nav-link" onclick="scrollTo('sec-types')">Mail Types</span>
+    <span class="mod-nav-link" onclick="scrollTo('sec-timeline')">Follow-up Timeline</span>
+    <span class="mod-nav-link" onclick="scrollTo('sec-how')">How It Works</span>
+    <span class="mod-nav-link" onclick="scrollTo('sec-features')">Features</span>
+    <span class="mod-nav-link" onclick="scrollTo('sec-usecases')">Use Cases</span>
+    <span class="mod-nav-link" onclick="scrollTo('sec-cta')" style="margin-left:auto;color:var(--gold);font-weight:700;">🔐 Login to Use →</span>
+  </div>
+</div>
+
+<!-- ══ HERO ══ -->
+<div class="mod-hero" id="sec-about">
+  <div class="mod-hero-inner">
+    <div>
+      <div class="mod-hero-badge">📧 EXIM Marketing &nbsp;·&nbsp; Export Follow-up Mail</div>
+      <h1 class="mod-hero-title">
+        Never Let a Buyer<br/>
+        <span>Go Silent Again</span>
+      </h1>
+      <p class="mod-hero-desc">
+        The Export Follow-up Mail module generates professional, context-specific follow-up emails for every stage of the buyer journey — from initial enquiry follow-up to post-shipment feedback — keeping your export pipeline always moving.
+      </p>
+      <div class="mod-hero-btns">
+        <button class="btn-hero-primary" onclick="window.location.href='../login.html'">🔐 Login to Use Module →</button>
+        <button class="btn-hero-ghost" onclick="document.getElementById('sec-types').scrollIntoView({behavior:'smooth'})">See Mail Types ↓</button>
+      </div>
+      <div class="mod-hero-stats">
+        <div><div class="mhs-val">8</div><div class="mhs-lbl">Mail Types</div></div>
+        <div><div class="mhs-val">60 sec</div><div class="mhs-lbl">To Generate</div></div>
+        <div><div class="mhs-val">Pro</div><div class="mhs-lbl">Tone Always</div></div>
+        <div><div class="mhs-val">Print</div><div class="mhs-lbl">Ready</div></div>
+      </div>
+    </div>
+
+    <!-- Hero Visual — email mockup -->
+    <div class="mod-hero-visual">
+      <div class="mhv-email-bar">
+        <div class="mhv-dot r"></div><div class="mhv-dot y"></div><div class="mhv-dot g"></div>
+        <div class="mhv-email-title">New Message — Follow-up Mail</div>
+      </div>
+      <div class="mhv-email-body">
+        <div class="mhv-field"><div class="mhv-flbl">To:</div><div class="mhv-fval">buyer@euroceramics.de</div></div>
+        <div class="mhv-field"><div class="mhv-flbl">From:</div><div class="mhv-fval">exports@impexiotrade.com</div></div>
+        <div class="mhv-field"><div class="mhv-flbl">Ref:</div><div class="mhv-fval">EQ/2026/0038 — Ceramic Tiles</div></div>
+        <div class="mhv-div"></div>
+        <div class="mhv-subject">Follow-up: Our Export Quotation EQ/2026/0038</div>
+        <div class="mhv-body-text">
+          Dear <strong>Mr. Hans Mueller</strong>,<br/><br/>
+          We hope this email finds you well. We are writing to follow up on our Export Quotation <strong>EQ/2026/0038</strong> dated <strong>10 March 2026</strong> for <strong>Ceramic Floor Tiles</strong>.<br/><br/>
+          We would appreciate your valued feedback at your earliest convenience...
+        </div>
+        <div class="mhv-div"></div>
+        <div class="mhv-tag-row">
+          <div class="mhv-tag">Quotation Follow-up</div>
+          <div class="mhv-tag o">Pending Reply</div>
+          <div class="mhv-tag">Professional Tone</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ WHAT IS IT ══ -->
+<div class="info-section" id="sec-about2">
+  <div class="info-section-inner">
+    <div class="info-kicker"><div class="info-kicker-bar"></div>What is the Export Follow-up Mail Module?</div>
+    <h2 class="info-heading">Turn Silence into Sales with Professional Follow-ups</h2>
+    <div class="what-grid">
+      <div class="what-text">
+        <p>In international trade, sending a quotation or proforma invoice is just the beginning. Most conversions happen not at the first contact but through consistent, professional follow-up communication.</p>
+        <p>The Export Follow-up Mail module helps exporters generate context-specific, professionally worded follow-up emails for every stage of the buyer journey — from following up on a sent quotation to checking on a pending payment, confirming shipment dispatch, or requesting post-delivery feedback.</p>
+        <p>Each mail is pre-structured with the right tone, reference details, and call-to-action — so your communication always looks professional, is sent on time, and keeps the buyer engaged throughout the export transaction.</p>
+      </div>
+      <div class="what-highlight">
+        <div class="wh-title">📧 Why Follow-up Mails Matter</div>
+        <div class="wh-stat"><span class="wh-stat-icon">📊</span><span class="wh-stat-txt">80% of sales need 5+ follow-ups</span></div>
+        <div class="wh-stat"><span class="wh-stat-icon">⏱️</span><span class="wh-stat-txt">Most buyers forget after 3 days</span></div>
+        <div class="wh-stat"><span class="wh-stat-icon">💼</span><span class="wh-stat-txt">Consistent follow-up = professional image</span></div>
+        <div class="wh-stat"><span class="wh-stat-icon">🌍</span><span class="wh-stat-txt">Time zones make timely emails critical</span></div>
+        <div class="wh-stat"><span class="wh-stat-icon">📈</span><span class="wh-stat-txt">Follow-ups increase conversion by 3×</span></div>
+        <div class="wh-stat"><span class="wh-stat-icon">🤝</span><span class="wh-stat-txt">Builds long-term buyer relationships</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MAIL TYPES ══ -->
+<div class="info-section alt" id="sec-types">
+  <div class="info-section-inner">
+    <div class="info-kicker"><div class="info-kicker-bar"></div>Mail Types</div>
+    <h2 class="info-heading">8 Types of Export Follow-up Mails</h2>
+    <p class="info-sub">Every stage of the export transaction has a dedicated, professionally worded follow-up mail template.</p>
+    <div class="mail-types-grid">
+      <div class="mail-type-card">
+        <div class="mtc-head"><div class="mtc-icon">📋</div><div><div class="mtc-title">Quotation Follow-up</div><div class="mtc-when">After sending EQ / Proforma Invoice</div></div></div>
+        <div class="mtc-body">Politely follow up on a sent Export Quotation or Proforma Invoice that hasn't received a response. References the original document number, date and key pricing.<div class="mtc-tag">📋 Ref: EQ/PI Number</div></div>
+      </div>
+      <div class="mail-type-card">
+        <div class="mtc-head"><div class="mtc-icon">🧪</div><div><div class="mtc-title">Sample Follow-up</div><div class="mtc-when">After dispatching product samples</div></div></div>
+        <div class="mtc-body">Follow up on samples dispatched via courier — asking for the buyer's feedback, approval status and any revision requirements before the bulk order.<div class="mtc-tag">📦 Ref: Courier tracking no.</div></div>
+      </div>
+      <div class="mail-type-card">
+        <div class="mtc-head"><div class="mtc-icon">📦</div><div><div class="mtc-title">Order Confirmation Follow-up</div><div class="mtc-when">After receiving a Purchase Order</div></div></div>
+        <div class="mtc-body">Acknowledge receipt of a buyer's purchase order, confirm acceptance, and provide a production / shipment timeline to set clear expectations.<div class="mtc-tag">🛒 Ref: Buyer's PO Number</div></div>
+      </div>
+      <div class="mail-type-card">
+        <div class="mtc-head"><div class="mtc-icon">💳</div><div><div class="mtc-title">Payment Follow-up</div><div class="mtc-when">When advance payment is pending</div></div></div>
+        <div class="mtc-body">Professionally request the advance payment or balance payment as per agreed terms — with banking details, due date and order reference clearly stated.<div class="mtc-tag">💰 Ref: Invoice / PO Value</div></div>
+      </div>
+      <div class="mail-type-card">
+        <div class="mtc-head"><div class="mtc-icon">🚢</div><div><div class="mtc-title">Shipment Dispatch Follow-up</div><div class="mtc-when">After goods are dispatched</div></div></div>
+        <div class="mtc-body">Notify the buyer that the shipment has been dispatched — with vessel/flight details, Bill of Lading number, ETA and a list of shipping documents being sent.<div class="mtc-tag">📄 Ref: BL / AWB Number</div></div>
+      </div>
+      <div class="mail-type-card">
+        <div class="mtc-head"><div class="mtc-icon">📬</div><div><div class="mtc-title">Documents Follow-up</div><div class="mtc-when">After sending shipping documents</div></div></div>
+        <div class="mtc-body">Confirm that all shipping documents (Invoice, Packing List, BL, COO, etc.) have been sent and request acknowledgement of receipt.<div class="mtc-tag">📋 Ref: Document set list</div></div>
+      </div>
+      <div class="mail-type-card">
+        <div class="mtc-head"><div class="mtc-icon">⭐</div><div><div class="mtc-title">Delivery Feedback Follow-up</div><div class="mtc-when">After buyer receives the shipment</div></div></div>
+        <div class="mtc-body">Request feedback on the delivered goods — quality, packing, quantity accuracy and overall satisfaction — and invite the buyer to discuss their next order.<div class="mtc-tag">✅ Ref: PI / Invoice Number</div></div>
+      </div>
+      <div class="mail-type-card">
+        <div class="mtc-head"><div class="mtc-icon">🔄</div><div><div class="mtc-title">Repeat Order Follow-up</div><div class="mtc-when">To revive inactive buyers</div></div></div>
+        <div class="mtc-body">Re-engage buyers who haven't ordered recently — share new product updates, revised pricing or seasonal offers to bring them back into the sales pipeline.<div class="mtc-tag">📈 Ref: Last order / New offer</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ FOLLOW-UP TIMELINE ══ -->
+<div class="info-section" id="sec-timeline">
+  <div class="info-section-inner">
+    <div class="info-kicker"><div class="info-kicker-bar"></div>Follow-up Strategy</div>
+    <h2 class="info-heading">The Ideal Export Follow-up Timeline</h2>
+    <p class="info-sub">A structured follow-up sequence that keeps your buyer engaged from first contact to repeat order.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:start;">
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-left"><div class="tl-dot">📋</div><div class="tl-line"></div></div>
+          <div class="tl-content">
+            <div class="tl-day">Day 0 — Send Quotation</div>
+            <div class="tl-title">Export Quotation / Proforma Invoice Sent</div>
+            <div class="tl-desc">Send the EQ or PI along with a courteous covering email. Set the tone for a professional relationship from the very first mail.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-left"><div class="tl-dot">📧</div><div class="tl-line"></div></div>
+          <div class="tl-content">
+            <div class="tl-day">Day 3–5 — First Follow-up</div>
+            <div class="tl-title">Quotation Follow-up Mail</div>
+            <div class="tl-desc">If no response, send a polite follow-up referencing the quotation number. Ask if they received it and if they need any clarification.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-left"><div class="tl-dot">🧪</div><div class="tl-line"></div></div>
+          <div class="tl-content">
+            <div class="tl-day">Day 7–10 — Sample Stage</div>
+            <div class="tl-title">Sample Dispatch + Follow-up</div>
+            <div class="tl-desc">If the buyer requested samples, dispatch them and send a follow-up mail with courier tracking details. Follow up again after 7 days for feedback.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-left"><div class="tl-dot">💳</div><div class="tl-line"></div></div>
+          <div class="tl-content">
+            <div class="tl-day">After PO — Payment Follow-up</div>
+            <div class="tl-title">Advance Payment Request</div>
+            <div class="tl-desc">Once the PO is received, send a payment follow-up mail with your bank details and the advance amount due as per agreed terms.</div>
+          </div>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-left"><div class="tl-dot">🚢</div><div class="tl-line"></div></div>
+          <div class="tl-content">
+            <div class="tl-day">After Dispatch — Shipment Update</div>
+            <div class="tl-title">Dispatch Confirmation Mail</div>
+            <div class="tl-desc">Notify the buyer immediately when goods are dispatched — include vessel name, BL number, ETD, ETA and a list of shipping documents to follow.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-left"><div class="tl-dot">📬</div><div class="tl-line"></div></div>
+          <div class="tl-content">
+            <div class="tl-day">After Dispatch — Documents</div>
+            <div class="tl-title">Shipping Documents Sent</div>
+            <div class="tl-desc">Confirm courier or email of original shipping documents and request acknowledgement. Ensure buyer has all documents needed for customs clearance.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-left"><div class="tl-dot">⭐</div><div class="tl-line"></div></div>
+          <div class="tl-content">
+            <div class="tl-day">After Delivery — Feedback</div>
+            <div class="tl-title">Delivery Feedback Request</div>
+            <div class="tl-desc">Once the buyer receives the goods, send a feedback mail. Ask about quality, packing and satisfaction. This opens the door to the next order.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-left"><div class="tl-dot">🔄</div><div class="tl-line"></div></div>
+          <div class="tl-content">
+            <div class="tl-day">30–60 Days Later</div>
+            <div class="tl-title">Repeat Order Follow-up</div>
+            <div class="tl-desc">Re-engage the buyer with a repeat order follow-up — share new products, seasonal pricing or special offers to bring them back for another order.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SAMPLE EMAIL PREVIEW ══ -->
+<div class="info-section alt">
+  <div class="info-section-inner">
+    <div class="info-kicker"><div class="info-kicker-bar"></div>Sample Preview</div>
+    <h2 class="info-heading">How a Generated Follow-up Mail Looks</h2>
+    <p class="info-sub">Professional, reference-accurate and ready to copy-paste or print.</p>
+    <div class="email-preview">
+      <div class="ep-topbar">
+        <div class="ep-topbar-title">📧 Export Follow-up Mail — Quotation Follow-up</div>
+        <div class="ep-topbar-badge">PREVIEW</div>
+      </div>
+      <div class="ep-body">
+        <div class="ep-header-row"><div class="ep-lbl">To:</div><div class="ep-val">buyer@euroceramics.de &nbsp;(Mr. Hans Mueller, Euro Ceramics GmbH)</div></div>
+        <div class="ep-header-row"><div class="ep-lbl">From:</div><div class="ep-val">exports@impexiotrade.com &nbsp;(Impexio Trade Solutions Pvt. Ltd.)</div></div>
+        <div class="ep-header-row"><div class="ep-lbl">Date:</div><div class="ep-val">15 March 2026</div></div>
+        <div class="ep-subject">Subject: Follow-up on Our Export Quotation EQ/2026/0038 — Ceramic Floor Tiles</div>
+        <div class="ep-div"></div>
+        <div class="ep-salutation">Dear Mr. Hans Mueller,</div>
+        <div class="ep-para">We hope this email finds you in good health. We are writing to follow up on our Export Quotation <strong>EQ/2026/0038</strong> dated <strong>10 March 2026</strong> for <strong>Ceramic Floor Tiles (HS Code: 6907.21)</strong> which we sent to your esteemed organisation.</div>
+        <div class="ep-highlight-box">
+          <p><strong>Quotation Reference:</strong> EQ/2026/0038 &nbsp;|&nbsp; <strong>Date:</strong> 10 March 2026<br/>
+          <strong>Product:</strong> Ceramic Floor Tiles 600×600mm &nbsp;|&nbsp; <strong>Value:</strong> $18,350 CIF Hamburg</p>
+        </div>
+        <div class="ep-para">We would greatly appreciate your valued feedback at your earliest convenience. If you require any clarification, revision in pricing, alternative specifications or any additional information, please do not hesitate to contact us — we would be happy to accommodate your requirements.</div>
+        <div class="ep-cta-line">We look forward to hearing from you and building a long-term business relationship with your esteemed organisation.</div>
+        <div class="ep-div"></div>
+        <div class="ep-sign">
+          Warm regards,<br/>
+          <strong>Rajesh Kumar Sharma — Export Manager</strong>
+          Impexio Trade Solutions Pvt. Ltd. &nbsp;|&nbsp; GIFT City, Gandhinagar &nbsp;|&nbsp; +91 98765 43210
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ HOW IT WORKS ══ -->
+<div class="info-section" id="sec-how">
+  <div class="info-section-inner">
+    <div class="info-kicker"><div class="info-kicker-bar"></div>Process</div>
+    <h2 class="info-heading">4 Steps to Your Professional Follow-up Mail</h2>
+    <p class="info-sub">Select the mail type, fill in the reference details, and your follow-up is ready to send in under a minute.</p>
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <div class="step-icon">🎯</div>
+        <div class="step-title">Choose Mail Type</div>
+        <div class="step-desc">Select from 8 follow-up mail types — Quotation, Sample, Payment, Dispatch, Documents, Feedback, Repeat Order and more.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <div class="step-icon">📋</div>
+        <div class="step-title">Enter Reference Details</div>
+        <div class="step-desc">Fill in the buyer name, your company details, reference document number (EQ/PI/BL), date and any specific details for the mail.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <div class="step-icon">✉️</div>
+        <div class="step-title">Generate the Mail</div>
+        <div class="step-desc">The module generates a complete, professionally worded email with correct salutation, body paragraphs, highlighted reference box and signature.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">4</div>
+        <div class="step-icon">📤</div>
+        <div class="step-title">Save, Print or Send</div>
+        <div class="step-desc">Save to your records, copy the email text to your email client, or print the letter format — and send to your buyer immediately.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ FEATURES ══ -->
+<div class="info-section alt" id="sec-features">
+  <div class="info-section-inner">
+    <div class="info-kicker"><div class="info-kicker-bar"></div>Features</div>
+    <h2 class="info-heading">Module Features</h2>
+    <p class="info-sub">Everything you need to keep your buyer communication professional, consistent and on time.</p>
+    <div class="features-grid">
+      <div class="feat-box">
+        <div class="feat-box-icon">📧</div>
+        <div class="feat-box-title">8 Mail Templates</div>
+        <p class="feat-box-desc">Pre-structured templates for every stage — Quotation, Sample, Payment, Dispatch, Documents, Feedback, Repeat Order and custom mails.</p>
+      </div>
+      <div class="feat-box">
+        <div class="feat-box-icon">🎯</div>
+        <div class="feat-box-title">Context-Specific Content</div>
+        <p class="feat-box-desc">Each mail type generates content specific to that stage — the right tone, right reference details and the right call-to-action every time.</p>
+      </div>
+      <div class="feat-box">
+        <div class="feat-box-icon">🧠</div>
+        <div class="feat-box-title">Master Data Auto-fill</div>
+        <p class="feat-box-desc">Your company details, buyer info and product data auto-fill from saved master records — personalising every mail instantly without retyping.</p>
+      </div>
+      <div class="feat-box">
+        <div class="feat-box-icon">💾</div>
+        <div class="feat-box-title">Mail Record History</div>
+        <p class="feat-box-desc">Every generated mail is saved with a reference number, date and mail type — giving you a complete audit trail of all buyer communications.</p>
+      </div>
+      <div class="feat-box">
+        <div class="feat-box-icon">🖨️</div>
+        <div class="feat-box-title">Print-Ready Letter Format</div>
+        <p class="feat-box-desc">Generate a formal letter format version of any follow-up mail — on your company letterhead — for sending by post or as a formal communication.</p>
+      </div>
+      <div class="feat-box">
+        <div class="feat-box-icon">📅</div>
+        <div class="feat-box-title">Follow-up Scheduler</div>
+        <p class="feat-box-desc">Set follow-up reminders and deadlines — so you never miss the right moment to follow up and always stay ahead of your buyer communication calendar.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ USE CASES ══ -->
+<div class="info-section" id="sec-usecases">
+  <div class="info-section-inner">
+    <div class="info-kicker"><div class="info-kicker-bar"></div>Use Cases</div>
+    <h2 class="info-heading">Who Uses Export Follow-up Mail?</h2>
+    <p class="info-sub">Anyone involved in export sales and buyer communication needs a consistent, professional follow-up system.</p>
+    <div class="usecases-grid">
+      <div class="usecase-card">
+        <div class="uc-icon">🏭</div>
+        <div>
+          <div class="uc-title">Export Managers & Sales Teams</div>
+          <p class="uc-desc">Manage buyer follow-ups across multiple enquiries, quotations and shipments simultaneously — without losing track of where each buyer is in the sales pipeline.</p>
+        </div>
+      </div>
+      <div class="usecase-card">
+        <div class="uc-icon">🌍</div>
+        <div>
+          <div class="uc-title">New Market Prospecting</div>
+          <p class="uc-desc">When reaching out to buyers in new markets, a professional follow-up sequence establishes trust and keeps your company at the top of the buyer's mind.</p>
+        </div>
+      </div>
+      <div class="usecase-card">
+        <div class="uc-icon">📊</div>
+        <div>
+          <div class="uc-title">Trade Show & Exhibition Follow-ups</div>
+          <p class="uc-desc">After attending an international trade show, send personalised follow-up mails to all contacts met — converting trade show leads into real export orders.</p>
+        </div>
+      </div>
+      <div class="usecase-card">
+        <div class="uc-icon">🔄</div>
+        <div>
+          <div class="uc-title">Re-activating Dormant Buyers</div>
+          <p class="uc-desc">Use the Repeat Order follow-up mail to re-engage buyers who haven't ordered in 30–60 days — share new products, special pricing or seasonal promotions.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pro Tips -->
+    <div style="margin-top:3.5rem;">
+      <div class="info-kicker"><div class="info-kicker-bar"></div>Pro Tips</div>
+      <h3 style="font-family:var(--font-display);font-size:1.3rem;font-weight:700;color:var(--navy);margin-bottom:1.5rem;">Follow-up Best Practices</h3>
+      <div class="tips-grid">
+        <div class="tip-card"><div class="tip-icon">⏱️</div><div><div class="tip-title">Follow up within 3–5 days</div><p class="tip-desc">Don't wait too long after sending a quotation. 3–5 business days is the ideal first follow-up window — the buyer still remembers your product.</p></div></div>
+        <div class="tip-card"><div class="tip-icon">📋</div><div><div class="tip-title">Always reference the document</div><p class="tip-desc">Include the EQ/PI/BL reference number in every follow-up. Buyers deal with multiple suppliers — clear references avoid confusion and build credibility.</p></div></div>
+        <div class="tip-card"><div class="tip-icon">🎯</div><div><div class="tip-title">One ask per email</div><p class="tip-desc">Each follow-up mail should have one clear call-to-action — confirm the order, make the payment, send feedback. Multiple asks dilute the response rate.</p></div></div>
+        <div class="tip-card"><div class="tip-icon">🌍</div><div><div class="tip-title">Mind the time zone</div><p class="tip-desc">Send follow-up mails at the start of the buyer's business day in their timezone — this significantly improves open rates and response probability.</p></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CTA ══ -->
+<div class="info-section alt" id="sec-cta">
+  <div class="info-section-inner">
+    <div class="cta-banner">
+      <div class="cta-inner">
+        <div class="cta-icon">📧</div>
+        <h2 class="cta-title">Stop Losing Buyers to Silence</h2>
+        <p class="cta-sub">Generate professional export follow-up mails for every stage — keep your buyers engaged, your pipeline moving and your conversions growing.</p>
+        <div class="cta-btns">
+          <button class="btn-cta-primary" onclick="window.location.href='../login.html'">🔐 Login &amp; Start Now →</button>
+          <button class="btn-cta-ghost"   onclick="window.location.href='../index.html'">← Back to Home</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ FOOTER ══ -->
+<footer class="footer">
+  <div style="border-top:1px solid rgba(255,255,255,0.07);max-width:100%;padding:1.2rem 2.5rem;display:flex;justify-content:space-between;font-size:0.78rem;background:#091929;color:rgba(255,255,255,0.45);">
+    <span>© 2026 <strong style="color:rgba(255,255,255,0.8);">IMPEXIO</strong>. All rights reserved.</span>
+    <span>Export Follow-up Mail &nbsp;|&nbsp; EXIM Marketing</span>
+  </div>
+</footer>
+
+<script>
+window.addEventListener('scroll', function() {
+  var n = document.getElementById('navbar');
+  if (n) n.classList.toggle('scrolled', window.scrollY > 20);
+  var sections = ['sec-about','sec-types','sec-timeline','sec-how','sec-features','sec-usecases','sec-cta'];
+  var links = document.querySelectorAll('.mod-nav-link');
+  sections.forEach(function(id, i) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var rect = el.getBoundingClientRect();
+    if (rect.top <= 160 && rect.bottom > 0) {
+      links.forEach(function(l){ l.classList.remove('active'); });
+      if (links[i]) links[i].classList.add('active');
+    }
+  });
+});
+function toggleDD(id, event) {
+  if (event) event.stopPropagation();
+  var el = document.getElementById(id);
+  if (!el) return;
+  var isOpen = el.classList.contains('open');
+  document.querySelectorAll('.nav-item.open').forEach(function(i){ i.classList.remove('open'); });
+  if (!isOpen) el.classList.add('open');
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.nav-item')) {
+    document.querySelectorAll('.nav-item.open').forEach(function(i){ i.classList.remove('open'); });
+  }
+});
+function toggleMob() {
+  var m = document.getElementById('navMob');
+  var h = document.getElementById('ham');
+  if (!m) return;
+  var o = m.classList.toggle('open');
+  if (h) h.classList.toggle('open', o);
+}
+function toggleMobDD(id) {
+  var el = document.getElementById(id);
+  if (el) el.classList.toggle('open');
+}
+function scrollTo(id) {
+  var el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth' });
+}
+var style = document.createElement('style');
+style.textContent = '@media(max-width:900px){.nav-auth .btn-nav-login{display:none}.nav-mobile{display:none}.nav-mobile.open{display:block}}@media(min-width:901px){.nav-mobile{display:none!important}.hamburger{display:none!important}}';
+document.head.appendChild(style);
+var animObs = new IntersectionObserver(function(entries) {
+  entries.forEach(function(entry) {
+    if (entry.isIntersecting) {
+      entry.target.style.opacity = '1';
+      entry.target.style.transform = 'translateY(0)';
+    }
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('.mail-type-card,.step-card,.feat-box,.usecase-card,.tip-card,.tl-item').forEach(function(el,i) {
+  el.style.opacity = '0';
+  el.style.transform = 'translateY(18px)';
+  el.style.transition = 'opacity 0.5s '+(i*0.06)+'s ease,transform 0.5s '+(i*0.06)+'s ease';
+  animObs.observe(el);
+});
+</script>
+</body>
+</html>
