@@ -608,7 +608,18 @@ document.addEventListener('DOMContentLoaded',()=>{
         if(e.key==='Enter'&&active){e.preventDefault();active.dispatchEvent(new MouseEvent('mousedown'));}
       });
     });
-    document.addEventListener('click',e=>{const d=document.getElementById('ileAcDropdown');if(d&&!d.contains(e.target)&&!Object.keys(ILE_FIELD_MAP).some(id=>document.getElementById(id)===e.target))closeIleAC();});
+    document.addEventListener('mousedown',e=>{
+      const d=document.getElementById('ileAcDropdown');
+      if(!d||d.style.display==='none') return;
+      // If click is inside dropdown — let the item's mousedown handler fire first, don't close
+      if(d.contains(e.target)) return;
+      // If click is on one of the tracked input fields — let focus handler reopen it
+      if(Object.keys(ILE_FIELD_MAP).some(id=>document.getElementById(id)===e.target)) return;
+      // Check product row desc fields
+      const allDescInputs=document.querySelectorAll('[id^="r_desc_"]');
+      if(Array.from(allDescInputs).some(el=>el===e.target)) return;
+      closeIleAC();
+    });
     window.addEventListener('scroll',()=>{const d=document.getElementById('ileAcDropdown');if(ileAcField&&d&&d.style.display!=='none')posIleAC(document.getElementById(ileAcField));},true);
     [1,2,3].forEach(id=>attachIleProductAC(id));
   },300);
