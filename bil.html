@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IMPEXIO — Export Marketing: Buyer Intro Letter</title>
+  <link rel="stylesheet" href="styles.css"/>
+  <link rel="stylesheet" href="bil.css"/>
+  <link rel="icon" href="impexio_logo.png" type="image/png"/>
+</head>
+<body class="dash-body bil-body">
+
+<!-- TOP BAR -->
+<div class="dash-topbar">
+  <div class="dtb-brand">
+    <div class="dtb-logo-box"><img src="impexio_logo.png" alt="IMPEXIO" class="dtb-logo"/></div>
+    <div class="dtb-name">IMPEXIO</div>
+  </div>
+  <div class="dtb-meta" id="dtbMeta"></div>
+  <div class="dtb-right">
+    <div class="dtb-user">
+      <div class="dtb-avatar" id="dtbAv">A</div>
+      <div>
+        <div class="dtb-uname" id="dtbUname">Admin</div>
+        <div class="dtb-role"  id="dtbRole">Administrator</div>
+      </div>
+    </div>
+    <button class="btn-logout" onclick="doLogout()">⏻ Logout</button>
+  </div>
+</div>
+
+<!-- PAGE SHELL -->
+<div class="bil-shell">
+
+  <!-- ═══ LEFT: Records ═══ -->
+  <div class="bil-left">
+    <div class="bll-header">
+      <div class="bll-title">📣 BIL Records</div>
+      <button class="bll-new-btn" onclick="newEntry()">＋ New</button>
+    </div>
+    <div class="bll-search-wrap">
+      <span>🔍</span>
+      <input type="text" id="searchInput" class="bll-search" placeholder="Search..." oninput="filterRecords()"/>
+    </div>
+    <div class="bll-list" id="recordsList">
+      <div class="bll-empty">
+        <div style="font-size:1.6rem;opacity:0.35;">📣</div>
+        <div class="bll-empty-txt">No records yet</div>
+        <div class="bll-empty-sub">Click + New to begin</div>
+      </div>
+    </div>
+    <a href="main.html" class="bll-back">← Back to Menu</a>
+  </div>
+
+  <!-- ═══ RIGHT: Step Wizard ═══ -->
+  <div class="bil-right">
+
+    <!-- Progress Bar -->
+    <div class="bil-progress-bar">
+      <div class="bpb-left">
+        <div class="bpb-title" id="formTitle">New Buyer Intro Letter</div>
+        <div class="bpb-sub"   id="formSub">Step 1 of 4</div>
+      </div>
+      <div class="bpb-steps">
+        <div class="bpb-step active" id="pstep_1" onclick="goToStep(1)">
+          <div class="bpb-step-num">1</div>
+          <div class="bpb-step-lbl">Buyer &amp; Ref</div>
+        </div>
+        <div class="bpb-connector" id="conn_1"></div>
+        <div class="bpb-step" id="pstep_2" onclick="goToStep(2)">
+          <div class="bpb-step-num">2</div>
+          <div class="bpb-step-lbl">Your Company</div>
+        </div>
+        <div class="bpb-connector" id="conn_2"></div>
+        <div class="bpb-step" id="pstep_3" onclick="goToStep(3)">
+          <div class="bpb-step-num">3</div>
+          <div class="bpb-step-lbl">Products &amp; USP</div>
+        </div>
+        <div class="bpb-connector" id="conn_3"></div>
+        <div class="bpb-step" id="pstep_4" onclick="goToStep(4)">
+          <div class="bpb-step-num">4</div>
+          <div class="bpb-step-lbl">Preview &amp; Print</div>
+        </div>
+      </div>
+      <div class="bpb-actions">
+        <button class="ba ba-clear" onclick="clearForm()">🗑 Clear</button>
+        <button class="ba ba-save"  onclick="saveRecord()">💾 Save</button>
+        <button class="ba ba-print" onclick="printRecord()">🖨 Print</button>
+      </div>
+    </div>
+
+    <!-- ══ STEP 1: Buyer & Reference ══ -->
+    <div class="bil-step" id="step_1">
+      <div class="bil-step-inner">
+        <div class="bil-step-header">
+          <div class="bil-step-icon">🌍</div>
+          <div>
+            <div class="bil-step-title">Buyer Details &amp; Reference</div>
+            <div class="bil-step-desc">Enter the prospective buyer's information and the letter reference</div>
+          </div>
+        </div>
+
+        <!-- Reference -->
+        <div class="bil-card">
+          <div class="bil-card-hd"><span class="bil-badge">A</span> Letter Reference</div>
+          <div class="bil-grid-3">
+            <div class="bf">
+              <label class="bl2">Letter Ref. No. <span class="req">*</span></label>
+              <input type="text" class="bi" id="f_refno" placeholder="BIL/2026/0001"/>
+            </div>
+            <div class="bf">
+              <label class="bl2">Date <span class="req">*</span></label>
+              <input type="date" class="bi" id="f_date"/>
+            </div>
+            <div class="bf">
+              <label class="bl2">Source / How Found Buyer</label>
+              <input type="text" class="bi" id="f_source" placeholder="e.g. Trade Show / Website / LinkedIn"/>
+            </div>
+          </div>
+        </div>
+
+        <!-- Buyer details -->
+        <div class="bil-card">
+          <div class="bil-card-hd bil-card-hd-teal"><span class="bil-badge">B</span> Prospective Buyer Details</div>
+          <div class="bil-grid-3">
+            <div class="bf">
+              <label class="bl2">Buyer Contact Name <span class="req">*</span></label>
+              <div class="master-field-wrap">
+                <input type="text" class="bi" id="f_buy_name" placeholder="e.g. Mr. Hans Mueller"/>
+                <button class="master-trigger" onclick="openBilMaster('buyer','f_buy_name')" title="Buyer Master">🌍</button>
+              </div>
+            </div>
+            <div class="bf">
+              <label class="bl2">Buyer Company <span class="req">*</span></label>
+              <input type="text" class="bi" id="f_buy_company" placeholder="e.g. Euro Ceramics GmbH"/>
+            </div>
+            <div class="bf">
+              <label class="bl2">Designation</label>
+              <input type="text" class="bi" id="f_buy_designation" placeholder="e.g. Purchase Manager"/>
+            </div>
+            <div class="bf">
+              <label class="bl2">Address Line 1</label>
+              <input type="text" class="bi" id="f_buy_addr1" placeholder="Building / Street"/>
+            </div>
+            <div class="bf">
+              <label class="bl2">City &amp; Country <span class="req">*</span></label>
+              <div class="master-field-wrap">
+                <input type="text" class="bi" id="f_buy_country" placeholder="e.g. Frankfurt, Germany"/>
+                <button class="master-trigger" onclick="openBilMaster('location','f_buy_country')" title="Location Master">📍</button>
+              </div>
+            </div>
+            <div class="bf">
+              <label class="bl2">Email Address</label>
+              <input type="email" class="bi" id="f_buy_email" placeholder="buyer@company.com"/>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="bil-step-footer">
+        <div></div>
+        <button class="bnav bnav-next" onclick="nextStep(1)">Next: Your Company →</button>
+      </div>
+    </div>
+
+    <!-- ══ STEP 2: Your Company ══ -->
+    <div class="bil-step hidden" id="step_2">
+      <div class="bil-step-inner">
+
+        <div class="bil-info-strip">
+          <span>To: <strong id="s2_buyer">—</strong></span>
+          <span class="bil-strip-sep">|</span>
+          <span id="s2_country">—</span>
+          <span class="bil-strip-sep">|</span>
+          <span id="s2_ref">—</span>
+        </div>
+
+        <!-- Sender company -->
+        <div class="bil-card">
+          <div class="bil-card-hd"><span class="bil-badge">C</span> Your Company Information</div>
+          <div class="bil-grid-3">
+            <div class="bf">
+              <label class="bl2">Company Name <span class="req">*</span></label>
+              <div class="master-field-wrap">
+                <input type="text" class="bi" id="f_co_name" placeholder="Your company name"/>
+                <button class="master-trigger" onclick="openBilMaster('company','f_co_name')" title="Company Master">🏢</button>
+              </div>
+            </div>
+            <div class="bf">
+              <label class="bl2">Established Year</label>
+              <input type="text" class="bi" id="f_co_since" placeholder="e.g. 2005 or Since 2005"/>
+            </div>
+            <div class="bf">
+              <label class="bl2">Location / City</label>
+              <input type="text" class="bi" id="f_co_city" placeholder="e.g. GIFT City, Gandhinagar, India"/>
+            </div>
+            <div class="bf">
+              <label class="bl2">Website</label>
+              <input type="text" class="bi" id="f_co_website" placeholder="e.g. www.impexiotrade.com"/>
+            </div>
+            <div class="bf">
+              <label class="bl2">Email</label>
+              <input type="email" class="bi" id="f_co_email" placeholder="exports@company.com"/>
+            </div>
+            <div class="bf">
+              <label class="bl2">Phone / WhatsApp</label>
+              <input type="text" class="bi" id="f_co_phone" placeholder="+91 98765 43210"/>
+            </div>
+          </div>
+        </div>
+
+        <!-- Company highlights -->
+        <div class="bil-card">
+          <div class="bil-card-hd bil-card-hd-blue"><span class="bil-badge">D</span> Company Highlights</div>
+          <div class="bil-grid-2">
+            <div class="bf">
+              <label class="bl2">Annual Export Turnover</label>
+              <input type="text" class="bi" id="f_turnover" placeholder="e.g. USD 2 Million / ₹15 Crore"/>
+            </div>
+            <div class="bf">
+              <label class="bl2">Countries Exported To</label>
+              <input type="text" class="bi" id="f_countries" placeholder="e.g. UAE, USA, Germany, UK, Australia"/>
+            </div>
+            <div class="bf">
+              <label class="bl2">Quality Certifications</label>
+              <input type="text" class="bi" id="f_certifications" placeholder="e.g. ISO 9001:2015, CE, BIS, FSSAI"/>
+            </div>
+            <div class="bf">
+              <label class="bl2">Production Capacity</label>
+              <input type="text" class="bi" id="f_capacity" placeholder="e.g. 50,000 SQM per month"/>
+            </div>
+            <div class="bf">
+              <label class="bl2">Lead Time</label>
+              <input type="text" class="bi" id="f_leadtime" placeholder="e.g. 15–20 days after PO confirmation"/>
+            </div>
+            <div class="bf">
+              <label class="bl2">No. of Years in Export</label>
+              <input type="text" class="bi" id="f_exp_years" placeholder="e.g. 12+ years of export experience"/>
+            </div>
+          </div>
+        </div>
+
+        <!-- Signatory -->
+        <div class="bil-card">
+          <div class="bil-card-hd"><span class="bil-badge">E</span> Sender / Signatory</div>
+          <div class="bil-grid-3">
+            <div class="bf">
+              <label class="bl2">Sender Name <span class="req">*</span></label>
+              <div class="master-field-wrap">
+                <input type="text" class="bi" id="f_sender_name" placeholder="Your full name"/>
+                <button class="master-trigger" onclick="openBilMaster('signatory','f_sender_name')" title="Signatory Master">✍️</button>
+              </div>
+            </div>
+            <div class="bf">
+              <label class="bl2">Designation</label>
+              <input type="text" class="bi" id="f_sender_desig" placeholder="e.g. Export Manager / Director"/>
+            </div>
+            <div class="bf">
+              <label class="bl2">Sender Email</label>
+              <input type="email" class="bi" id="f_sender_email" placeholder="exports@company.com"/>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="bil-step-footer">
+        <button class="bnav bnav-back" onclick="prevStep(2)">← Back</button>
+        <button class="bnav bnav-next" onclick="nextStep(2)">Next: Products &amp; USP →</button>
+      </div>
+    </div>
+
+    <!-- ══ STEP 3: Products & USP ══ -->
+    <div class="bil-step hidden" id="step_3">
+      <div class="bil-step-inner">
+
+        <div class="bil-info-strip">
+          <span id="s3_buyer">—</span>
+          <span class="bil-strip-sep">|</span>
+          <span id="s3_company">—</span>
+          <span class="bil-strip-sep">|</span>
+          <span id="s3_ref">—</span>
+        </div>
+
+        <!-- Products -->
+        <div class="bil-card">
+          <div class="bil-card-hd bil-card-hd-teal"><span class="bil-badge">F</span> Products You Export</div>
+          <div class="bil-grid-2">
+            <div class="bf">
+              <label class="bl2">Primary Product <span class="req">*</span></label>
+              <div class="master-field-wrap">
+                <input type="text" class="bi" id="f_product1" placeholder="e.g. Ceramic Floor Tiles"/>
+                <button class="master-trigger" onclick="openBilMaster('product','f_product1')" title="Product Master">📦</button>
+              </div>
+            </div>
+            <div class="bf">
+              <label class="bl2">HS Code (Primary Product)</label>
+              <input type="text" class="bi" id="f_hscode1" placeholder="e.g. 6907.21"/>
+            </div>
+            <div class="bf">
+              <label class="bl2">Secondary Product</label>
+              <div class="master-field-wrap">
+                <input type="text" class="bi" id="f_product2" placeholder="e.g. Ceramic Wall Tiles"/>
+                <button class="master-trigger" onclick="openBilMaster('product','f_product2')" title="Product Master">📦</button>
+              </div>
+            </div>
+            <div class="bf">
+              <label class="bl2">HS Code (Secondary)</label>
+              <input type="text" class="bi" id="f_hscode2" placeholder="e.g. 6907.22"/>
+            </div>
+            <div class="bf" style="grid-column:1/-1;">
+              <label class="bl2">Other Products / Range</label>
+              <input type="text" class="bi" id="f_other_products" placeholder="e.g. Vitrified Tiles, Sanitaryware, Bath Fittings"/>
+            </div>
+          </div>
+        </div>
+
+        <!-- USP & Offer -->
+        <div class="bil-card">
+          <div class="bil-card-hd bil-card-hd-blue"><span class="bil-badge">G</span> Your Unique Selling Points</div>
+          <div class="bil-grid-2">
+            <div class="bf">
+              <label class="bl2">Key USP / Competitive Advantage</label>
+              <textarea class="bi bi-ta" id="f_usp" placeholder="e.g. Factory-direct pricing, no middlemen, own manufacturing, consistent quality, flexible MOQ..."></textarea>
+            </div>
+            <div class="bf">
+              <label class="bl2">Special Offer / Introductory Benefit</label>
+              <textarea class="bi bi-ta" id="f_offer" placeholder="e.g. Free samples available, 5% introductory discount on first order, flexible payment terms..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- CTA & Remarks -->
+        <div class="bil-card">
+          <div class="bil-card-hd"><span class="bil-badge">H</span> Call to Action &amp; Remarks</div>
+          <div class="bil-grid-1">
+            <div class="bf">
+              <label class="bl2">Call to Action</label>
+              <input type="text" class="bi" id="f_cta" placeholder="e.g. Please share your requirements so we can send you a competitive price list and samples"/>
+            </div>
+            <div class="bf">
+              <label class="bl2">Additional Remarks / Special Note</label>
+              <textarea class="bi bi-ta" id="f_remarks" placeholder="Any additional note, attachment mention, catalogue reference, exhibition details..."></textarea>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="bil-step-footer">
+        <button class="bnav bnav-back" onclick="prevStep(3)">← Back</button>
+        <button class="bnav bnav-next" onclick="nextStep(3)">Next: Preview &amp; Print →</button>
+      </div>
+    </div>
+
+    <!-- ══ STEP 4: Preview & Print ══ -->
+    <div class="bil-step hidden" id="step_4">
+      <div class="bil-step-inner">
+
+        <div class="bil-info-strip">
+          <span id="s4_buyer">—</span>
+          <span class="bil-strip-sep">|</span>
+          <span id="s4_company">—</span>
+          <span class="bil-strip-sep">|</span>
+          <span>Ref: <strong id="s4_ref">—</strong></span>
+        </div>
+
+        <!-- Generated letter preview -->
+        <div class="bil-card">
+          <div class="bil-card-hd"><span class="bil-badge">I</span> Generated Buyer Intro Letter <span class="bil-card-note">Review before saving or printing</span></div>
+          <div class="bil-letter-preview">
+            <div class="blp-header">
+              <div class="blp-dot r"></div><div class="blp-dot y"></div><div class="blp-dot g"></div>
+              <div class="blp-label">Generated Letter Preview</div>
+            </div>
+            <div id="letterPreviewBody" class="blp-body">
+              <div class="blp-placeholder">
+                <div class="blp-placeholder-icon">📣</div>
+                <div class="blp-placeholder-txt">Letter preview will appear here</div>
+                <div class="blp-placeholder-sub">Go back and fill in all required fields to generate the letter</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="bil-card">
+          <div class="bil-card-hd"><span class="bil-badge">J</span> Letter Summary</div>
+          <div class="bil-sum-grid">
+            <div class="bil-sum-item"><div class="bil-sum-lbl">Ref. No.</div><div class="bil-sum-val" id="sum_ref">—</div></div>
+            <div class="bil-sum-item"><div class="bil-sum-lbl">Date</div><div class="bil-sum-val" id="sum_date">—</div></div>
+            <div class="bil-sum-item"><div class="bil-sum-lbl">To (Buyer)</div><div class="bil-sum-val" id="sum_buyer">—</div></div>
+            <div class="bil-sum-item"><div class="bil-sum-lbl">From (Company)</div><div class="bil-sum-val" id="sum_company">—</div></div>
+            <div class="bil-sum-item"><div class="bil-sum-lbl">Primary Product</div><div class="bil-sum-val" id="sum_product">—</div></div>
+            <div class="bil-sum-item"><div class="bil-sum-lbl">Country</div><div class="bil-sum-val" id="sum_country">—</div></div>
+          </div>
+        </div>
+
+      </div>
+      <div class="bil-step-footer">
+        <button class="bnav bnav-back" onclick="prevStep(4)">← Back</button>
+        <div style="display:flex;gap:0.5rem;">
+          <button class="bnav bnav-save"  onclick="saveRecord()">💾 Save Record</button>
+          <button class="bnav bnav-print" onclick="printRecord()">🖨 Print Letter</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /bil-right -->
+</div><!-- /bil-shell -->
+
+<div id="printArea" style="display:none;"></div>
+<script src="app.js"></script>
+<script src="bil.js"></script>
+</body>
+</html>
