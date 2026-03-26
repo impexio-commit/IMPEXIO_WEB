@@ -483,18 +483,8 @@ const BIL_MASTER_CONFIG = {
       if (tid === 'f_product2' && r.hscode) { const hs=document.getElementById('f_hscode2'); if(hs&&!hs.value) hs.value=r.hscode; }
     }
   },
-  location: {
-    label:'Location', icon:'📍', key:'impexio_master_location',
-    fields:[
-      {id:'name',    label:'City & Country',  placeholder:'e.g. Frankfurt, Germany', req:true},
-      {id:'country', label:'Country Only',    placeholder:'e.g. Germany'},
-      {id:'region',  label:'Region / State',  placeholder:'e.g. Hesse'},
-    ],
-    display: r => r.name,
-    sub:     r => r.country || '',
-    fill:    (r, tid) => { const el=document.getElementById(tid); if(el){el.value=r.name||'';el.dispatchEvent(new Event('input'));} }
-  },
   signatory: {
+    
     label:'Signatory', icon:'✍️', key:'impexio_master_signatory',
     fields:[
       {id:'name',        label:'Full Name',    placeholder:'e.g. Rajesh Kumar Sharma', req:true},
@@ -552,12 +542,11 @@ function deleteBilMaster(type,idx){ if(!confirm('Delete this record?'))return;co
 
 // Autocomplete
 const BIL_FIELD_MAP={
-  'f_buy_name':    {type:'buyer',    display:r=>r.name, sub:r=>[r.company,r.country].filter(Boolean).join(', ')},
-  'f_buy_country': {type:'location', display:r=>r.name, sub:r=>r.country||''},
-  'f_co_name':     {type:'company',  display:r=>r.name, sub:r=>r.addr1||''},
-  'f_sender_name': {type:'signatory',display:r=>r.name, sub:r=>r.designation||''},
-  'f_product1':    {type:'product',  display:r=>r.name, sub:r=>r.hscode?'HS:'+r.hscode:''},
-  'f_product2':    {type:'product',  display:r=>r.name, sub:r=>r.hscode?'HS:'+r.hscode:''},
+  'f_buy_name':  {type:'buyer',    display:r=>r.name, sub:r=>[r.company,r.country].filter(Boolean).join(', ')},
+  'f_co_name':   {type:'company',  display:r=>r.name, sub:r=>r.addr1||''},
+  'f_sender_name':{type:'signatory',display:r=>r.name,sub:r=>r.designation||''},
+  'f_product1':  {type:'product',  display:r=>r.name, sub:r=>r.hscode?'HS:'+r.hscode:''},
+  'f_product2':  {type:'product',  display:r=>r.name, sub:r=>r.hscode?'HS:'+r.hscode:''},
 };
 let bilAcField=null;
 function getBilAcDrop(){ ensureBilMasterPanel();return document.getElementById('bilAcDropdown');}
