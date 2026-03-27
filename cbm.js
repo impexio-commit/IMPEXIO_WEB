@@ -3,7 +3,10 @@
    IMPEXIO v2
    ============================================================ */
 
-let cbmRecords  = JSON.parse(localStorage.getItem('cbm_records') || '[]');
+// ── API Base URL ──────────────────────────────────────
+const API_BASE = 'https://localhost:7129/api';
+
+let cbmRecords = [];
 let editingId   = null;
 let currentStep = 1;
 const TOTAL_STEPS = 5;
@@ -13,7 +16,7 @@ let cftRowCount = 0;
 document.addEventListener('DOMContentLoaded', () => {
   loadSess();
   populateTopbar();
-  renderRecords();
+  loadRecordsFromAPI();
   buildNavDots();
   document.getElementById('f_cbmdate').value = todayStr();
   autoSetCbmNo();
@@ -76,6 +79,7 @@ function showList() {
   document.getElementById('viewList').style.display = 'block';
   document.body.style.overflow = '';
   editingId = null;
+  loadRecordsFromAPI();
 }
 
 // ── Step Navigation ───────────────────────────────────────────
@@ -244,38 +248,80 @@ function clearForm(resetId=true){
 }
 
 // ── Save ──────────────────────────────────────────────────────
-function saveRecord(){
-  const company=gv('f_company').trim(), cbmno=gv('f_cbmno').trim(), cbmdate=gv('f_cbmdate');
-  if(!company){alert('Please enter Company Name.');goStep(1);document.getElementById('f_company').focus();return;}
-  if(!cbmno){alert('Please enter CBM No.');goStep(1);return;}
-  if(!cbmdate){alert('Please select CBM Date.');goStep(1);return;}
-  const cbmVal=parseFloat(document.getElementById('cbm_total_result')?.textContent)||0;
-  const cftVal=parseFloat(document.getElementById('cft_total_result')?.textContent)||0;
-  let containers=[];
-  if(parseFloat(gv('c20_cbm'))>0) containers.push("20'");
-  if(parseFloat(gv('c40gp_cbm'))>0) containers.push("40'GP");
-  if(parseFloat(gv('c40hq_cbm'))>0) containers.push("40'HQ");
-  if(parseFloat(gv('lcl_cbm'))>0) containers.push("LCL");
-  const record={
-    id:editingId??Date.now(), company, branch:gv('f_branch'), location:gv('f_location'),
-    daybook:gv('f_daybook'), cbmno, cbmdate, listno:gv('f_listno'), exporter:gv('f_exporter'),
-    remarks:gv('f_remarks'), preparedby:gv('f_preparedby'), signatory:gv('f_signatory'),
-    containers:containers.join(', ')||'—', totalCbm:cbmVal, totalCft:cftVal,
-    cbm2cft:cbmVal*35.3147, cft2cbm:cftVal*0.028317,
-    cbmBoxes:document.getElementById('cbm_total_boxes')?.textContent||'0',
-    cftBoxes:document.getElementById('cft_total_boxes')?.textContent||'0',
-    contDetail:{
-      c20:{cbm:gv('c20_cbm'),mt:gv('c20_mt'),qty:gv('c20_qty')},
-      c40gp:{cbm:gv('c40gp_cbm'),mt:gv('c40gp_mt'),qty:gv('c40gp_qty')},
-      c40hq:{cbm:gv('c40hq_cbm'),mt:gv('c40hq_mt'),qty:gv('c40hq_qty')},
-      lcl:{cbm:gv('lcl_cbm'),mt:gv('lcl_mt'),qty:gv('lcl_qty')}
-    },
-    cbmRows:getCbmRows(), cftRows:getCftRows()
+async function saveRecord() {
+  // Collect container data
+  const containers = [
+    { containerType: '20',   cbm: parseFloat(gv('c20_cbm'))||0,    mt: parseFloat(gv('c20_mt'))||0,    qty: parseInt(gv('c20_qty'))||0 },
+    { containerType: '40GP', cbm: parseFloat(gv('c40gp_cbm'))||0,  mt: parseFloat(gv('c40gp_mt'))||0,  qty: parseInt(gv('c40gp_qty'))||0 },
+    { containerType: '40HQ', cbm: parseFloat(gv('c40hq_cbm'))||0,  mt: parseFloat(gv('c40hq_mt'))||0,  qty: parseInt(gv('c40hq_qty'))||0 },
+    { containerType: 'LCL',  cbm: parseFloat(gv('lcl_cbm'))||0,    mt: parseFloat(gv('lcl_mt'))||0,    qty: parseInt(gv('lcl_qty'))||0  }
+  ];
+
+  // Collect CBM rows
+  const items = [];
+  document.getElementById('cbmRows').querySelectorAll('tr').forEach(tr => {
+    const n = tr.id.replace('cbmR','');
+    items.push({
+      calcType:    'CBM',
+      description: document.getElementById(`cbm_d${n}`)?.value || '',
+      length:      parseFloat(document.getElementById(`cbm_l${n}`)?.value) || 0,
+      width:       parseFloat(document.getElementById(`cbm_w${n}`)?.value) || 0,
+      height:      parseFloat(document.getElementById(`cbm_h${n}`)?.value) || 0,
+      boxes:       parseInt(document.getElementById(`cbm_b${n}`)?.value)   || 0,
+      result:      parseFloat(document.getElementById(`cbm_r${n}`)?.textContent) || 0
+    });
+  });
+
+  // Collect CFT rows
+  document.getElementById('cftRows').querySelectorAll('tr').forEach(tr => {
+    const n = tr.id.replace('cftR','');
+    items.push({
+      calcType:    'CFT',
+      description: document.getElementById(`cft_d${n}`)?.value || '',
+      length:      parseFloat(document.getElementById(`cft_l${n}`)?.value) || 0,
+      width:       parseFloat(document.getElementById(`cft_w${n}`)?.value) || 0,
+      height:      parseFloat(document.getElementById(`cft_h${n}`)?.value) || 0,
+      boxes:       parseInt(document.getElementById(`cft_b${n}`)?.value)   || 0,
+      result:      parseFloat(document.getElementById(`cft_r${n}`)?.textContent) || 0
+    });
+  });
+
+  // Build payload
+  const payload = {
+    cbmNo:      gv('f_cbmno'),
+    cbmDate:    gv('f_cbmdate'),
+    dayBook:    gv('f_daybook'),
+    listingNo:  gv('f_listno'),
+    exporter:   gv('f_exporter'),
+    preparedBy: gv('f_preparedby'),
+    signatory:  gv('f_signatory'),
+    remarks:    gv('f_remarks'),
+    containers,
+    items
   };
-  if(editingId!==null){const idx=cbmRecords.findIndex(r=>r.id===editingId);if(idx>-1)cbmRecords[idx]=record;else cbmRecords.unshift(record);}
-  else cbmRecords.unshift(record);
-  localStorage.setItem('cbm_records',JSON.stringify(cbmRecords));
-  renderRecords(); showToastCbm('✅',`Record ${cbmno} saved!`); showList();
+
+  try {
+    const url    = editingId !== null
+                   ? `${API_BASE}/Cbm/${editingId}`
+                   : `${API_BASE}/Cbm`;
+    const method = editingId !== null ? 'PUT' : 'POST';
+
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      showToastCbm('✅', data.message || 'Saved successfully!');
+      setTimeout(() => showList(), 1000);
+    } else {
+      showToastCbm('❌', 'Failed to save. Please try again.');
+    }
+  } catch (err) {
+    showToastCbm('❌', 'Cannot connect to server. Is the API running?');
+  }
 }
 
 function getCbmRows(){
@@ -309,8 +355,52 @@ function loadFormData(rec){
   if(!cftRowCount)addCftRow();
 }
 
+async function loadRecordsFromAPI() {
+  try {
+    const res = await fetch(`${API_BASE}/Cbm`);
+    if (res.ok) {
+      const data = await res.json();
+      // Map API response to frontend format
+      cbmRecords = data.map(r => ({
+        id:       r.id,
+        cbmno:    r.cbmNo,
+        cbmdate:  r.cbmDate?.split('T')[0],
+        daybook:  r.dayBook,
+        listno:   r.listingNo,
+        exporter: r.exporter,
+        preparedby: r.preparedBy,
+        signatory:  r.signatory,
+        remarks:    r.remarks,
+        company:    r.exporter || '—',
+        branch:     '—',
+        location:   '—',
+        totalCbm: r.items?.filter(i=>i.calcType==='CBM').reduce((s,i)=>s+(i.result||0),0) || 0,
+        totalCft: r.items?.filter(i=>i.calcType==='CFT').reduce((s,i)=>s+(i.result||0),0) || 0,
+        containers: r.containers?.map(c=>c.containerType).join(', ') || '—',
+        contDetail: {
+          c20:   r.containers?.find(c=>c.containerType==='20')   || {},
+          c40gp: r.containers?.find(c=>c.containerType==='40GP') || {},
+          c40hq: r.containers?.find(c=>c.containerType==='40HQ') || {},
+          lcl:   r.containers?.find(c=>c.containerType==='LCL')  || {},
+        },
+        cbmRows: r.items?.filter(i=>i.calcType==='CBM').map(i=>({
+          desc:i.description, l:i.length, w:i.width, h:i.height, boxes:i.boxes, res:(i.result||0).toFixed(6)
+        })) || [],
+        cftRows: r.items?.filter(i=>i.calcType==='CFT').map(i=>({
+          desc:i.description, l:i.length, w:i.width, h:i.height, boxes:i.boxes, res:(i.result||0).toFixed(4)
+        })) || [],
+      }));
+      renderRecords();
+    }
+  } catch(err) {
+    console.error('Failed to load records:', err);
+  }
+}
+
 function renderRecords(list=null){
   const data=list||cbmRecords, tbody=document.getElementById('recordsTbody');
+
+
   tbody.innerHTML='';
   if(!data.length){tbody.innerHTML=`<tr class="cbm-empty-row"><td colspan="8"><div class="cbm-empty"><div class="cbm-empty-icon">📐</div><div class="cbm-empty-text">No CBM records yet</div><div class="cbm-empty-sub">Click "New CBM Entry" to get started</div></div></td></tr>`;return;}
   data.forEach(rec=>{
@@ -326,11 +416,19 @@ function filterRecords(){
   renderRecords(cbmRecords.filter(r=>r.cbmno?.toLowerCase().includes(q)||r.company?.toLowerCase().includes(q)||r.branch?.toLowerCase().includes(q)||r.exporter?.toLowerCase().includes(q)));
 }
 
-function deleteRecord(id){
+async function deleteRecord(id){
   if(!confirm('Delete this CBM record?'))return;
-  cbmRecords=cbmRecords.filter(r=>r.id!==id);
-  localStorage.setItem('cbm_records',JSON.stringify(cbmRecords));
-  renderRecords(); showToastCbm('🗑','Record deleted.');
+  try {
+    const res = await fetch(`${API_BASE}/Cbm/${id}`, { method:'DELETE' });
+    if(res.ok){
+      showToastCbm('🗑','Record deleted.');
+      await loadRecordsFromAPI();
+    } else {
+      showToastCbm('❌','Failed to delete.');
+    }
+  } catch(err){
+    showToastCbm('❌','Cannot connect to server.');
+  }
 }
 
 function fmtDate(str){if(!str)return'—';return new Date(str).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});}
