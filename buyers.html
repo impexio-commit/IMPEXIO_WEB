@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IMPEXIO — Buyer Directory</title>
+  <link rel="stylesheet" href="styles.css"/>
+  <link rel="icon" href="impexio_logo.png" type="image/png"/>
+  <style>
+    :root { --teal:#0f5c52; --teal-mid:#0d4d44; --teal-light:#e6f4f2; }
+
+    body.bd-body { overflow: hidden !important; height: 100vh; display: flex; flex-direction: column; }
+
+    /* TOP FILTER BAR */
+    .bd-filter-bar {
+      background: var(--navy);
+      padding: 0.75rem 1.5rem;
+      display: flex; align-items: center; gap: 0.75rem;
+      flex-wrap: wrap; flex-shrink: 0;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .bdf-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.45); white-space: nowrap; }
+    .bdf-sep   { width: 1px; height: 28px; background: rgba(255,255,255,0.1); }
+
+    .bdf-select, .bdf-input {
+      padding: 0.38rem 0.7rem;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      color: #fff; font-size: 0.78rem; font-family: var(--font-body);
+      min-width: 130px; cursor: pointer; transition: all 0.2s;
+      appearance: none; -webkit-appearance: none;
+    }
+    .bdf-select:focus, .bdf-input:focus {
+      outline: none; border-color: var(--gold); background: rgba(255,255,255,0.12);
+    }
+    .bdf-select option { background: var(--navy); color: #fff; }
+    .bdf-input::placeholder { color: rgba(255,255,255,0.4); }
+
+    .bdf-search {
+      flex: 1; min-width: 180px; max-width: 280px;
+      padding: 0.38rem 0.7rem 0.38rem 2rem;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px; color: #fff; font-size: 0.78rem;
+      position: relative; font-family: var(--font-body);
+    }
+    .bdf-search::placeholder { color: rgba(255,255,255,0.4); }
+    .bdf-search:focus { outline: none; border-color: var(--gold); }
+    .bdf-search-wrap { position: relative; flex: 1; min-width: 180px; max-width: 280px; }
+    .bdf-search-ico  { position: absolute; left: 0.55rem; top: 50%; transform: translateY(-50%); font-size: 0.8rem; pointer-events: none; }
+
+    .bdf-btn {
+      padding: 0.4rem 1rem; border-radius: 8px;
+      font-size: 0.75rem; font-weight: 700; cursor: pointer;
+      border: none; transition: all 0.2s;
+    }
+    .bdf-btn-gold  { background: var(--gold); color: var(--navy); }
+    .bdf-btn-gold:hover { background: var(--gold-light); }
+    .bdf-btn-clear { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); border: 1px solid rgba(255,255,255,0.15); }
+    .bdf-btn-clear:hover { background: rgba(255,255,255,0.18); }
+    .bdf-btn-new   { background: #22c55e; color: #fff; margin-left: auto; }
+    .bdf-btn-new:hover { background: #16a34a; }
+
+    .bdf-count { font-size: 0.7rem; color: rgba(255,255,255,0.5); white-space: nowrap; font-weight: 600; }
+
+    /* MAIN SHELL */
+    .bd-shell { display: grid; grid-template-columns: 1fr 400px; flex: 1; min-height: 0; overflow: hidden; }
+
+    /* TABLE SIDE */
+    .bd-table-side { display: flex; flex-direction: column; overflow: hidden; background: var(--ivory); }
+
+    .bd-tbl-wrap { flex: 1; overflow: auto; }
+    .bd-tbl-wrap::-webkit-scrollbar { width: 4px; height: 4px; }
+    .bd-tbl-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .bd-tbl { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 700px; }
+    .bd-tbl thead { background: var(--white); position: sticky; top: 0; z-index: 5; }
+    .bd-tbl thead th {
+      padding: 0.65rem 0.85rem;
+      text-align: left; font-size: 0.62rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--text-soft); border-bottom: 2px solid var(--border);
+      white-space: nowrap; cursor: pointer; user-select: none;
+    }
+    .bd-tbl thead th:hover { color: var(--navy); }
+    .bd-tbl thead th.sort-asc::after  { content: ' ↑'; color: var(--gold); }
+    .bd-tbl thead th.sort-desc::after { content: ' ↓'; color: var(--gold); }
+
+    .bd-tbl tbody tr { border-bottom: 1px solid var(--border-soft); transition: background 0.12s; cursor: pointer; }
+    .bd-tbl tbody tr:hover { background: rgba(201,168,76,0.05); }
+    .bd-tbl tbody tr.selected { background: rgba(15,37,64,0.06); border-left: 3px solid var(--navy); }
+    .bd-tbl tbody td { padding: 0.55rem 0.85rem; }
+
+    .bd-name { font-weight: 600; color: var(--navy); }
+    .bd-company { font-size: 0.73rem; color: var(--text-soft); margin-top: 0.1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+    .bd-tag {
+      display: inline-block; padding: 0.15rem 0.5rem;
+      background: var(--ivory2); border-radius: 100px;
+      font-size: 0.65rem; font-weight: 600; color: var(--text-mid);
+      margin-right: 0.2rem;
+    }
+    .bd-tag.country { background: rgba(15,37,64,0.08); color: var(--navy); }
+    .bd-tag.active  { background: rgba(34,197,94,0.1); color: #16a34a; }
+    .bd-tag.inactive{ background: rgba(220,38,38,0.08); color: #dc2626; }
+
+    .bd-act-btn {
+      padding: 0.22rem 0.55rem; border-radius: 6px;
+      font-size: 0.65rem; font-weight: 600; cursor: pointer;
+      border: 1px solid transparent; transition: all 0.15s;
+      margin-right: 0.2rem;
+    }
+    .bd-act-btn.edit { background: rgba(42,82,152,0.08); color: var(--navy-light); border-color: rgba(42,82,152,0.2); }
+    .bd-act-btn.edit:hover { background: var(--navy-light); color: #fff; }
+    .bd-act-btn.del  { background: rgba(220,38,38,0.07); color: #dc2626; border-color: rgba(220,38,38,0.18); }
+    .bd-act-btn.del:hover { background: #dc2626; color: #fff; }
+
+    .bd-empty { text-align: center; padding: 4rem 2rem; color: var(--text-soft); }
+    .bd-empty-icon { font-size: 2.8rem; opacity: 0.25; margin-bottom: 0.75rem; }
+    .bd-empty-txt  { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.35rem; }
+    .bd-empty-sub  { font-size: 0.77rem; }
+
+    /* FORM SIDE */
+    .bd-form-side {
+      background: var(--white);
+      border-left: 1px solid var(--border);
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    .bdf-hd {
+      padding: 0.9rem 1.2rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--navy); color: #fff;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .bdf-hd-title { font-family: var(--font-display); font-size: 1rem; font-weight: 700; }
+    .bdf-hd-sub   { font-size: 0.65rem; color: rgba(255,255,255,0.55); margin-top: 0.12rem; }
+    .bdf-close {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: rgba(255,255,255,0.1); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem; cursor: pointer; border: none; transition: all 0.2s; flex-shrink: 0;
+    }
+    .bdf-close:hover { background: rgba(255,255,255,0.2); }
+
+    .bdf-body {
+      flex: 1; overflow-y: auto; padding: 1rem 1.2rem;
+      display: flex; flex-direction: column; gap: 0.55rem;
+    }
+    .bdf-body::-webkit-scrollbar { width: 3px; }
+    .bdf-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .bdf-section { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--navy); padding: 0.5rem 0 0.2rem; border-top: 1px solid var(--border-soft); margin-top: 0.3rem; }
+    .bdf-section:first-child { border-top: none; margin-top: 0; }
+
+    .bdf-field { display: flex; flex-direction: column; gap: 0.2rem; }
+    .bdf-field label { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-soft); }
+    .bdf-field input, .bdf-field select, .bdf-field textarea {
+      padding: 0.42rem 0.65rem;
+      border: 1.5px solid var(--border); border-radius: 7px;
+      font-size: 0.8rem; color: var(--text); background: var(--ivory2);
+      font-family: var(--font-body); transition: all 0.2s;
+      width: 100%;
+    }
+    .bdf-field input:focus, .bdf-field select:focus, .bdf-field textarea:focus {
+      outline: none; border-color: var(--navy); background: var(--white);
+      box-shadow: 0 0 0 3px rgba(15,37,64,0.07);
+    }
+    .bdf-field textarea { resize: none; height: 58px; }
+    .bdf-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 0.55rem; }
+    .bdf-3col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.55rem; }
+
+    .bdf-footer {
+      padding: 0.75rem 1.2rem;
+      border-top: 1px solid var(--border);
+      display: flex; gap: 0.5rem; flex-shrink: 0;
+    }
+    .bdf-save {
+      flex: 1; padding: 0.55rem; background: var(--navy); color: #fff;
+      border: none; border-radius: 50px; font-size: 0.82rem; font-weight: 700;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .bdf-save:hover { background: var(--navy-mid); }
+    .bdf-cancel {
+      padding: 0.55rem 1.1rem; background: var(--ivory2); color: var(--text-mid);
+      border: 1.5px solid var(--border); border-radius: 50px;
+      font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
+    }
+    .bdf-cancel:hover { border-color: var(--navy); color: var(--navy); }
+
+    /* DETAIL PANEL (view mode) */
+    .bd-detail { padding: 1rem 1.2rem; display: flex; flex-direction: column; gap: 0.7rem; flex: 1; overflow-y: auto; }
+    .bd-detail-name { font-family: var(--font-display); font-size: 1.35rem; font-weight: 700; color: var(--navy); }
+    .bd-detail-company { font-size: 0.85rem; color: var(--text-soft); margin-top: 0.1rem; }
+    .bd-detail-tags { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.3rem; }
+    .bd-detail-section { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--teal); padding: 0.4rem 0 0.15rem; border-top: 1px solid var(--border-soft); margin-top: 0.2rem; }
+    .bd-detail-row { display: flex; gap: 0.5rem; align-items: baseline; font-size: 0.8rem; }
+    .bd-detail-lbl { font-size: 0.65rem; font-weight: 700; color: var(--text-soft); min-width: 100px; text-transform: uppercase; letter-spacing: 0.06em; }
+    .bd-detail-val { font-size: 0.82rem; color: var(--text); font-weight: 500; }
+    .bd-detail-btns { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+    .bd-detail-edit {
+      flex: 1; padding: 0.5rem; background: var(--navy); color: #fff;
+      border: none; border-radius: 50px; font-size: 0.8rem; font-weight: 700;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .bd-detail-edit:hover { background: var(--navy-mid); }
+    .bd-detail-del {
+      padding: 0.5rem 1rem; background: rgba(220,38,38,0.07); color: #dc2626;
+      border: 1px solid rgba(220,38,38,0.2); border-radius: 50px;
+      font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;
+    }
+    .bd-detail-del:hover { background: #dc2626; color: #fff; }
+
+    /* Placeholder right panel */
+    .bd-placeholder {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 0.6rem; padding: 2rem; text-align: center;
+    }
+    .bd-ph-icon { font-size: 2.5rem; opacity: 0.18; }
+    .bd-ph-txt  { font-size: 0.85rem; font-weight: 600; color: var(--text-soft); }
+    .bd-ph-sub  { font-size: 0.74rem; color: var(--text-soft); opacity: 0.7; }
+
+    @media (max-width: 900px) {
+      body.bd-body { overflow: auto !important; height: auto; }
+      .bd-shell { grid-template-columns: 1fr; }
+      .bd-form-side { height: auto; border-left: none; border-top: 1px solid var(--border); }
+    }
+  </style>
+</head>
+<body class="dash-body bd-body">
+
+<!-- TOP BAR -->
+<div class="dash-topbar">
+  <div class="dtb-brand">
+    <div class="dtb-logo-box"><img src="impexio_logo.png" alt="IMPEXIO" class="dtb-logo"/></div>
+    <div class="dtb-name">IMPEXIO</div>
+  </div>
+  <div class="dtb-meta" id="dtbMeta"></div>
+  <div class="dtb-right">
+    <div class="dtb-user">
+      <div class="dtb-avatar" id="dtbAv">A</div>
+      <div>
+        <div class="dtb-uname" id="dtbUname">Admin</div>
+        <div class="dtb-role"  id="dtbRole">Administrator</div>
+      </div>
+    </div>
+    <button class="btn-logout" onclick="doLogout()">⏻ Logout</button>
+  </div>
+</div>
+
+<!-- FILTER BAR -->
+<div class="bd-filter-bar">
+  <span class="bdf-label">🌐 Buyer Directory</span>
+  <div class="bdf-sep"></div>
+  <span class="bdf-label">Filter by:</span>
+
+  <select id="flt_country" class="bdf-select" onchange="applyFilters()" style="min-width:150px;">
+    <option value="">🌍 All Countries</option>
+  </select>
+
+  <select id="flt_state" class="bdf-select" onchange="applyFilters()">
+    <option value="">🏛 All States</option>
+  </select>
+
+  <select id="flt_city" class="bdf-select" onchange="applyFilters()">
+    <option value="">🏙 All Cities</option>
+  </select>
+
+  <input type="text" id="flt_area" class="bdf-input" placeholder="Area / Pincode" oninput="applyFilters()" style="min-width:140px;"/>
+
+  <div class="bdf-search-wrap">
+    <span class="bdf-search-ico">🔍</span>
+    <input type="text" id="flt_search" class="bdf-search" placeholder="Search name, company, email…" oninput="applyFilters()" style="padding-left:2rem;width:100%;"/>
+  </div>
+
+  <button class="bdf-btn bdf-btn-clear" onclick="clearFilters()">✕ Clear</button>
+  <span class="bdf-count" id="resultsCount">0 buyers</span>
+  <button class="bdf-btn bdf-btn-new" onclick="showAddForm()">＋ Add Buyer</button>
+  <a href="main.html" style="color:rgba(255,255,255,0.6);font-size:0.75rem;font-weight:600;text-decoration:none;margin-left:0.5rem;white-space:nowrap;">← Main Menu</a>
+</div>
+
+<!-- SHELL -->
+<div class="bd-shell">
+
+  <!-- TABLE -->
+  <div class="bd-table-side">
+    <div class="bd-tbl-wrap">
+      <table class="bd-tbl">
+        <thead>
+          <tr>
+            <th onclick="sortBy('name')">Buyer Name</th>
+            <th onclick="sortBy('company')">Company</th>
+            <th onclick="sortBy('country')">Country</th>
+            <th onclick="sortBy('state')">State</th>
+            <th onclick="sortBy('city')">City</th>
+            <th onclick="sortBy('area')">Area / Pincode</th>
+            <th>Contact</th>
+            <th>Status</th>
+            <th style="width:90px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="buyersTableBody"></tbody>
+      </table>
+      <div id="emptyState" class="bd-empty" style="display:none;">
+        <div class="bd-empty-icon">🌐</div>
+        <div class="bd-empty-txt">No buyers found</div>
+        <div class="bd-empty-sub">Try adjusting your filters or add a new buyer</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FORM / DETAIL SIDE -->
+  <div class="bd-form-side" id="rightPanel">
+    <!-- Placeholder -->
+    <div class="bdf-hd">
+      <div>
+        <div class="bdf-hd-title">Buyer Directory</div>
+        <div class="bdf-hd-sub">Select a buyer to view details or click + Add Buyer</div>
+      </div>
+    </div>
+    <div class="bd-placeholder">
+      <div class="bd-ph-icon">👤</div>
+      <div class="bd-ph-txt">No buyer selected</div>
+      <div class="bd-ph-sub">Click any row to view details, or use + Add Buyer to create a new contact</div>
+    </div>
+  </div>
+
+</div><!-- /bd-shell -->
+
+<script src="app.js"></script>
+<script>
+/* ============================================================
+   buyers.js — Buyer Directory
+   ============================================================ */
+
+let buyers    = JSON.parse(localStorage.getItem('impexio_buyers') || '[]');
+let filtered  = [...buyers];
+let sortCol   = 'name';
+let sortDir   = 'asc';
+let editingId = null;
+let selectedId= null;
+
+// ── Init ──────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  loadSess();
+  if (!sess.username) { window.location.href = 'login.html'; return; }
+  populateTopbar();
+  populateFilterDropdowns();
+  renderTable();
+});
+
+function populateTopbar() {
+  const s = sess || {};
+  const setText = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+  setText('dtbUname', s.username||'Admin');
+  setText('dtbRole',  s.role||'Administrator');
+  const av = document.getElementById('dtbAv');
+  if (av) av.textContent = (s.username||'A')[0].toUpperCase();
+  const meta = document.getElementById('dtbMeta');
+  if (meta && s.company && s.year) {
+    meta.innerHTML = `<div class="dtb-chip">🏷️ <strong>${s.clientCode||''}</strong></div><div class="dtb-chip">🏢 <strong>${(s.company.name||'').split(' ').slice(0,3).join(' ')}</strong></div><div class="dtb-chip">📅 <strong>FY ${s.year?.label||''}</strong></div>`;
+  }
+}
+function doLogout() {
+  if(confirm('Logout from IMPEXIO?')){ sessionStorage.removeItem('impexio'); window.location.href='index.html'; }
+}
+
+// ── Filter Dropdowns ──────────────────────────────────────────
+function populateFilterDropdowns() {
+  const unique = (key) => [...new Set(buyers.map(b => b[key]).filter(Boolean))].sort();
+  populateSelect('flt_country', unique('country'), '🌍 All Countries');
+  populateSelect('flt_state',   unique('state'),   '🏛 All States');
+  populateSelect('flt_city',    unique('city'),     '🏙 All Cities');
+}
+function populateSelect(id, items, placeholder) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const cur = el.value;
+  el.innerHTML = `<option value="">${placeholder}</option>`;
+  items.forEach(v => {
+    const opt = document.createElement('option');
+    opt.value = v; opt.textContent = v;
+    if (v === cur) opt.selected = true;
+    el.appendChild(opt);
+  });
+}
+function refreshDependentFilters() {
+  const country = document.getElementById('flt_country')?.value || '';
+  const state   = document.getElementById('flt_state')?.value   || '';
+
+  // State options depend on selected country
+  const states = [...new Set(
+    buyers.filter(b => !country || b.country === country).map(b => b.state).filter(Boolean)
+  )].sort();
+  populateSelect('flt_state', states, '🏛 All States');
+  if (state && states.includes(state)) document.getElementById('flt_state').value = state;
+
+  // City options depend on country + state
+  const cities = [...new Set(
+    buyers.filter(b => (!country || b.country===country) && (!state || b.state===state))
+          .map(b => b.city).filter(Boolean)
+  )].sort();
+  populateSelect('flt_city', cities, '🏙 All Cities');
+}
+
+// ── Filters ───────────────────────────────────────────────────
+function applyFilters() {
+  refreshDependentFilters();
+  const country = (document.getElementById('flt_country')?.value || '').toLowerCase();
+  const state   = (document.getElementById('flt_state')?.value   || '').toLowerCase();
+  const city    = (document.getElementById('flt_city')?.value    || '').toLowerCase();
+  const area    = (document.getElementById('flt_area')?.value    || '').toLowerCase().trim();
+  const search  = (document.getElementById('flt_search')?.value  || '').toLowerCase().trim();
+
+  filtered = buyers.filter(b => {
+    if (country && (b.country||'').toLowerCase() !== country) return false;
+    if (state   && (b.state  ||'').toLowerCase() !== state  ) return false;
+    if (city    && (b.city   ||'').toLowerCase() !== city   ) return false;
+    if (area    && !((b.area||'')+(b.pincode||'')).toLowerCase().includes(area)) return false;
+    if (search  && !JSON.stringify(b).toLowerCase().includes(search)) return false;
+    return true;
+  });
+  renderTable();
+}
+
+function clearFilters() {
+  ['flt_country','flt_state','flt_city','flt_area','flt_search'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  populateFilterDropdowns();
+  filtered = [...buyers];
+  renderTable();
+}
+
+// ── Sort ──────────────────────────────────────────────────────
+function sortBy(col) {
+  if (sortCol === col) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+  else { sortCol = col; sortDir = 'asc'; }
+
+  filtered.sort((a,b) => {
+    const va = (a[col]||'').toLowerCase();
+    const vb = (b[col]||'').toLowerCase();
+    return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+  });
+
+  // Update header classes
+  document.querySelectorAll('.bd-tbl thead th').forEach(th => {
+    th.classList.remove('sort-asc','sort-desc');
+  });
+  renderTable(false); // don't re-sort
+}
+
+// ── Render Table ──────────────────────────────────────────────
+function renderTable(doSort = true) {
+  if (doSort) {
+    filtered.sort((a,b) => {
+      const va = (a[sortCol]||'').toLowerCase();
+      const vb = (b[sortCol]||'').toLowerCase();
+      return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+    });
+  }
+
+  document.getElementById('resultsCount').textContent = `${filtered.length} buyer${filtered.length !== 1 ? 's' : ''}`;
+
+  const tbody = document.getElementById('buyersTableBody');
+  const empty = document.getElementById('emptyState');
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = filtered.map(b => `
+    <tr onclick="selectBuyer(${b.id})" class="${selectedId === b.id ? 'selected' : ''}">
+      <td>
+        <div class="bd-name">${esc(b.name)}</div>
+        ${b.company ? `<div class="bd-company">${esc(b.company)}</div>` : ''}
+      </td>
+      <td style="font-size:0.78rem;color:var(--text-mid);">${esc(b.company||'—')}</td>
+      <td><span class="bd-tag country">${esc(b.country||'—')}</span></td>
+      <td style="font-size:0.78rem;">${esc(b.state||'—')}</td>
+      <td style="font-size:0.78rem;">${esc(b.city||'—')}</td>
+      <td style="font-size:0.78rem;">${esc(b.area||'')} ${b.pincode ? `<span style="font-family:var(--font-mono);font-size:0.7rem;color:var(--text-soft);">${esc(b.pincode)}</span>` : ''}</td>
+      <td style="font-size:0.75rem;">${b.email ? `<div>${esc(b.email)}</div>` : ''}${b.phone ? `<div style="color:var(--text-soft);">${esc(b.phone)}</div>` : ''}</td>
+      <td><span class="bd-tag ${b.status === 'Active' ? 'active' : 'inactive'}">${esc(b.status||'Active')}</span></td>
+      <td onclick="event.stopPropagation()">
+        <button class="bd-act-btn edit" onclick="showEditForm(${b.id})">✏️ Edit</button>
+        <button class="bd-act-btn del"  onclick="deleteBuyer(${b.id})">🗑</button>
+      </td>
+    </tr>`).join('');
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Select / View ─────────────────────────────────────────────
+function selectBuyer(id) {
+  selectedId = id;
+  const b = buyers.find(x => x.id === id);
+  if (!b) return;
+
+  document.querySelectorAll('.bd-tbl tbody tr').forEach(tr => {
+    tr.classList.toggle('selected', parseInt(tr.querySelector('button[onclick*="showEditForm"]')?.getAttribute('onclick')?.match(/\d+/)?.[0]) === id);
+  });
+
+  document.getElementById('rightPanel').innerHTML = `
+    <div class="bdf-hd">
+      <div>
+        <div class="bdf-hd-title">${esc(b.name)}</div>
+        <div class="bdf-hd-sub">${esc(b.company||'Buyer Details')}</div>
+      </div>
+      <button class="bdf-close" onclick="closePanel()">✕</button>
+    </div>
+    <div class="bd-detail">
+      <div>
+        <div class="bd-detail-name">${esc(b.name)}</div>
+        ${b.company ? `<div class="bd-detail-company">${esc(b.company)}</div>` : ''}
+        <div class="bd-detail-tags" style="margin-top:0.5rem;">
+          <span class="bd-tag country">${esc(b.country||'—')}</span>
+          <span class="bd-tag ${b.status==='Active'?'active':'inactive'}">${esc(b.status||'Active')}</span>
+          ${b.category ? `<span class="bd-tag">${esc(b.category)}</span>` : ''}
+        </div>
+      </div>
+
+      <div class="bd-detail-section">📍 Location</div>
+      ${dRow('Country',  b.country)}
+      ${dRow('State',    b.state)}
+      ${dRow('City',     b.city)}
+      ${dRow('Area',     b.area)}
+      ${dRow('Pincode',  b.pincode)}
+      ${dRow('Address',  b.address)}
+
+      <div class="bd-detail-section">📞 Contact</div>
+      ${dRow('Email',    b.email)}
+      ${dRow('Phone',    b.phone)}
+      ${dRow('WhatsApp', b.whatsapp)}
+      ${dRow('Website',  b.website)}
+
+      <div class="bd-detail-section">🏷️ Business</div>
+      ${dRow('Category', b.category)}
+      ${dRow('Products', b.products)}
+      ${dRow('Currency', b.currency)}
+
+      ${b.notes ? `<div class="bd-detail-section">📝 Notes</div><div style="font-size:0.8rem;color:var(--text-mid);padding:0.3rem 0;">${esc(b.notes)}</div>` : ''}
+
+      <div class="bd-detail-btns">
+        <button class="bd-detail-edit" onclick="showEditForm(${b.id})">✏️ Edit Buyer</button>
+        <button class="bd-detail-del"  onclick="deleteBuyer(${b.id})">🗑 Delete</button>
+      </div>
+    </div>`;
+}
+
+function dRow(label, val) {
+  if (!val) return '';
+  return `<div class="bd-detail-row"><span class="bd-detail-lbl">${label}</span><span class="bd-detail-val">${esc(val)}</span></div>`;
+}
+
+function closePanel() {
+  selectedId = null;
+  document.getElementById('rightPanel').innerHTML = `
+    <div class="bdf-hd">
+      <div>
+        <div class="bdf-hd-title">Buyer Directory</div>
+        <div class="bdf-hd-sub">Select a buyer to view details or click + Add Buyer</div>
+      </div>
+    </div>
+    <div class="bd-placeholder">
+      <div class="bd-ph-icon">👤</div>
+      <div class="bd-ph-txt">No buyer selected</div>
+      <div class="bd-ph-sub">Click any row to view details, or use + Add Buyer to create a new contact</div>
+    </div>`;
+}
+
+// ── Add / Edit Form ───────────────────────────────────────────
+function showAddForm() {
+  editingId = null;
+  renderForm({});
+}
+function showEditForm(id) {
+  editingId = id;
+  const b = buyers.find(x => x.id === id) || {};
+  renderForm(b);
+}
+
+function renderForm(b) {
+  document.getElementById('rightPanel').innerHTML = `
+    <div class="bdf-hd">
+      <div>
+        <div class="bdf-hd-title">${editingId ? 'Edit Buyer' : 'Add New Buyer'}</div>
+        <div class="bdf-hd-sub">${editingId ? 'Update buyer information' : 'Fill in the buyer details below'}</div>
+      </div>
+      <button class="bdf-close" onclick="closePanel()">✕</button>
+    </div>
+    <div class="bdf-body" id="formBody">
+
+      <div class="bdf-section">Basic Information</div>
+      <div class="bdf-field"><label>Buyer / Contact Name <span style="color:#dc2626">*</span></label>
+        <input type="text" id="bf_name" value="${esc(b.name||'')}" placeholder="Full name"/></div>
+      <div class="bdf-field"><label>Company Name</label>
+        <input type="text" id="bf_company" value="${esc(b.company||'')}" placeholder="Company / Organisation"/></div>
+      <div class="bdf-2col">
+        <div class="bdf-field"><label>Category</label>
+          <select id="bf_category">
+            ${['Importer','Distributor','Retailer','Wholesaler','Agent','Manufacturer','Other'].map(c => `<option ${(b.category||'')==c?'selected':''}>${c}</option>`).join('')}
+          </select></div>
+        <div class="bdf-field"><label>Status</label>
+          <select id="bf_status">
+            <option ${(b.status||'Active')==='Active'?'selected':''}>Active</option>
+            <option ${(b.status||'')==='Inactive'?'selected':''}>Inactive</option>
+            <option ${(b.status||'')==='Prospect'?'selected':''}>Prospect</option>
+          </select></div>
+      </div>
+
+      <div class="bdf-section">📍 Location</div>
+      <div class="bdf-2col">
+        <div class="bdf-field"><label>Country <span style="color:#dc2626">*</span></label>
+          <input type="text" id="bf_country" value="${esc(b.country||'')}" placeholder="e.g. China, USA, UAE"/></div>
+        <div class="bdf-field"><label>State / Province</label>
+          <input type="text" id="bf_state" value="${esc(b.state||'')}" placeholder="State / Province"/></div>
+      </div>
+      <div class="bdf-2col">
+        <div class="bdf-field"><label>City</label>
+          <input type="text" id="bf_city" value="${esc(b.city||'')}" placeholder="City"/></div>
+        <div class="bdf-field"><label>Area</label>
+          <input type="text" id="bf_area" value="${esc(b.area||'')}" placeholder="Area / District"/></div>
+      </div>
+      <div class="bdf-2col">
+        <div class="bdf-field"><label>Pincode / ZIP</label>
+          <input type="text" id="bf_pincode" value="${esc(b.pincode||'')}" placeholder="Postal code"/></div>
+        <div class="bdf-field"><label>Currency</label>
+          <input type="text" id="bf_currency" value="${esc(b.currency||'')}" placeholder="e.g. USD, EUR, CNY"/></div>
+      </div>
+      <div class="bdf-field"><label>Full Address</label>
+        <textarea id="bf_address" placeholder="Complete address...">${esc(b.address||'')}</textarea></div>
+
+      <div class="bdf-section">📞 Contact Details</div>
+      <div class="bdf-field"><label>Email</label>
+        <input type="email" id="bf_email" value="${esc(b.email||'')}" placeholder="email@example.com"/></div>
+      <div class="bdf-2col">
+        <div class="bdf-field"><label>Phone</label>
+          <input type="text" id="bf_phone" value="${esc(b.phone||'')}" placeholder="+1 234 567 8900"/></div>
+        <div class="bdf-field"><label>WhatsApp</label>
+          <input type="text" id="bf_whatsapp" value="${esc(b.whatsapp||'')}" placeholder="+1 234 567 8900"/></div>
+      </div>
+      <div class="bdf-field"><label>Website</label>
+        <input type="text" id="bf_website" value="${esc(b.website||'')}" placeholder="https://example.com"/></div>
+
+      <div class="bdf-section">🏷️ Business Details</div>
+      <div class="bdf-field"><label>Products of Interest</label>
+        <input type="text" id="bf_products" value="${esc(b.products||'')}" placeholder="e.g. Textile, Chemicals, Food…"/></div>
+      <div class="bdf-field"><label>Notes</label>
+        <textarea id="bf_notes" placeholder="Any additional notes...">${esc(b.notes||'')}</textarea></div>
+
+    </div>
+    <div class="bdf-footer">
+      <button class="bdf-cancel" onclick="closePanel()">Cancel</button>
+      <button class="bdf-save"   onclick="saveBuyer()">💾 ${editingId ? 'Update' : 'Save'} Buyer</button>
+    </div>`;
+}
+
+// ── Save ──────────────────────────────────────────────────────
+function saveBuyer() {
+  const gv = id => document.getElementById(id)?.value?.trim() || '';
+  const name    = gv('bf_name');
+  const country = gv('bf_country');
+  if (!name)    { alert('Please enter Buyer Name.'); document.getElementById('bf_name')?.focus(); return; }
+  if (!country) { alert('Please enter Country.'); document.getElementById('bf_country')?.focus(); return; }
+
+  const buyer = {
+    id:       editingId ?? Date.now(),
+    name,     company:   gv('bf_company'),
+    category: gv('bf_category'), status: gv('bf_status'),
+    country,  state:    gv('bf_state'),
+    city:     gv('bf_city'),    area:     gv('bf_area'),
+    pincode:  gv('bf_pincode'), currency: gv('bf_currency'),
+    address:  gv('bf_address'),
+    email:    gv('bf_email'),   phone:    gv('bf_phone'),
+    whatsapp: gv('bf_whatsapp'),website:  gv('bf_website'),
+    products: gv('bf_products'),notes:    gv('bf_notes'),
+    updatedAt: new Date().toISOString(),
+  };
+
+  if (editingId !== null) {
+    const idx = buyers.findIndex(b => b.id === editingId);
+    if (idx > -1) buyers[idx] = buyer; else buyers.unshift(buyer);
+  } else {
+    buyers.unshift(buyer);
+  }
+
+  localStorage.setItem('impexio_buyers', JSON.stringify(buyers));
+  populateFilterDropdowns();
+  applyFilters();
+  showToast('✅', `Buyer "${name}" ${editingId ? 'updated' : 'added'}!`);
+  selectBuyer(buyer.id);
+  editingId = null;
+}
+
+// ── Delete ────────────────────────────────────────────────────
+function deleteBuyer(id) {
+  const b = buyers.find(x => x.id === id);
+  if (!b) return;
+  if (!confirm(`Delete buyer "${b.name}"? This cannot be undone.`)) return;
+  buyers = buyers.filter(x => x.id !== id);
+  localStorage.setItem('impexio_buyers', JSON.stringify(buyers));
+  populateFilterDropdowns();
+  filtered = filtered.filter(x => x.id !== id);
+  renderTable();
+  closePanel();
+  showToast('🗑', `Buyer "${b.name}" deleted.`);
+}
+
+// ── Toast ─────────────────────────────────────────────────────
+function showToast(icon, msg) {
+  let t = document.getElementById('bd-toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'bd-toast';
+    t.style.cssText = `position:fixed;bottom:1.5rem;right:1.5rem;background:var(--navy);color:#fff;padding:0.7rem 1.2rem;border-radius:10px;font-size:0.82rem;font-weight:600;display:flex;gap:0.5rem;align-items:center;box-shadow:0 8px 24px rgba(15,37,64,0.3);z-index:9999;opacity:0;transition:opacity 0.3s;pointer-events:none;border-left:3px solid var(--gold);`;
+    document.body.appendChild(t);
+  }
+  t.innerHTML = `<span>${icon}</span><span>${msg}</span>`;
+  t.style.opacity = '1';
+  clearTimeout(t._t);
+  t._t = setTimeout(() => { t.style.opacity = '0'; }, 3000);
+}
+</script>
+</body>
+</html>

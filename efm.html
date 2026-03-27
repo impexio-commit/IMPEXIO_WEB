@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IMPEXIO — Export Follow-up Mail</title>
+  <link rel="stylesheet" href="styles.css"/>
+  <link rel="stylesheet" href="efm.css"/>
+  <link rel="icon" href="impexio_logo.png" type="image/png"/>
+</head>
+<body class="dash-body efm-body">
+
+<!-- TOP BAR -->
+<div class="dash-topbar">
+  <div class="dtb-brand">
+    <div class="dtb-logo-box"><img src="impexio_logo.png" alt="IMPEXIO" class="dtb-logo"/></div>
+    <div class="dtb-name">IMPEXIO</div>
+  </div>
+  <div class="dtb-meta" id="dtbMeta"></div>
+  <div class="dtb-right">
+    <div class="dtb-user">
+      <div class="dtb-avatar" id="dtbAv">A</div>
+      <div>
+        <div class="dtb-uname" id="dtbUname">Admin</div>
+        <div class="dtb-role"  id="dtbRole">Administrator</div>
+      </div>
+    </div>
+    <button class="btn-logout" onclick="doLogout()">⏻ Logout</button>
+  </div>
+</div>
+
+<!-- PAGE SHELL -->
+<div class="efm-shell">
+
+  <!-- ═══ LEFT: Records ═══ -->
+  <div class="efm-left">
+    <div class="efl-header">
+      <div class="efl-title">📧 EFM Records</div>
+      <button class="efl-new-btn" onclick="newEntry()">＋ New</button>
+    </div>
+    <div class="efl-search-wrap">
+      <span>🔍</span>
+      <input type="text" id="searchInput" class="efl-search" placeholder="Search..." oninput="filterRecords()"/>
+    </div>
+    <div class="efl-list" id="recordsList">
+      <div class="efl-empty">
+        <div style="font-size:1.6rem;opacity:0.35;">📧</div>
+        <div class="efl-empty-txt">No records yet</div>
+        <div class="efl-empty-sub">Click + New to begin</div>
+      </div>
+    </div>
+    <a href="main.html" class="efl-back">← Back to Menu</a>
+  </div>
+
+  <!-- ═══ RIGHT: Step Wizard ═══ -->
+  <div class="efm-right">
+
+    <!-- Progress Bar -->
+    <div class="efm-progress-bar">
+      <div class="epb-left">
+        <div class="epb-title" id="formTitle">New Follow-up Mail</div>
+        <div class="epb-sub"   id="formSub">Step 1 of 3</div>
+      </div>
+      <div class="epb-steps">
+        <div class="epb-step active" id="pstep_1" onclick="goToStep(1)">
+          <div class="epb-step-num">1</div>
+          <div class="epb-step-lbl">Mail Type &amp; Ref</div>
+        </div>
+        <div class="epb-connector" id="conn_1"></div>
+        <div class="epb-step" id="pstep_2" onclick="goToStep(2)">
+          <div class="epb-step-num">2</div>
+          <div class="epb-step-lbl">Sender &amp; Buyer</div>
+        </div>
+        <div class="epb-connector" id="conn_2"></div>
+        <div class="epb-step" id="pstep_3" onclick="goToStep(3)">
+          <div class="epb-step-num">3</div>
+          <div class="epb-step-lbl">Preview &amp; Send</div>
+        </div>
+      </div>
+      <div class="epb-actions">
+        <button class="ea ea-clear" onclick="clearForm()">🗑 Clear</button>
+        <button class="ea ea-save"  onclick="saveRecord()">💾 Save</button>
+        <button class="ea ea-print" onclick="printRecord()">🖨 Print</button>
+      </div>
+    </div>
+
+    <!-- ══ STEP 1: Mail Type & Reference ══ -->
+    <div class="efm-step" id="step_1">
+      <div class="efm-step-inner">
+        <div class="efm-step-header">
+          <div class="efm-step-icon">🎯</div>
+          <div>
+            <div class="efm-step-title">Select Mail Type &amp; Reference</div>
+            <div class="efm-step-desc">Choose the type of follow-up mail and enter the reference details</div>
+          </div>
+        </div>
+
+        <!-- Mail type selector -->
+        <div class="efm-card">
+          <div class="efm-card-hd"><span class="efm-badge">A</span> Select Follow-up Mail Type <span class="efm-card-note">Click to select the mail type</span></div>
+          <div class="mail-type-grid">
+            <div class="mail-type-btn" id="mtype-quotation" onclick="selectMailType('quotation')">
+              <span class="mbt-icon">📋</span>Quotation Follow-up
+            </div>
+            <div class="mail-type-btn" id="mtype-sample" onclick="selectMailType('sample')">
+              <span class="mbt-icon">🧪</span>Sample Follow-up
+            </div>
+            <div class="mail-type-btn" id="mtype-order" onclick="selectMailType('order')">
+              <span class="mbt-icon">📦</span>Order Confirmation
+            </div>
+            <div class="mail-type-btn" id="mtype-payment" onclick="selectMailType('payment')">
+              <span class="mbt-icon">💳</span>Payment Follow-up
+            </div>
+            <div class="mail-type-btn" id="mtype-dispatch" onclick="selectMailType('dispatch')">
+              <span class="mbt-icon">🚢</span>Shipment Dispatch
+            </div>
+            <div class="mail-type-btn" id="mtype-documents" onclick="selectMailType('documents')">
+              <span class="mbt-icon">📬</span>Documents Sent
+            </div>
+            <div class="mail-type-btn" id="mtype-feedback" onclick="selectMailType('feedback')">
+              <span class="mbt-icon">⭐</span>Delivery Feedback
+            </div>
+            <div class="mail-type-btn" id="mtype-repeat" onclick="selectMailType('repeat')">
+              <span class="mbt-icon">🔄</span>Repeat Order
+            </div>
+          </div>
+        </div>
+
+        <!-- Reference details -->
+        <div class="efm-card">
+          <div class="efm-card-hd"><span class="efm-badge">B</span> Reference Details</div>
+          <div class="efm-grid-3col">
+            <div class="ef">
+              <label class="el2">Mail Ref. No. <span class="req">*</span></label>
+              <input type="text" class="ei" id="f_refno" placeholder="EFM/2026/0001"/>
+            </div>
+            <div class="ef">
+              <label class="el2">Date <span class="req">*</span></label>
+              <input type="date" class="ei" id="f_date"/>
+            </div>
+            <div class="ef">
+              <label class="el2">Product / Subject</label>
+              <div class="master-field-wrap">
+                <input type="text" class="ei" id="f_product" placeholder="e.g. Ceramic Floor Tiles"/>
+                <button class="master-trigger" onclick="openEfmMaster('product','f_product')" title="Product Master">📦</button>
+              </div>
+            </div>
+            <div class="ef">
+              <label class="el2">Original Doc. Ref. No.</label>
+              <input type="text" class="ei" id="f_docref" placeholder="e.g. EQ/2026/0038 or PI/2026/0042"/>
+            </div>
+            <div class="ef">
+              <label class="el2">Original Doc. Date</label>
+              <input type="date" class="ei" id="f_docdate"/>
+            </div>
+            <div class="ef">
+              <label class="el2">Original Doc. Value</label>
+              <input type="text" class="ei" id="f_docvalue" placeholder="e.g. $18,350 or ₹6.8L"/>
+            </div>
+          </div>
+        </div>
+
+        <!-- Additional ref fields shown based on mail type -->
+        <div class="efm-card" id="extraRefCard" style="display:none;">
+          <div class="efm-card-hd"><span class="efm-badge">C</span> <span id="extraRefTitle">Additional Details</span></div>
+          <div class="efm-grid-2col" id="extraRefFields"></div>
+        </div>
+
+      </div>
+      <div class="efm-step-footer">
+        <div></div>
+        <button class="enav enav-next" onclick="nextStep(1)">Next: Sender &amp; Buyer →</button>
+      </div>
+    </div>
+
+    <!-- ══ STEP 2: Sender & Buyer ══ -->
+    <div class="efm-step hidden" id="step_2">
+      <div class="efm-step-inner">
+
+        <div class="efm-info-strip">
+          <span id="s2_type">—</span>
+          <span class="efm-strip-sep">|</span>
+          <span id="s2_ref">—</span>
+          <span class="efm-strip-sep">|</span>
+          <span id="s2_product">—</span>
+        </div>
+
+        <!-- From (Sender) -->
+        <div class="efm-card">
+          <div class="efm-card-hd"><span class="efm-badge">D</span> From — Your Company (Sender)</div>
+          <div class="efm-grid-3col">
+            <div class="ef">
+              <label class="el2">Company Name <span class="req">*</span></label>
+              <div class="master-field-wrap">
+                <input type="text" class="ei" id="f_from_company" placeholder="Your company name"/>
+                <button class="master-trigger" onclick="openEfmMaster('company','f_from_company')" title="Company Master">🏢</button>
+              </div>
+            </div>
+            <div class="ef">
+              <label class="el2">Sender Name <span class="req">*</span></label>
+              <div class="master-field-wrap">
+                <input type="text" class="ei" id="f_from_name" placeholder="Prepared by / Sender name"/>
+                <button class="master-trigger" onclick="openEfmMaster('signatory','f_from_name')" title="Signatory Master">✍️</button>
+              </div>
+            </div>
+            <div class="ef">
+              <label class="el2">Designation</label>
+              <input type="text" class="ei" id="f_from_designation" placeholder="e.g. Export Manager"/>
+            </div>
+            <div class="ef">
+              <label class="el2">Email</label>
+              <input type="email" class="ei" id="f_from_email" placeholder="exports@company.com"/>
+            </div>
+            <div class="ef">
+              <label class="el2">Phone</label>
+              <input type="text" class="ei" id="f_from_phone" placeholder="+91 98765 43210"/>
+            </div>
+            <div class="ef">
+              <label class="el2">City / Location</label>
+              <input type="text" class="ei" id="f_from_city" placeholder="e.g. GIFT City, Gandhinagar"/>
+            </div>
+          </div>
+        </div>
+
+        <!-- To (Buyer) -->
+        <div class="efm-card">
+          <div class="efm-card-hd efm-card-hd-teal"><span class="efm-badge">E</span> To — Buyer / Recipient</div>
+          <div class="efm-grid-3col">
+            <div class="ef">
+              <label class="el2">Buyer Name / Contact <span class="req">*</span></label>
+              <div class="master-field-wrap">
+                <input type="text" class="ei" id="f_to_name" placeholder="e.g. Mr. Hans Mueller"/>
+                <button class="master-trigger" onclick="openEfmMaster('buyer','f_to_name')" title="Buyer Master">🌍</button>
+              </div>
+            </div>
+            <div class="ef">
+              <label class="el2">Company Name</label>
+              <input type="text" class="ei" id="f_to_company" placeholder="Buyer's company name"/>
+            </div>
+            <div class="ef">
+              <label class="el2">Country</label>
+              <input type="text" class="ei" id="f_to_country" placeholder="e.g. Germany"/>
+            </div>
+            <div class="ef" style="grid-column:1/-1;">
+              <label class="el2">Email Address</label>
+              <input type="email" class="ei" id="f_to_email" placeholder="buyer@company.com"/>
+            </div>
+          </div>
+        </div>
+
+        <!-- Remarks / special message -->
+        <div class="efm-card">
+          <div class="efm-card-hd"><span class="efm-badge">F</span> Special Note (Optional)</div>
+          <div class="efm-grid-1col">
+            <div class="ef">
+              <label class="el2">Add a custom note or special line to the mail body</label>
+              <textarea class="ei ei-ta" id="f_special_note" placeholder="e.g. We are also pleased to share our new 2026 product catalogue..."></textarea>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="efm-step-footer">
+        <button class="enav enav-back" onclick="prevStep(2)">← Back</button>
+        <button class="enav enav-next" onclick="nextStep(2)">Next: Preview &amp; Send →</button>
+      </div>
+    </div>
+
+    <!-- ══ STEP 3: Preview & Send ══ -->
+    <div class="efm-step hidden" id="step_3">
+      <div class="efm-step-inner">
+
+        <div class="efm-info-strip">
+          <span id="s3_type">—</span>
+          <span class="efm-strip-sep">|</span>
+          <span id="s3_ref">—</span>
+          <span class="efm-strip-sep">|</span>
+          <span>To: <strong id="s3_buyer">—</strong></span>
+        </div>
+
+        <!-- Generated email preview -->
+        <div class="efm-card">
+          <div class="efm-card-hd"><span class="efm-badge">G</span> Generated Follow-up Mail <span class="efm-card-note">Review before saving or printing</span></div>
+          <div class="efm-email-preview">
+            <div class="eep-header">
+              <div class="eep-dot r"></div><div class="eep-dot y"></div><div class="eep-dot g"></div>
+              <div class="eep-label">Generated Mail Preview</div>
+            </div>
+            <div id="emailPreviewBody" class="eep-body">
+              <div class="eep-placeholder">
+                <div class="eep-placeholder-icon">📧</div>
+                <div class="eep-placeholder-txt">Mail preview will appear here</div>
+                <div class="eep-placeholder-sub">Go back and fill in all required fields to generate the mail</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="efm-card">
+          <div class="efm-card-hd"><span class="efm-badge">H</span> Mail Summary</div>
+          <div class="efm-sum-grid">
+            <div class="efm-sum-item"><div class="efm-sum-lbl">Mail Type</div><div class="efm-sum-val" id="sum_type">—</div></div>
+            <div class="efm-sum-item"><div class="efm-sum-lbl">Ref. No.</div><div class="efm-sum-val" id="sum_ref">—</div></div>
+            <div class="efm-sum-item"><div class="efm-sum-lbl">Date</div><div class="efm-sum-val" id="sum_date">—</div></div>
+            <div class="efm-sum-item"><div class="efm-sum-lbl">To</div><div class="efm-sum-val" id="sum_to">—</div></div>
+            <div class="efm-sum-item"><div class="efm-sum-lbl">From</div><div class="efm-sum-val" id="sum_from">—</div></div>
+            <div class="efm-sum-item"><div class="efm-sum-lbl">Doc. Reference</div><div class="efm-sum-val" id="sum_docref">—</div></div>
+          </div>
+        </div>
+
+      </div>
+      <div class="efm-step-footer">
+        <button class="enav enav-back" onclick="prevStep(3)">← Back</button>
+        <div style="display:flex;gap:0.5rem;">
+          <button class="enav enav-save"  onclick="saveRecord()">💾 Save Record</button>
+          <button class="enav enav-print" onclick="printRecord()">🖨 Print Mail</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /efm-right -->
+</div><!-- /efm-shell -->
+
+<!-- Master panels added by efm.js -->
+<div id="printArea" style="display:none;"></div>
+
+<script src="app.js"></script>
+<script src="efm.js"></script>
+</body>
+</html>

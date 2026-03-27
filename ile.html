@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IMPEXIO — Import Letter For Enquiry</title>
+  <link rel="stylesheet" href="styles.css"/>
+  <link rel="stylesheet" href="ile.css"/>
+  <link rel="icon" href="impexio_logo.png" type="image/png"/>
+</head>
+<body class="dash-body ile-body">
+
+<!-- TOP BAR -->
+<div class="dash-topbar">
+  <div class="dtb-brand">
+    <div class="dtb-logo-box"><img src="impexio_logo.png" alt="IMPEXIO" class="dtb-logo"/></div>
+    <div class="dtb-name">IMPEXIO</div>
+  </div>
+  <div class="dtb-meta" id="dtbMeta"></div>
+  <div class="dtb-right">
+    <div class="dtb-user">
+      <div class="dtb-avatar" id="dtbAv">A</div>
+      <div>
+        <div class="dtb-uname" id="dtbUname">Admin</div>
+        <div class="dtb-role"  id="dtbRole">Administrator</div>
+      </div>
+    </div>
+    <button class="btn-logout" onclick="doLogout()">⏻ Logout</button>
+  </div>
+</div>
+
+<!-- PAGE SHELL -->
+<div class="ile-shell">
+
+  <!-- ═══ LEFT: Records ═══ -->
+  <div class="ile-left">
+    <div class="ill-header">
+      <div class="ill-title">📩 ILE Records</div>
+      <button class="ill-new-btn" onclick="newEntry()">＋ New</button>
+    </div>
+    <div class="ill-search-wrap">
+      <span>🔍</span>
+      <input type="text" id="searchInput" class="ill-search" placeholder="Search..." oninput="filterRecords()"/>
+    </div>
+    <div class="ill-list" id="recordsList">
+      <div class="ill-empty">
+        <div style="font-size:1.6rem;opacity:0.35;">📩</div>
+        <div class="ill-empty-txt">No records yet</div>
+        <div class="ill-empty-sub">Click + New to begin</div>
+      </div>
+    </div>
+    <a href="main.html" class="ill-back">← Back to Menu</a>
+  </div>
+
+  <!-- ═══ RIGHT: Step Wizard ═══ -->
+  <div class="ile-right">
+
+    <!-- Progress Bar -->
+    <div class="ile-progress-bar">
+      <div class="ipb-left">
+        <div class="ipb-title" id="formTitle">New Enquiry Letter</div>
+        <div class="ipb-sub"   id="formSub">Step 1 of 4</div>
+      </div>
+      <div class="ipb-steps">
+        <div class="ipb-step active" id="pstep_1" onclick="goToStep(1)">
+          <div class="ipb-step-num">1</div>
+          <div class="ipb-step-lbl">Header Info</div>
+        </div>
+        <div class="ipb-connector" id="conn_1"></div>
+        <div class="ipb-step" id="pstep_2" onclick="goToStep(2)">
+          <div class="ipb-step-num">2</div>
+          <div class="ipb-step-lbl">Products</div>
+        </div>
+        <div class="ipb-connector" id="conn_2"></div>
+        <div class="ipb-step" id="pstep_3" onclick="goToStep(3)">
+          <div class="ipb-step-num">3</div>
+          <div class="ipb-step-lbl">Terms &amp; Checklist</div>
+        </div>
+        <div class="ipb-connector" id="conn_3"></div>
+        <div class="ipb-step" id="pstep_4" onclick="goToStep(4)">
+          <div class="ipb-step-num">4</div>
+          <div class="ipb-step-lbl">Preview &amp; Print</div>
+        </div>
+      </div>
+      <div class="ipb-actions">
+        <button class="ia ia-clear" onclick="clearForm()">🗑 Clear</button>
+        <button class="ia ia-save"  onclick="saveRecord()">💾 Save</button>
+        <button class="ia ia-print" onclick="printRecord()">🖨 Print</button>
+      </div>
+    </div>
+
+    <!-- ══ STEP 1: Header Info ══ -->
+    <div class="ile-step" id="step_1">
+      <div class="ile-step-inner">
+        <div class="ile-step-header">
+          <div class="ile-step-icon">📩</div>
+          <div>
+            <div class="ile-step-title">Header Information</div>
+            <div class="ile-step-desc">Enter the reference, your company and the supplier's details</div>
+          </div>
+        </div>
+
+        <!-- Reference -->
+        <div class="ile-card">
+          <div class="ile-card-hd"><span class="ile-badge">A</span> Letter Reference</div>
+          <div class="ile-grid-3">
+            <div class="if">
+              <label class="il2">ILE Ref. No. <span class="req">*</span></label>
+              <input type="text" class="ii" id="f_refno" placeholder="ILE/2026/0001"/>
+            </div>
+            <div class="if">
+              <label class="il2">Date <span class="req">*</span></label>
+              <input type="date" class="ii" id="f_date"/>
+            </div>
+            <div class="if">
+              <label class="il2">Response Required By</label>
+              <input type="date" class="ii" id="f_response_by"/>
+            </div>
+          </div>
+        </div>
+
+        <!-- Your company (buyer/importer) -->
+        <div class="ile-card">
+          <div class="ile-card-hd ile-card-hd-blue"><span class="ile-badge">B</span> From — Your Company (Importer)</div>
+          <div class="ile-grid-3">
+            <div class="if">
+              <label class="il2">Company Name <span class="req">*</span></label>
+              <div class="master-field-wrap">
+                <input type="text" class="ii" id="f_from_company" placeholder="Your company name"/>
+                <button class="master-trigger" onclick="openIleMaster('company','f_from_company')" title="Company Master">🏢</button>
+              </div>
+            </div>
+            <div class="if">
+              <label class="il2">Contact Person <span class="req">*</span></label>
+              <div class="master-field-wrap">
+                <input type="text" class="ii" id="f_from_contact" placeholder="Your name"/>
+                <button class="master-trigger" onclick="openIleMaster('signatory','f_from_contact')" title="Signatory Master">✍️</button>
+              </div>
+            </div>
+            <div class="if">
+              <label class="il2">Designation</label>
+              <input type="text" class="ii" id="f_from_desig" placeholder="e.g. Import Manager"/>
+            </div>
+            <div class="if">
+              <label class="il2">Address</label>
+              <input type="text" class="ii" id="f_from_addr" placeholder="City, State, Country"/>
+            </div>
+            <div class="if">
+              <label class="il2">Email</label>
+              <input type="email" class="ii" id="f_from_email" placeholder="imports@company.com"/>
+            </div>
+            <div class="if">
+              <label class="il2">Phone / WhatsApp</label>
+              <input type="text" class="ii" id="f_from_phone" placeholder="+91 98765 43210"/>
+            </div>
+          </div>
+        </div>
+
+        <!-- Supplier details -->
+        <div class="ile-card">
+          <div class="ile-card-hd ile-card-hd-teal"><span class="ile-badge">C</span> To — Supplier / Manufacturer</div>
+          <div class="ile-grid-3">
+            <div class="if">
+              <label class="il2">Supplier Name / Company <span class="req">*</span></label>
+              <div class="master-field-wrap">
+                <input type="text" class="ii" id="f_sup_name" placeholder="e.g. Global Ceramic Exports Ltd."/>
+                <button class="master-trigger" onclick="openIleMaster('supplier','f_sup_name')" title="Supplier Master">🌏</button>
+              </div>
+            </div>
+            <div class="if">
+              <label class="il2">Contact Person</label>
+              <input type="text" class="ii" id="f_sup_contact" placeholder="e.g. Mr. Wang Li"/>
+            </div>
+            <div class="if">
+              <label class="il2">Country</label>
+              <div class="master-field-wrap">
+                <input type="text" class="ii" id="f_sup_country" placeholder="e.g. China"/>
+                <button class="master-trigger" onclick="openIleMaster('location','f_sup_country')" title="Location Master">📍</button>
+              </div>
+            </div>
+            <div class="if" style="grid-column:1/-1;">
+              <label class="il2">Address</label>
+              <input type="text" class="ii" id="f_sup_addr" placeholder="City, Province, Country"/>
+            </div>
+            <div class="if">
+              <label class="il2">Email</label>
+              <input type="email" class="ii" id="f_sup_email" placeholder="supplier@factory.com"/>
+            </div>
+            <div class="if">
+              <label class="il2">Website</label>
+              <input type="text" class="ii" id="f_sup_website" placeholder="www.supplier.com"/>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="ile-step-footer">
+        <div></div>
+        <button class="inav inav-next" onclick="nextStep(1)">Next: Products →</button>
+      </div>
+    </div>
+
+    <!-- ══ STEP 2: Products ══ -->
+    <div class="ile-step hidden" id="step_2">
+      <div class="ile-step-inner">
+
+        <div class="ile-info-strip">
+          <span>To: <strong id="s2_supplier">—</strong></span>
+          <span class="ile-strip-sep">|</span>
+          <span id="s2_country">—</span>
+          <span class="ile-strip-sep">|</span>
+          <span id="s2_ref">—</span>
+        </div>
+
+        <div class="ile-card">
+          <div class="ile-card-hd">
+            <span class="ile-badge">D</span> Product Lines Required
+            <span class="ile-card-note">Enter each product you want to import</span>
+            <button class="ile-add-row-btn" onclick="addRow()">＋ Add Row</button>
+          </div>
+          <div class="ile-prod-wrap">
+            <table class="ile-prod-tbl">
+              <thead>
+                <tr>
+                  <th style="min-width:180px;">Product Description</th>
+                  <th style="min-width:90px;">HS Code</th>
+                  <th style="min-width:90px;">Qty Required</th>
+                  <th style="min-width:70px;">Unit</th>
+                  <th style="min-width:110px;">Specifications</th>
+                  <th style="width:36px;"></th>
+                </tr>
+              </thead>
+              <tbody id="productBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Delivery requirement -->
+        <div class="ile-card">
+          <div class="ile-card-hd ile-card-hd-teal"><span class="ile-badge">E</span> Delivery Requirement</div>
+          <div class="ile-grid-3">
+            <div class="if">
+              <label class="il2">Port of Discharge</label>
+              <div class="master-field-wrap">
+                <input type="text" class="ii" id="f_pod" placeholder="e.g. Mundra Port, India"/>
+                <button class="master-trigger" onclick="openIleMaster('port','f_pod')" title="Port Master">⚓</button>
+              </div>
+            </div>
+            <div class="if">
+              <label class="il2">Incoterms Preferred</label>
+              <div class="master-field-wrap">
+                <input type="text" class="ii" id="f_incoterms" placeholder="e.g. CIF / FOB / EXW"/>
+                <button class="master-trigger" onclick="openIleMaster('incoterms','f_incoterms')" title="Incoterms Master">📜</button>
+              </div>
+            </div>
+            <div class="if">
+              <label class="il2">Container Type</label>
+              <input type="text" class="ii" id="f_container" placeholder="e.g. 40' HQ / LCL / Air Freight"/>
+            </div>
+            <div class="if">
+              <label class="il2">Required Delivery By</label>
+              <input type="date" class="ii" id="f_delivery_by"/>
+            </div>
+            <div class="if">
+              <label class="il2">Country of Origin Req.</label>
+              <input type="text" class="ii" id="f_coo" placeholder="e.g. Made in China / India only"/>
+            </div>
+            <div class="if">
+              <label class="il2">Pricing Basis</label>
+              <input type="text" class="ii" id="f_price_basis" placeholder="e.g. Per SQM / Per MT / Per PCS"/>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="ile-step-footer">
+        <button class="inav inav-back" onclick="prevStep(2)">← Back</button>
+        <button class="inav inav-next" onclick="nextStep(2)">Next: Terms &amp; Checklist →</button>
+      </div>
+    </div>
+
+    <!-- ══ STEP 3: Terms & Checklist ══ -->
+    <div class="ile-step hidden" id="step_3">
+      <div class="ile-step-inner">
+
+        <div class="ile-info-strip">
+          <span id="s3_supplier">—</span>
+          <span class="ile-strip-sep">|</span>
+          <span id="s3_product">—</span>
+          <span class="ile-strip-sep">|</span>
+          <span id="s3_ref">—</span>
+        </div>
+
+        <!-- Commercial terms -->
+        <div class="ile-card">
+          <div class="ile-card-hd ile-card-hd-blue"><span class="ile-badge">F</span> Commercial Terms</div>
+          <div class="ile-grid-3">
+            <div class="if">
+              <label class="il2">Payment Terms Preferred</label>
+              <div class="master-field-wrap">
+                <input type="text" class="ii" id="f_payment_terms" placeholder="e.g. 30% Advance, 70% against BL"/>
+                <button class="master-trigger" onclick="openIleMaster('payterms','f_payment_terms')" title="Payment Terms Master">💳</button>
+              </div>
+            </div>
+            <div class="if">
+              <label class="il2">Currency</label>
+              <div class="master-field-wrap">
+                <input type="text" class="ii" id="f_currency" placeholder="e.g. USD / EUR / INR"/>
+                <button class="master-trigger" onclick="openIleMaster('currency','f_currency')" title="Currency Master">💱</button>
+              </div>
+            </div>
+            <div class="if">
+              <label class="il2">MOQ Expectation</label>
+              <input type="text" class="ii" id="f_moq" placeholder="e.g. Min. 1 × 40' container"/>
+            </div>
+          </div>
+        </div>
+
+        <!-- Information checklist -->
+        <div class="ile-card">
+          <div class="ile-card-hd"><span class="ile-badge">G</span> Information Requested from Supplier <span class="ile-card-note">Tick all that apply</span></div>
+          <div class="ile-checklist">
+            <label class="ile-check-item" id="chk-price"><input type="checkbox" id="c_price" checked/><span class="ile-check-label">💰 Price List / Rate</span></label>
+            <label class="ile-check-item" id="chk-moq"><input type="checkbox" id="c_moq" checked/><span class="ile-check-label">📦 MOQ Details</span></label>
+            <label class="ile-check-item" id="chk-lead"><input type="checkbox" id="c_lead" checked/><span class="ile-check-label">⏱️ Lead Time</span></label>
+            <label class="ile-check-item" id="chk-payment"><input type="checkbox" id="c_payment" checked/><span class="ile-check-label">💳 Payment Terms</span></label>
+            <label class="ile-check-item" id="chk-sample"><input type="checkbox" id="c_sample" checked/><span class="ile-check-label">🧪 Sample Availability</span></label>
+            <label class="ile-check-item" id="chk-catalogue"><input type="checkbox" id="c_catalogue" checked/><span class="ile-check-label">📋 Product Catalogue</span></label>
+            <label class="ile-check-item" id="chk-cert"><input type="checkbox" id="c_cert"/><span class="ile-check-label">🏅 Certifications</span></label>
+            <label class="ile-check-item" id="chk-packing"><input type="checkbox" id="c_packing"/><span class="ile-check-label">📦 Packing Details</span></label>
+            <label class="ile-check-item" id="chk-pol"><input type="checkbox" id="c_pol"/><span class="ile-check-label">⚓ Port of Loading</span></label>
+            <label class="ile-check-item" id="chk-photo"><input type="checkbox" id="c_photo"/><span class="ile-check-label">📸 Product Photos</span></label>
+            <label class="ile-check-item" id="chk-test"><input type="checkbox" id="c_test"/><span class="ile-check-label">🔬 Test Reports</span></label>
+            <label class="ile-check-item" id="chk-spec"><input type="checkbox" id="c_spec"/><span class="ile-check-label">📄 Tech Specs / Datasheet</span></label>
+          </div>
+        </div>
+
+        <!-- Remarks -->
+        <div class="ile-card">
+          <div class="ile-card-hd"><span class="ile-badge">H</span> Remarks &amp; Authorization</div>
+          <div class="ile-grid-2">
+            <div class="if" style="grid-column:1/-1;">
+              <label class="il2">Special Instructions / Remarks</label>
+              <textarea class="ii ii-ta" id="f_remarks" placeholder="Quality certifications required, country of origin, special testing, import regulations..."></textarea>
+            </div>
+            <div class="if">
+              <label class="il2">Prepared By <span class="req">*</span></label>
+              <div class="master-field-wrap">
+                <input type="text" class="ii" id="f_preparedby" placeholder="Your full name"/>
+                <button class="master-trigger" onclick="openIleMaster('signatory','f_preparedby')" title="Signatory Master">✍️</button>
+              </div>
+            </div>
+            <div class="if">
+              <label class="il2">Authorised Signatory</label>
+              <div class="master-field-wrap">
+                <input type="text" class="ii" id="f_signatory" placeholder="Authorised signatory name"/>
+                <button class="master-trigger" onclick="openIleMaster('signatory','f_signatory')" title="Signatory Master">✍️</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="ile-step-footer">
+        <button class="inav inav-back" onclick="prevStep(3)">← Back</button>
+        <button class="inav inav-next" onclick="nextStep(3)">Next: Preview &amp; Print →</button>
+      </div>
+    </div>
+
+    <!-- ══ STEP 4: Preview & Print ══ -->
+    <div class="ile-step hidden" id="step_4">
+      <div class="ile-step-inner">
+
+        <div class="ile-info-strip">
+          <span id="s4_supplier">—</span>
+          <span class="ile-strip-sep">|</span>
+          <span id="s4_product">—</span>
+          <span class="ile-strip-sep">|</span>
+          <span>Ref: <strong id="s4_ref">—</strong></span>
+        </div>
+
+        <div class="ile-card">
+          <div class="ile-card-hd"><span class="ile-badge">I</span> Generated Letter Preview <span class="ile-card-note">Review before saving or printing</span></div>
+          <div class="ile-letter-preview">
+            <div class="ilp-header">
+              <div class="ilp-dot r"></div><div class="ilp-dot y"></div><div class="ilp-dot g"></div>
+              <div class="ilp-label">Generated Letter Preview</div>
+            </div>
+            <div id="letterPreviewBody" class="ilp-body">
+              <div class="ilp-placeholder">
+                <div class="ilp-placeholder-icon">📩</div>
+                <div class="ilp-placeholder-txt">Letter preview will appear here</div>
+                <div class="ilp-placeholder-sub">Fill in all required fields to generate the letter</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ile-card">
+          <div class="ile-card-hd"><span class="ile-badge">J</span> Letter Summary</div>
+          <div class="ile-sum-grid">
+            <div class="ile-sum-item"><div class="ile-sum-lbl">Ref. No.</div><div class="ile-sum-val" id="sum_ref">—</div></div>
+            <div class="ile-sum-item"><div class="ile-sum-lbl">Date</div><div class="ile-sum-val" id="sum_date">—</div></div>
+            <div class="ile-sum-item"><div class="ile-sum-lbl">Supplier</div><div class="ile-sum-val" id="sum_sup">—</div></div>
+            <div class="ile-sum-item"><div class="ile-sum-lbl">From</div><div class="ile-sum-val" id="sum_from">—</div></div>
+            <div class="ile-sum-item"><div class="ile-sum-lbl">Product</div><div class="ile-sum-val" id="sum_prod">—</div></div>
+            <div class="ile-sum-item"><div class="ile-sum-lbl">Response By</div><div class="ile-sum-val" id="sum_response">—</div></div>
+          </div>
+        </div>
+
+      </div>
+      <div class="ile-step-footer">
+        <button class="inav inav-back" onclick="prevStep(4)">← Back</button>
+        <div style="display:flex;gap:0.5rem;">
+          <button class="inav inav-save"  onclick="saveRecord()">💾 Save Record</button>
+          <button class="inav inav-print" onclick="printRecord()">🖨 Print Letter</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /ile-right -->
+</div><!-- /ile-shell -->
+
+<div id="printArea" style="display:none;"></div>
+<script src="app.js"></script>
+<script src="ile.js"></script>
+</body>
+</html>

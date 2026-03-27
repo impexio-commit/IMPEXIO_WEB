@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IMPEXIO — Export Proforma Invoice</title>
+  <link rel="stylesheet" href="styles.css"/>
+  <link rel="stylesheet" href="pi.css"/>
+  <link rel="icon" href="impexio_logo.png" type="image/png"/>
+</head>
+<body class="dash-body pi-body">
+
+<!-- TOP BAR -->
+<div class="dash-topbar">
+  <div class="dtb-brand">
+    <div class="dtb-logo-box"><img src="impexio_logo.png" alt="IMPEXIO" class="dtb-logo"/></div>
+    <div class="dtb-name">IMPEXIO</div>
+  </div>
+  <div class="dtb-meta" id="dtbMeta"></div>
+  <div class="dtb-right">
+    <div class="dtb-user">
+      <div class="dtb-avatar" id="dtbAv">A</div>
+      <div>
+        <div class="dtb-uname" id="dtbUname">Admin</div>
+        <div class="dtb-role"  id="dtbRole">Administrator</div>
+      </div>
+    </div>
+    <button class="btn-logout" onclick="doLogout()">⏻ Logout</button>
+  </div>
+</div>
+
+<!-- PAGE SHELL -->
+<div class="pi-shell">
+
+  <!-- ═══ LEFT: Records ═══ -->
+  <div class="pi-left">
+    <div class="pl-header">
+      <div class="pl-title">📄 PI Records</div>
+      <button class="pl-new-btn" onclick="newEntry()">＋ New</button>
+    </div>
+    <div class="pl-search-wrap">
+      <span>🔍</span>
+      <input type="text" id="searchInput" class="pl-search" placeholder="Search..." oninput="filterRecords()"/>
+    </div>
+    <div class="pl-list" id="recordsList">
+      <div class="pl-empty">
+        <div style="font-size:1.6rem;opacity:0.35;">📄</div>
+        <div class="pl-empty-txt">No records yet</div>
+        <div class="pl-empty-sub">Click + New to begin</div>
+      </div>
+    </div>
+    <a href="main.html" class="pl-back">← Back to Menu</a>
+  </div>
+
+  <!-- ═══ RIGHT: Step Wizard ═══ -->
+  <div class="pi-right">
+
+    <!-- Progress Bar -->
+    <div class="pi-progress-bar">
+      <div class="ppb-left">
+        <div class="ppb-title" id="formTitle">New Proforma Invoice</div>
+        <div class="ppb-sub"   id="formSub">Step 1 of 3</div>
+      </div>
+      <div class="ppb-steps">
+        <div class="ppb-step active" id="pstep_1" onclick="goToStep(1)">
+          <div class="ppb-step-num">1</div>
+          <div class="ppb-step-lbl">Header Info</div>
+        </div>
+        <div class="ppb-connector" id="conn_1"></div>
+        <div class="ppb-step" id="pstep_2" onclick="goToStep(2)">
+          <div class="ppb-step-num">2</div>
+          <div class="ppb-step-lbl">Product Lines</div>
+        </div>
+        <div class="ppb-connector" id="conn_2"></div>
+        <div class="ppb-step" id="pstep_3" onclick="goToStep(3)">
+          <div class="ppb-step-num">3</div>
+          <div class="ppb-step-lbl">Remarks &amp; Auth</div>
+        </div>
+      </div>
+      <div class="ppb-actions">
+        <button class="pa pa-clear" onclick="clearForm()">🗑 Clear</button>
+        <button class="pa pa-save"  onclick="saveRecord()">💾 Save</button>
+        <button class="pa pa-print" onclick="printRecord()">🖨 Print</button>
+      </div>
+    </div>
+
+    <!-- ══ STEP 1: Header Info ══ -->
+    <div class="pi-step" id="step_1">
+      <div class="pi-step-inner">
+
+        <div class="pi-step-header">
+          <div class="pi-step-icon">📋</div>
+          <div>
+            <div class="pi-step-title">Header Information</div>
+            <div class="pi-step-desc">Enter PI number, date, exporter and buyer details</div>
+          </div>
+        </div>
+
+        <!-- PI No & Date -->
+        <div class="pi-card">
+          <div class="pi-card-hd"><span class="pi-badge">A</span> Invoice Reference</div>
+          <div class="pi-grid-2col">
+            <div class="pf">
+              <label class="pl2">PI No. <span class="req">*</span></label>
+              <input type="text" class="pi-fi" id="f_pino" placeholder="PI/2026/0001"/>
+            </div>
+            <div class="pf">
+              <label class="pl2">Date <span class="req">*</span></label>
+              <input type="date" class="pi-fi" id="f_date"/>
+            </div>
+          </div>
+        </div>
+
+        <!-- Exporter / Buyer side by side -->
+        <div class="pi-two-col-cards">
+
+          <div class="pi-card">
+            <div class="pi-card-hd pi-card-hd-teal"><span class="pi-badge">B</span> Exporter / Seller</div>
+            <div class="pi-single-col">
+              <div class="pf">
+                <label class="pl2">Exporter Name</label>
+                <div class="master-field-wrap"><input type="text" class="pi-fi" id="f_exp_name" placeholder="Exporter / Seller name"/><button class="master-trigger" onclick="openPiMaster('exporter','f_exp_name')" title="Exporter Master">🏭</button></div>
+              </div>
+              <div class="pf">
+                <label class="pl2">Address Line 1</label>
+                <input type="text" class="pi-fi" id="f_exp_addr1" placeholder="Street / Area"/>
+              </div>
+              <div class="pf">
+                <label class="pl2">Address Line 2</label>
+                <input type="text" class="pi-fi" id="f_exp_addr2" placeholder="City, State, PIN"/>
+              </div>
+              <div class="pf">
+                <label class="pl2">Address Line 3</label>
+                <input type="text" class="pi-fi" id="f_exp_addr3" placeholder="Country"/>
+              </div>
+            </div>
+          </div>
+
+          <div class="pi-card">
+            <div class="pi-card-hd pi-card-hd-teal"><span class="pi-badge">C</span> Buyer / Importer / Consignee</div>
+            <div class="pi-single-col">
+              <div class="pf">
+                <label class="pl2">Buyer Name</label>
+                <div class="master-field-wrap"><input type="text" class="pi-fi" id="f_buy_name" placeholder="Buyer / Importer name"/><button class="master-trigger" onclick="openPiMaster('buyer','f_buy_name')" title="Buyer Master">🌍</button></div>
+              </div>
+              <div class="pf">
+                <label class="pl2">Address Line 1</label>
+                <input type="text" class="pi-fi" id="f_buy_addr1" placeholder="Street / Area"/>
+              </div>
+              <div class="pf">
+                <label class="pl2">Address Line 2</label>
+                <input type="text" class="pi-fi" id="f_buy_addr2" placeholder="City, State, PIN"/>
+              </div>
+              <div class="pf">
+                <label class="pl2">Address Line 3</label>
+                <input type="text" class="pi-fi" id="f_buy_addr3" placeholder="Country"/>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Shipment Details -->
+        <div class="pi-card">
+          <div class="pi-card-hd"><span class="pi-badge">D</span> Shipment Details</div>
+          <div class="pi-grid-4col">
+            <div class="pf">
+              <label class="pl2">Country of Origin</label>
+              <input type="text" class="pi-fi" id="f_country_origin" placeholder="e.g. India"/>
+            </div>
+            <div class="pf">
+              <label class="pl2">Country of Final Destination</label>
+              <input type="text" class="pi-fi" id="f_country_dest" placeholder="e.g. USA"/>
+            </div>
+            <div class="pf">
+              <label class="pl2">Port of Loading</label>
+              <div class="master-field-wrap"><input type="text" class="pi-fi" id="f_pol" placeholder="e.g. Mundra"/><button class="master-trigger" onclick="openPiMaster('port','f_pol')" title="Port Master">⚓</button></div>
+            </div>
+            <div class="pf">
+              <label class="pl2">Port of Discharge</label>
+              <div class="master-field-wrap"><input type="text" class="pi-fi" id="f_pod" placeholder="e.g. Hamburg"/><button class="master-trigger" onclick="openPiMaster('port','f_pod')" title="Port Master">⚓</button></div>
+            </div>
+            <div class="pf">
+              <label class="pl2">Pre-carriage By</label>
+              <input type="text" class="pi-fi" id="f_precarriage" placeholder="e.g. Road / Rail"/>
+            </div>
+            <div class="pf">
+              <label class="pl2">Vessel / Flight No.</label>
+              <input type="text" class="pi-fi" id="f_vessel" placeholder="Vessel / Flight No."/>
+            </div>
+            <div class="pf">
+              <label class="pl2">IncoTerms</label>
+              <div class="master-field-wrap"><input type="text" class="pi-fi" id="f_incoterms" placeholder="e.g. FOB / CIF / EXW"/><button class="master-trigger" onclick="openPiMaster('incoterms','f_incoterms')" title="Incoterms Master">📜</button></div>
+            </div>
+            <div class="pf">
+              <label class="pl2">Final Destination</label>
+              <input type="text" class="pi-fi" id="f_final_dest" placeholder="Final destination"/>
+            </div>
+            <div class="pf">
+              <label class="pl2">Payment Terms</label>
+              <div class="master-field-wrap"><input type="text" class="pi-fi" id="f_payment_terms" placeholder="e.g. 30% advance"/><button class="master-trigger" onclick="openPiMaster('payterms','f_payment_terms')" title="Payment Terms Master">💳</button></div>
+            </div>
+            <div class="pf">
+              <label class="pl2">Delivery Terms</label>
+              <input type="text" class="pi-fi" id="f_delivery_terms" placeholder="e.g. CIF Port"/>
+            </div>
+            <div class="pf">
+              <label class="pl2">Transhipment</label>
+              <input type="text" class="pi-fi" id="f_transhipment" placeholder="Allowed / Not Allowed"/>
+            </div>
+            <div class="pf">
+              <label class="pl2">Partial Shipment</label>
+              <input type="text" class="pi-fi" id="f_partial_shipment" placeholder="Allowed / Not Allowed"/>
+            </div>
+            <div class="pf">
+              <label class="pl2">Lead Delivery Time</label>
+              <input type="text" class="pi-fi" id="f_lead_time" placeholder="e.g. 30 Days"/>
+            </div>
+            <div class="pf">
+              <label class="pl2">Validity P.I.</label>
+              <input type="text" class="pi-fi" id="f_validity" placeholder="e.g. 15 Days"/>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="pi-step-footer">
+        <div></div>
+        <button class="pnav pnav-next" onclick="nextStep(1)">Next: Product Lines →</button>
+      </div>
+    </div>
+
+    <!-- ══ STEP 2: Product Lines ══ -->
+    <div class="pi-step hidden" id="step_2">
+      <div class="pi-step-inner pi-step-inner-tbl">
+
+        <div class="pi-info-strip">
+          <span id="s2_pino"></span>
+          <span class="pi-strip-sep">|</span>
+          <span id="s2_date"></span>
+          <span class="pi-strip-sep">|</span>
+          <span id="s2_buyer"></span>
+        </div>
+
+        <div class="pi-card pi-card-full">
+          <div class="pi-card-hd">
+            <span class="pi-badge">E</span> Product Description &amp; Line Items
+            <span class="pi-card-note">Rate × Qty = Amount (auto-calculated)</span>
+            <button class="pi-add-row-btn" onclick="addRow()">＋ Add Row</button>
+          </div>
+          <div class="pi-prod-wrap">
+            <table class="pi-tbl">
+              <thead>
+                <tr>
+                  <th class="pth-desc">Product Description</th>
+                  <th class="pth-hs">HS Code</th>
+                  <th class="pth-qty">Qty</th>
+                  <th class="pth-box">Boxes</th>
+                  <th class="pth-rate">Rate</th>
+                  <th class="pth-amt">Amount</th>
+                  <th class="pth-del"></th>
+                </tr>
+              </thead>
+              <tbody id="productBody">
+                <!-- rows rendered by JS -->
+              </tbody>
+              <tfoot>
+                <tr class="pi-total-row">
+                  <td colspan="2" class="pi-total-label">TOTAL</td>
+                  <td id="tot_qty"  class="pi-tot-cell">0</td>
+                  <td id="tot_box"  class="pi-tot-cell">0</td>
+                  <td></td>
+                  <td id="tot_amt"  class="pi-tot-cell pi-tot-gold">0.00</td>
+                  <td></td>
+                </tr>
+                <tr class="pi-words-row">
+                  <td colspan="2" class="pi-words-lbl">Amount in Words:</td>
+                  <td colspan="5" id="amt_words" class="pi-words-val">—</td>
+                </tr>
+                <tr class="pi-wt-row">
+                  <td class="pi-wt-lbl">Net/Gross Wt:</td>
+                  <td colspan="2"><input type="text" class="pi-fi pi-fi-sm" id="f_netgross_wt" placeholder="e.g. 1000 KGS / 1050 KGS"/></td>
+                  <td class="pi-wt-lbl" style="text-align:right;padding-right:0.5rem;">Total CBM:</td>
+                  <td colspan="3"><input type="text" class="pi-fi pi-fi-sm" id="f_total_cbm" placeholder="e.g. 12.500 CBM"/></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+      </div>
+      <div class="pi-step-footer">
+        <button class="pnav pnav-back" onclick="prevStep(2)">← Back</button>
+        <button class="pnav pnav-next" onclick="nextStep(2)">Next: Remarks →</button>
+      </div>
+    </div>
+
+    <!-- ══ STEP 3: Remarks & Auth ══ -->
+    <div class="pi-step hidden" id="step_3">
+      <div class="pi-step-inner">
+
+        <div class="pi-info-strip">
+          <span id="s3_pino"></span>
+          <span class="pi-strip-sep">|</span>
+          <span id="s3_date"></span>
+          <span class="pi-strip-sep">|</span>
+          <span id="s3_buyer"></span>
+        </div>
+
+        <!-- Summary -->
+        <div class="pi-card">
+          <div class="pi-card-hd"><span class="pi-badge">F</span> Invoice Summary</div>
+          <div class="pi-sum-grid">
+            <div class="pi-sum-item">
+              <div class="pi-sum-lbl">Total Qty</div>
+              <div class="pi-sum-val" id="sum_qty">0</div>
+            </div>
+            <div class="pi-sum-item">
+              <div class="pi-sum-lbl">Total Boxes</div>
+              <div class="pi-sum-val" id="sum_box">0</div>
+            </div>
+            <div class="pi-sum-item pi-sum-gold">
+              <div class="pi-sum-lbl">Total Amount</div>
+              <div class="pi-sum-val" id="sum_amt">0.00</div>
+            </div>
+            <div class="pi-sum-item">
+              <div class="pi-sum-lbl">Net/Gross Wt</div>
+              <div class="pi-sum-val" id="sum_wt">—</div>
+            </div>
+            <div class="pi-sum-item">
+              <div class="pi-sum-lbl">Total CBM</div>
+              <div class="pi-sum-val" id="sum_cbm">—</div>
+            </div>
+            <div class="pi-sum-item">
+              <div class="pi-sum-lbl">Amount in Words</div>
+              <div class="pi-sum-val pi-sum-words" id="sum_words">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Remarks -->
+        <div class="pi-card">
+          <div class="pi-card-hd"><span class="pi-badge">G</span> Remarks &amp; Authorization</div>
+          <div class="pi-rem-grid">
+            <div class="pf" style="grid-column:1/-1;">
+              <label class="pl2">Remarks</label>
+              <textarea class="pi-fi pi-fi-ta" id="f_remarks" placeholder="Additional notes, terms, conditions..."></textarea>
+            </div>
+            <div class="pf">
+              <label class="pl2">Prepared By</label>
+              <div class="master-field-wrap"><input type="text" class="pi-fi" id="f_preparedby" placeholder="Full name"/><button class="master-trigger" onclick="openPiMaster('signatory','f_preparedby')" title="Signatory Master">✍️</button></div>
+            </div>
+            <div class="pf">
+              <label class="pl2">For IMPEXIO / Authorised Signatory</label>
+              <div class="master-field-wrap"><input type="text" class="pi-fi" id="f_signatory" placeholder="Authorised signatory"/><button class="master-trigger" onclick="openPiMaster('signatory','f_signatory')" title="Signatory Master">✍️</button></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="pi-step-footer">
+        <button class="pnav pnav-back" onclick="prevStep(3)">← Back</button>
+        <div style="display:flex;gap:0.5rem;">
+          <button class="pnav pnav-save"  onclick="saveRecord()">💾 Save Record</button>
+          <button class="pnav pnav-print" onclick="printRecord()">🖨 Print</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /pi-right -->
+</div><!-- /pi-shell -->
+
+<div id="printArea" style="display:none;"></div>
+
+<!-- ═══ PI MASTER PANEL ═══ -->
+<div class="pi-master-overlay" id="piMasterOverlay" onclick="closePiMaster()"></div>
+<div class="pi-master-panel"   id="piMasterPanel">
+  <div class="pi-master-head">
+    <div>
+      <div class="pi-master-title" id="piMasterTitle">Master Data</div>
+      <div class="pi-master-sub">Click a record to auto-fill the field</div>
+    </div>
+    <button class="pi-master-close" onclick="closePiMaster()">✕</button>
+  </div>
+  <div class="pi-master-tabs">
+    <div class="pi-master-tab active" id="pimt-exporter"  onclick="switchPiMasterTab('exporter')">🏭 Exporter</div>
+    <div class="pi-master-tab"        id="pimt-buyer"     onclick="switchPiMasterTab('buyer')">🌍 Buyer</div>
+    <div class="pi-master-tab"        id="pimt-product"   onclick="switchPiMasterTab('product')">📦 Product</div>
+    <div class="pi-master-tab"        id="pimt-port"      onclick="switchPiMasterTab('port')">⚓ Port</div>
+    <div class="pi-master-tab"        id="pimt-incoterms" onclick="switchPiMasterTab('incoterms')">📜 Incoterms</div>
+    <div class="pi-master-tab"        id="pimt-payterms"  onclick="switchPiMasterTab('payterms')">💳 Pay Terms</div>
+    <div class="pi-master-tab"        id="pimt-signatory" onclick="switchPiMasterTab('signatory')">✍️ Signatory</div>
+  </div>
+  <div class="pi-master-body">
+    <div class="pi-master-sect active" id="pims-exporter"><div class="pi-master-add-wrap"><button class="pi-master-add-btn" onclick="openPiMasterForm('exporter')">+ Add Exporter</button></div><div class="pi-master-list" id="piml-exporter"></div></div>
+    <div class="pi-master-sect"        id="pims-buyer"><div class="pi-master-add-wrap"><button class="pi-master-add-btn" onclick="openPiMasterForm('buyer')">+ Add Buyer</button></div><div class="pi-master-list" id="piml-buyer"></div></div>
+    <div class="pi-master-sect"        id="pims-product"><div class="pi-master-add-wrap"><button class="pi-master-add-btn" onclick="openPiMasterForm('product')">+ Add Product</button></div><div class="pi-master-list" id="piml-product"></div></div>
+    <div class="pi-master-sect"        id="pims-port"><div class="pi-master-add-wrap"><button class="pi-master-add-btn" onclick="openPiMasterForm('port')">+ Add Port</button></div><div class="pi-master-list" id="piml-port"></div></div>
+    <div class="pi-master-sect"        id="pims-incoterms"><div class="pi-master-add-wrap"><button class="pi-master-add-btn" onclick="openPiMasterForm('incoterms')">+ Add Incoterm</button></div><div class="pi-master-list" id="piml-incoterms"></div></div>
+    <div class="pi-master-sect"        id="pims-payterms"><div class="pi-master-add-wrap"><button class="pi-master-add-btn" onclick="openPiMasterForm('payterms')">+ Add Payment Term</button></div><div class="pi-master-list" id="piml-payterms"></div></div>
+    <div class="pi-master-sect"        id="pims-signatory"><div class="pi-master-add-wrap"><button class="pi-master-add-btn" onclick="openPiMasterForm('signatory')">+ Add Signatory</button></div><div class="pi-master-list" id="piml-signatory"></div></div>
+  </div>
+</div>
+
+<!-- ═══ PI MASTER FORM MODAL ═══ -->
+<div class="pi-mf-overlay" id="piMfOverlay">
+  <div class="pi-mf-modal">
+    <div class="pi-mf-head"><div class="pi-mf-title" id="piMfTitle">Add Record</div><button class="pi-master-close" onclick="closePiMasterForm()">✕</button></div>
+    <div class="pi-mf-body" id="piMfBody"></div>
+    <div class="pi-mf-foot"><button class="pnav pnav-back" onclick="closePiMasterForm()">Cancel</button><button class="pnav pnav-save" onclick="savePiMasterRecord()">💾 Save</button></div>
+  </div>
+</div>
+
+<!-- Autocomplete dropdown -->
+<div id="piAcDropdown" style="position:fixed;z-index:99999;background:#fff;border:1.5px solid #dde3f0;border-radius:12px;box-shadow:0 16px 48px rgba(15,37,64,0.16);min-width:260px;max-width:380px;max-height:280px;overflow-y:auto;display:none;font-family:'Outfit',sans-serif;"></div>
+
+<style>
+.master-field-wrap{position:relative;display:flex;align-items:center;gap:0.4rem;}
+.master-field-wrap .pi-fi{flex:1;}
+.master-trigger{width:34px;height:34px;border-radius:8px;background:var(--navy);color:#fff;border:none;cursor:pointer;font-size:0.9rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;}
+.master-trigger:hover{background:var(--navy-mid);transform:scale(1.08);}
+.pi-master-overlay{display:none;position:fixed;inset:0;background:rgba(15,37,64,0.45);backdrop-filter:blur(3px);z-index:1000;}
+.pi-master-overlay.open{display:block;}
+.pi-master-panel{position:fixed;top:0;right:-420px;width:400px;max-width:95vw;bottom:0;background:#fff;z-index:1001;box-shadow:-8px 0 48px rgba(15,37,64,0.18);display:flex;flex-direction:column;transition:right 0.3s cubic-bezier(.4,0,.2,1);}
+.pi-master-panel.open{right:0;}
+.pi-master-head{padding:1.1rem 1.25rem;background:#2a5298;display:flex;align-items:flex-start;justify-content:space-between;}
+.pi-master-title{font-family:var(--font-display,'Georgia',serif);font-size:1.05rem;font-weight:700;color:#fff;}
+.pi-master-sub{font-size:0.68rem;color:rgba(255,255,255,0.6);margin-top:0.15rem;}
+.pi-master-close{background:rgba(255,255,255,0.15);border:none;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:0.85rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.pi-master-close:hover{background:rgba(255,255,255,0.28);}
+.pi-master-tabs{display:flex;border-bottom:1px solid #dde3f0;background:#fafaf7;overflow-x:auto;}
+.pi-master-tab{padding:0.65rem 0.85rem;font-size:0.76rem;font-weight:600;color:#6b7fa3;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:all 0.2s;}
+.pi-master-tab:hover{color:#0f2540;}
+.pi-master-tab.active{color:#0f2540;border-bottom-color:#c9a84c;}
+.pi-master-body{flex:1;overflow:hidden;}
+.pi-master-sect{display:none;height:100%;flex-direction:column;}
+.pi-master-sect.active{display:flex;}
+.pi-master-add-wrap{padding:0.75rem 1rem;border-bottom:1px solid #eef1f8;}
+.pi-master-add-btn{width:100%;padding:0.6rem;background:#0f2540;color:#fff;border:none;border-radius:8px;font-size:0.82rem;font-weight:700;cursor:pointer;}
+.pi-master-add-btn:hover{background:#1a3a5c;}
+.pi-master-list{flex:1;overflow-y:auto;padding:0.5rem;}
+.pi-master-item{display:flex;align-items:center;gap:0.75rem;padding:0.75rem 0.85rem;border-radius:10px;border:1px solid #dde3f0;margin-bottom:0.5rem;cursor:pointer;transition:all 0.18s;background:#fff;}
+.pi-master-item:hover{border-color:#0f2540;background:#f4f3ee;transform:translateX(3px);}
+.pi-master-item-icon{width:34px;height:34px;border-radius:8px;background:#0f2540;color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.9rem;flex-shrink:0;}
+.pi-master-item-name{font-size:0.83rem;font-weight:700;color:#0f2540;}
+.pi-master-item-sub{font-size:0.7rem;color:#6b7fa3;}
+.pi-master-item-acts{display:flex;gap:0.3rem;margin-left:auto;flex-shrink:0;}
+.pi-mi-btn{padding:0.25rem 0.55rem;border-radius:6px;font-size:0.7rem;font-weight:700;border:none;cursor:pointer;}
+.pi-mi-btn.use{background:#0f2540;color:#fff;}
+.pi-mi-btn.edit{background:#f4f3ee;color:#3d5475;}
+.pi-mi-btn.del{background:#fef2f2;color:#dc2626;}
+.pi-master-empty{text-align:center;padding:2.5rem 1rem;color:#6b7fa3;}
+.pi-master-empty-icon{font-size:2rem;opacity:0.35;margin-bottom:0.5rem;}
+.pi-master-empty-txt{font-size:0.85rem;font-weight:600;}
+.pi-master-empty-sub{font-size:0.75rem;}
+.pi-mf-overlay{display:none;position:fixed;inset:0;background:rgba(15,37,64,0.5);backdrop-filter:blur(4px);z-index:1100;align-items:center;justify-content:center;padding:1rem;}
+.pi-mf-overlay.open{display:flex;}
+.pi-mf-modal{background:#fff;border-radius:16px;width:100%;max-width:480px;box-shadow:0 24px 72px rgba(15,37,64,0.22);overflow:hidden;animation:piRiseIn 0.25s ease;}
+@keyframes piRiseIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.pi-mf-head{background:#0f2540;padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;}
+.pi-mf-title{font-weight:700;font-size:0.95rem;color:#fff;}
+.pi-mf-body{padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}
+.pi-mf-foot{padding:0.85rem 1.25rem;border-top:1px solid #dde3f0;display:flex;justify-content:flex-end;gap:0.5rem;}
+.pi-mf-fg{display:flex;flex-direction:column;gap:0.3rem;}
+.pi-mf-lbl{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#3d5475;}
+.pi-mf-inp{padding:0.65rem 0.85rem;border:1.5px solid #dde3f0;border-radius:8px;font-size:0.88rem;font-family:inherit;width:100%;transition:all 0.2s;}
+.pi-mf-inp:focus{outline:none;border-color:#0f2540;box-shadow:0 0 0 3px rgba(15,37,64,0.08);}
+.pi-mf-inp.err{border-color:#ef4444;}
+</style>
+
+<script src="app.js"></script>
+<script src="pi.js"></script>
+</body>
+</html>
