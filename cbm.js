@@ -4,8 +4,7 @@
    ============================================================ */
 
 // ── API Base URL ──────────────────────────────────────
-const API_BASE = 'https://localhost:7129/api';
-
+const API_BASE = 'http://localhost:5135/api'; 
 let cbmRecords = [];
 let editingId   = null;
 let currentStep = 1;
@@ -315,9 +314,9 @@ async function saveRecord() {
       body: JSON.stringify(payload)
     });
 
-    const data = await res.json();
-    if (res.ok) {
-      showToastCbm('✅', data.message || 'Saved successfully!');
+    const json = await res.json();
+    if (res.ok && json.success) {
+      showToastCbm('✅', json.message || 'Saved successfully!');
       setTimeout(() => showList(), 1000);
     } else {
       showToastCbm('❌', 'Failed to save. Please try again.');
@@ -362,8 +361,8 @@ async function loadRecordsFromAPI() {
   try {
     const res = await fetch(`${API_BASE}/Cbm`);
     if (res.ok) {
-      const data = await res.json();
-      // Map API response to frontend format
+      const json = await res.json();
+      const data = json.data || [];
       cbmRecords = data.map(r => ({
         id:       r.id,
         cbmno:    r.cbmNo,
@@ -422,8 +421,9 @@ function filterRecords(){
 async function deleteRecord(id){
   if(!confirm('Delete this CBM record?'))return;
   try {
-    const res = await fetch(`${API_BASE}/Cbm/${id}`, { method:'DELETE' });
-    if(res.ok){
+    const res  = await fetch(`${API_BASE}/Cbm/${id}`, { method:'DELETE' });
+    const json = await res.json();
+    if(res.ok && json.success){
       showToastCbm('🗑','Record deleted.');
       await loadRecordsFromAPI();
     } else {

@@ -37,8 +37,9 @@ const EC_ROWS = [
 
 const INPUT_KEYS = EC_ROWS.filter(r => r.type.startsWith('input')).map(r => r.key);
 
-let ecRecords = JSON.parse(localStorage.getItem('ec_records') || '[]');
-let editingId  = null;
+const API_BASE  = 'http://localhost:5135/api';
+let ecRecords   = [];
+let editingId   = null;
 let currentStep = 1;
 
 // ── Init ──────────────────────────────────────────────────────
@@ -48,9 +49,20 @@ document.addEventListener('DOMContentLoaded', () => {
   setTodayDate();
   autoSetRefNo();
   buildCostTable();
-  renderRecords();
+  loadRecordsFromAPI();
   goToStep(1);
 });
+
+async function loadRecordsFromAPI() {
+  try {
+    const res  = await fetch(`${API_BASE}/Ec`);
+    const json = await res.json();
+    ecRecords  = json.data || [];
+    renderRecords();
+  } catch (err) {
+    console.error('Failed to load EC records:', err);
+  }
+}
 
 function setTodayDate() {
   const el = document.getElementById('f_ratesdate');
@@ -61,7 +73,7 @@ function autoSetRefNo() {
   const el = document.getElementById('f_refno');
   if (el && !el.value) {
     const num = String(ecRecords.length + 1).padStart(4, '0');
-    el.value = `EC/2026/${num}`;
+    el.value  = `EC/2026/${num}`;
   }
 }
 
@@ -297,7 +309,7 @@ function clearForm() {
 }
 
 // ── Save ──────────────────────────────────────────────────────
-function saveRecord() {
+async function saveRecord() {
   const company   = gv('f_company').trim();
   const refno     = gv('f_refno').trim();
   const ratesdate = gv('f_ratesdate');
@@ -305,61 +317,79 @@ function saveRecord() {
   if (!refno)     { showToast('⚠️','Please enter Costing Ref. No.'); goToStep(1); return; }
   if (!ratesdate) { showToast('⚠️','Please select Rates As On date.'); goToStep(1); return; }
 
-  // Collect all input values
-  const cells = {};
+  // Collect all input cell values
+  const cells = [];
   EC_ROWS.forEach(row => {
     if (row.type !== 'input' && row.type !== 'input_pct') return;
-    cells[row.key] = {};
     EC_COLS.forEach(col => {
-      cells[row.key][col.id] = {};
       ['fcl','lcl'].forEach(mode => {
-        cells[row.key][col.id][mode] = parseFloat(gv(`cell_${row.key}_${col.id}_${mode}`)) || 0;
+        const val = parseFloat(gv(`cell_${row.key}_${col.id}_${mode}`)) || 0;
+        cells.push({
+          rowKey: row.key,
+          colId:  col.id,
+          mode:   mode,
+          value:  val
+        });
       });
     });
   });
 
-  // Collect calc values
-  const calcs = {};
-  ['fob_inr','fob_usd','fob_per_mt','cif_inr','cif_usd','cif_per_mt'].forEach(key => {
-    calcs[key] = {};
-    EC_COLS.forEach(col => {
-      calcs[key][col.id] = {};
-      ['fcl','lcl'].forEach(mode => {
-        calcs[key][col.id][mode] = document.getElementById(`cell_${key}_${col.id}_${mode}`)?.textContent || '0';
-      });
-    });
-  });
-
-  const rec = {
-    id: editingId ?? Date.now(),
-    company, refno, product: gv('f_product'),
-    ratesdate, usdrate: gv('f_usdrate'), shiprate: gv('f_shiprate'),
-    remarks: gv('f_remarks'), preparedby: gv('f_preparedby'), signatory: gv('f_signatory'),
-    cells, calcs,
-    sum_fob_inr: document.getElementById('sum_fob_inr')?.textContent || '0',
-    sum_fob_usd: document.getElementById('sum_fob_usd')?.textContent || '0',
-    sum_cif_inr: document.getElementById('sum_cif_inr')?.textContent || '0',
-    sum_cif_usd: document.getElementById('sum_cif_usd')?.textContent || '0',
+  const payload = {
+    refNo:      refno,
+    ratesDate:  ratesdate,
+    company:    company,
+    product:    gv('f_product'),
+    usdRate:    parseFloat(gv('f_usdrate'))  || 0,
+    shipRate:   parseFloat(gv('f_shiprate')) || 0,
+    remarks:    gv('f_remarks'),
+    preparedBy: gv('f_preparedby'),
+    signatory:  gv('f_signatory'),
+    sumFobInr:  document.getElementById('sum_fob_inr')?.textContent || '0',
+    sumFobUsd:  document.getElementById('sum_fob_usd')?.textContent || '0',
+    sumCifInr:  document.getElementById('sum_cif_inr')?.textContent || '0',
+    sumCifUsd:  document.getElementById('sum_cif_usd')?.textContent || '0',
+    cells:      cells
   };
 
-  if (editingId !== null) {
-    const idx = ecRecords.findIndex(r => r.id === editingId);
-    if (idx > -1) ecRecords[idx] = rec; else ecRecords.unshift(rec);
-  } else {
-    ecRecords.unshift(rec);
-  }
+  try {
+    let res;
+    if (editingId !== null) {
+      res = await fetch(`${API_BASE}/Ec/${editingId}`, {
+        method:  'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload)
+      });
+    } else {
+      res = await fetch(`${API_BASE}/Ec`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload)
+      });
+    }
 
-  localStorage.setItem('ec_records', JSON.stringify(ecRecords));
-  renderRecords();
-  showToast('✅', `Record ${refno} saved!`);
-  editingId = rec.id;
-  setText('formTitle', `Editing: ${refno}`);
+    const json = await res.json();
+    if (json.success) {
+      if (editingId === null) editingId = json.data;
+      showToast('✅', `Record ${refno} saved!`);
+      setText('formTitle', `Editing: ${refno}`);
+      await loadRecordsFromAPI();
+    } else {
+      showToast('❌', json.message || 'Save failed.');
+    }
+  } catch (err) {
+    showToast('❌', 'Save failed: ' + err.message);
+  }
 }
 
 // ── Edit ──────────────────────────────────────────────────────
-function editRecord(id) {
-  const rec = ecRecords.find(r => r.id === id);
-  if (!rec) return;
+async function editRecord(id) {
+  try {
+    const res  = await fetch(`${API_BASE}/Ec/${id}`);
+    const json = await res.json();
+    if (!json.success) return;
+    const rec  = json.data;
+    if (!rec) return;
+    editingId  = rec.id;
   editingId = id;
   setText('formTitle', `Editing: ${rec.refno}`);
 
@@ -374,7 +404,9 @@ function editRecord(id) {
     if (row.type !== 'input' && row.type !== 'input_pct') return;
     EC_COLS.forEach(col => {
       ['fcl','lcl'].forEach(mode => {
-        sv(`cell_${row.key}_${col.id}_${mode}`, rec.cells?.[row.key]?.[col.id]?.[mode] || '');
+        const cell = rec.cells?.find(c =>
+          c.rowKey === row.key && c.colId === col.id && c.mode === mode);
+        sv(`cell_${row.key}_${col.id}_${mode}`, cell?.value || '');
       });
     });
   });
@@ -383,16 +415,25 @@ function editRecord(id) {
   document.querySelectorAll('.el-card').forEach(c => c.classList.remove('active'));
   document.getElementById(`ecard_${id}`)?.classList.add('active');
   goToStep(1);
+  } catch(err) { console.error('Edit failed:', err); }
 }
 
 // ── Delete ────────────────────────────────────────────────────
-function deleteRecord(id) {
+async function deleteRecord(id) {
   if (!confirm('Delete this Export Costing record?')) return;
-  ecRecords = ecRecords.filter(r => r.id !== id);
-  localStorage.setItem('ec_records', JSON.stringify(ecRecords));
-  if (editingId === id) newEntry();
-  renderRecords();
-  showToast('🗑','Record deleted.');
+  try {
+    const res  = await fetch(`${API_BASE}/Ec/${id}`, { method: 'DELETE' });
+    const json = await res.json();
+    if (json.success) {
+      if (editingId === id) newEntry();
+      await loadRecordsFromAPI();
+      showToast('🗑', 'Record deleted.');
+    } else {
+      showToast('❌', json.message || 'Delete failed.');
+    }
+  } catch (err) {
+    showToast('❌', 'Delete failed: ' + err.message);
+  }
 }
 
 // ── Render List ───────────────────────────────────────────────
@@ -875,4 +916,3 @@ document.addEventListener('DOMContentLoaded', () => {
     }, true);
   }, 300);
 });
-

@@ -3,18 +3,28 @@
    IMPEXIO v2
    ============================================================ */
 
-let bilRecords  = JSON.parse(localStorage.getItem('bil_records') || '[]');
-let editingId   = null;
-let currentStep = 1;
-const TOTAL_STEPS = 4;
+   const API_BASE  = 'http://localhost:5135/api';
+   let bilRecords  = [];
+   let editingId   = null;
+   let currentStep = 1;
+   const TOTAL_STEPS = 4;  // ← ADD THIS LINE
+
+
+   async function loadRecordsFromAPI() {
+    try {
+      const res  = await fetch(`${API_BASE}/Bil`);
+      const json = await res.json();
+      bilRecords = json.data || [];
+      renderRecords();
+    } catch (err) {
+      console.error('Failed to load BIL records:', err);
+    }
+  }
 
 // ── Init ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  loadSess();
-  populateTopbar();
-  setTodayDate();
-  autoSetRefNo();
-  renderRecords();
+  loadSess(); populateTopbar(); setTodayDate(); autoSetRefNo();
+  loadRecordsFromAPI();
   goToStep(1);
 });
 
@@ -209,76 +219,146 @@ function generateLetterPreview() {
 }
 
 // ── Save / Load records ───────────────────────────────────────
-function saveRecord() {
+async function saveRecord() {
   if (!gv('f_buy_name'))   { showToastBil('⚠️','Please enter the Buyer Name.'); return; }
   if (!gv('f_co_name'))    { showToastBil('⚠️','Please enter Your Company Name.'); return; }
   if (!gv('f_product1'))   { showToastBil('⚠️','Please enter at least one Product.'); return; }
 
-  const rec = {
-    id: editingId ?? Date.now(),
-    refno: gv('f_refno'), date: gv('f_date'), source: gv('f_source'),
-    buyName: gv('f_buy_name'), buyCompany: gv('f_buy_company'),
-    buyDesig: gv('f_buy_designation'), buyAddr1: gv('f_buy_addr1'),
-    buyCountry: gv('f_buy_country'), buyEmail: gv('f_buy_email'),
-    coName: gv('f_co_name'), coSince: gv('f_co_since'), coCity: gv('f_co_city'),
-    coWebsite: gv('f_co_website'), coEmail: gv('f_co_email'), coPhone: gv('f_co_phone'),
-    turnover: gv('f_turnover'), countries: gv('f_countries'), certs: gv('f_certifications'),
-    capacity: gv('f_capacity'), leadtime: gv('f_leadtime'), expYears: gv('f_exp_years'),
-    senderName: gv('f_sender_name'), senderDesig: gv('f_sender_desig'), senderEmail: gv('f_sender_email'),
-    product1: gv('f_product1'), hscode1: gv('f_hscode1'),
-    product2: gv('f_product2'), hscode2: gv('f_hscode2'),
-    otherProducts: gv('f_other_products'), usp: gv('f_usp'), offer: gv('f_offer'),
-    cta: gv('f_cta'), remarks: gv('f_remarks'),
+  const payload = {
+    refNo:         gv('f_refno'),
+    refDate:       gv('f_date'),
+    source:        gv('f_source'),
+    buyName:       gv('f_buy_name'),
+    buyCompany:    gv('f_buy_company'),
+    buyDesig:      gv('f_buy_designation'),
+    buyAddr1:      gv('f_buy_addr1'),
+    buyCountry:    gv('f_buy_country'),
+    buyEmail:      gv('f_buy_email'),
+    coName:        gv('f_co_name'),
+    coSince:       gv('f_co_since'),
+    coCity:        gv('f_co_city'),
+    coWebsite:     gv('f_co_website'),
+    coEmail:       gv('f_co_email'),
+    coPhone:       gv('f_co_phone'),
+    turnover:      gv('f_turnover'),
+    countries:     gv('f_countries'),
+    certs:         gv('f_certifications'),
+    capacity:      gv('f_capacity'),
+    leadtime:      gv('f_leadtime'),
+    expYears:      gv('f_exp_years'),
+    senderName:    gv('f_sender_name'),
+    senderDesig:   gv('f_sender_desig'),
+    senderEmail:   gv('f_sender_email'),
+    product1:      gv('f_product1'),
+    hscode1:       gv('f_hscode1'),
+    product2:      gv('f_product2'),
+    hscode2:       gv('f_hscode2'),
+    otherProducts: gv('f_other_products'),
+    usp:           gv('f_usp'),
+    offer:         gv('f_offer'),
+    cta:           gv('f_cta'),
+    remarks:       gv('f_remarks')
   };
 
-  if (editingId !== null) {
-    const idx = bilRecords.findIndex(r => r.id === editingId);
-    if (idx >= 0) bilRecords[idx] = rec;
-  } else {
-    bilRecords.push(rec);
+  try {
+    let res;
+    if (editingId !== null) {
+      res = await fetch(`${API_BASE}/Bil/${editingId}`, {
+        method:  'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload)
+      });
+    } else {
+      res = await fetch(`${API_BASE}/Bil`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload)
+      });
+    }
+    const json = await res.json();
+    if (json.success) {
+      if (editingId === null) editingId = json.data;
+      showToastBil('✅', 'Buyer Intro Letter saved!');
+      setText('formTitle', `Editing: ${gv('f_refno')}`);
+      await loadRecordsFromAPI();
+    } else {
+      showToastBil('❌', json.message || 'Save failed.');
+    }
+  } catch (err) {
+    showToastBil('❌', 'Save failed: ' + err.message);
   }
-  localStorage.setItem('bil_records', JSON.stringify(bilRecords));
-  renderRecords();
-  showToastBil('✅', 'Buyer Intro Letter saved!');
 }
 
-function loadRecord(id) {
-  const rec = bilRecords.find(r => r.id === id); if (!rec) return;
-  editingId = id; clearForm(false);
-  const fields = ['refno','date','source','buy_name','buy_company','buy_designation','buy_addr1','buy_country','buy_email',
-    'co_name','co_since','co_city','co_website','co_email','co_phone','turnover','countries','certifications',
-    'capacity','leadtime','exp_years','sender_name','sender_desig','sender_email',
-    'product1','hscode1','product2','hscode2','other_products','usp','offer','cta','remarks'];
-  fields.forEach(f => {
-    const key = f.replace(/_([a-z])/g, (m,c) => c.toUpperCase());
-    const alt = f.replace('buy_','buy').replace('co_','co').replace('sender_','sender');
-    sv('f_' + f, rec[key] || rec[f.replace('_','')] || rec[alt] || '');
-  });
-  // manual mapping for camelCase mismatches
-  sv('f_refno', rec.refno); sv('f_date', rec.date); sv('f_source', rec.source);
-  sv('f_buy_name', rec.buyName); sv('f_buy_company', rec.buyCompany);
-  sv('f_buy_designation', rec.buyDesig); sv('f_buy_addr1', rec.buyAddr1);
-  sv('f_buy_country', rec.buyCountry); sv('f_buy_email', rec.buyEmail);
-  sv('f_co_name', rec.coName); sv('f_co_since', rec.coSince); sv('f_co_city', rec.coCity);
-  sv('f_co_website', rec.coWebsite); sv('f_co_email', rec.coEmail); sv('f_co_phone', rec.coPhone);
-  sv('f_turnover', rec.turnover); sv('f_countries', rec.countries); sv('f_certifications', rec.certs);
-  sv('f_capacity', rec.capacity); sv('f_leadtime', rec.leadtime); sv('f_exp_years', rec.expYears);
-  sv('f_sender_name', rec.senderName); sv('f_sender_desig', rec.senderDesig); sv('f_sender_email', rec.senderEmail);
-  sv('f_product1', rec.product1); sv('f_hscode1', rec.hscode1);
-  sv('f_product2', rec.product2); sv('f_hscode2', rec.hscode2);
-  sv('f_other_products', rec.otherProducts); sv('f_usp', rec.usp); sv('f_offer', rec.offer);
-  sv('f_cta', rec.cta); sv('f_remarks', rec.remarks);
-  setText('formTitle', 'Edit Buyer Intro Letter');
-  goToStep(1);
-  document.querySelectorAll('.bll-card').forEach(c => c.classList.remove('active'));
-  document.querySelector(`.bll-card[data-id="${id}"]`)?.classList.add('active');
+async function loadRecord(id) {
+  try {
+    const res  = await fetch(`${API_BASE}/Bil/${id}`);
+    const json = await res.json();
+    if (!json.success) return;
+    const rec  = json.data;
+    if (!rec) return;
+
+    editingId = rec.id;
+    clearForm(false);
+
+    sv('f_refno',           rec.refNo);
+    sv('f_date',            rec.refDate?.split('T')[0] || '');
+    sv('f_source',          rec.source);
+    sv('f_buy_name',        rec.buyName);
+    sv('f_buy_company',     rec.buyCompany);
+    sv('f_buy_designation', rec.buyDesig);
+    sv('f_buy_addr1',       rec.buyAddr1);
+    sv('f_buy_country',     rec.buyCountry);
+    sv('f_buy_email',       rec.buyEmail);
+    sv('f_co_name',         rec.coName);
+    sv('f_co_since',        rec.coSince);
+    sv('f_co_city',         rec.coCity);
+    sv('f_co_website',      rec.coWebsite);
+    sv('f_co_email',        rec.coEmail);
+    sv('f_co_phone',        rec.coPhone);
+    sv('f_turnover',        rec.turnover);
+    sv('f_countries',       rec.countries);
+    sv('f_certifications',  rec.certs);
+    sv('f_capacity',        rec.capacity);
+    sv('f_leadtime',        rec.leadtime);
+    sv('f_exp_years',       rec.expYears);
+    sv('f_sender_name',     rec.senderName);
+    sv('f_sender_desig',    rec.senderDesig);
+    sv('f_sender_email',    rec.senderEmail);
+    sv('f_product1',        rec.product1);
+    sv('f_hscode1',         rec.hscode1);
+    sv('f_product2',        rec.product2);
+    sv('f_hscode2',         rec.hscode2);
+    sv('f_other_products',  rec.otherProducts);
+    sv('f_usp',             rec.usp);
+    sv('f_offer',           rec.offer);
+    sv('f_cta',             rec.cta);
+    sv('f_remarks',         rec.remarks);
+
+    setText('formTitle', 'Edit Buyer Intro Letter');
+    goToStep(1);
+    document.querySelectorAll('.bll-card').forEach(c => c.classList.remove('active'));
+    document.querySelector(`.bll-card[data-id="${id}"]`)?.classList.add('active');
+
+  } catch (err) {
+    console.error('Load failed:', err);
+  }
 }
 
-function deleteRecord(id) {
+async function deleteRecord(id) {
   if (!confirm('Delete this record?')) return;
-  bilRecords = bilRecords.filter(r => r.id !== id);
-  localStorage.setItem('bil_records', JSON.stringify(bilRecords));
-  renderRecords(); showToastBil('🗑','Record deleted.');
+  try {
+    const res  = await fetch(`${API_BASE}/Bil/${id}`, { method: 'DELETE' });
+    const json = await res.json();
+    if (json.success) {
+      if (editingId === id) newEntry();
+      await loadRecordsFromAPI();
+      showToastBil('🗑', 'Record deleted.');
+    } else {
+      showToastBil('❌', json.message || 'Delete failed.');
+    }
+  } catch (err) {
+    showToastBil('❌', 'Delete failed: ' + err.message);
+  }
 }
 
 function newEntry() {
@@ -302,9 +382,9 @@ function clearForm(resetAll = true) {
 // ── Render records ────────────────────────────────────────────
 function renderRecords(query = '') {
   const list = document.getElementById('recordsList');
-  const q = query.toLowerCase().trim();
+  const q = (typeof query === 'string' ? query : '').toLowerCase().trim();
   const filtered = bilRecords.filter(r =>
-    !q || r.refno?.toLowerCase().includes(q) || r.buyName?.toLowerCase().includes(q) ||
+    !q || r.refNo?.toLowerCase().includes(q) || r.buyName?.toLowerCase().includes(q) ||
     r.buyCompany?.toLowerCase().includes(q) || r.product1?.toLowerCase().includes(q) || r.buyCountry?.toLowerCase().includes(q)
   );
   if (!filtered.length) {
@@ -313,12 +393,12 @@ function renderRecords(query = '') {
   }
   list.innerHTML = filtered.slice().reverse().map(r => `
     <div class="bll-card${editingId===r.id?' active':''}" data-id="${r.id}" onclick="loadRecord(${r.id})">
-      <div class="bll-card-no">${r.refno || '—'}</div>
-      <div class="bll-card-buyer">${r.buyName || '—'}${r.buyCompany?' · '+r.buyCompany:''}</div>
-      <div class="bll-card-country">🌍 ${r.buyCountry || '—'}</div>
       <div class="bll-card-row">
-        <div class="bll-card-date">${fmtDate(r.date)}</div>
-        <div class="bll-card-prod">${r.product1 || ''}</div>
+<div class="bll-card-no">${r.refNo||'—'}</div>
+      <div class="bll-card-buyer">${r.buyName||'—'}
+      <div class="bll-card-country">🌍 ${r.buyCountry||'—'}</div>
+      <div class="bll-card-date">${fmtDate(r.refDate)}</div>
+      <div class="bll-card-prod">${r.product1||''}</div>
       </div>
       <div class="bll-card-acts">
         <button class="bll-act edit" onclick="event.stopPropagation();loadRecord(${r.id})">✏️ Edit</button>
@@ -328,7 +408,10 @@ function renderRecords(query = '') {
     </div>`).join('');
 }
 
-function filterRecords() { renderRecords(document.getElementById('searchInput')?.value || ''); }
+function filterRecords() {
+  const q = document.getElementById('searchInput')?.value || '';
+  renderRecords(String(q));
+}
 
 // ── Print ─────────────────────────────────────────────────────
 function printRecord() {

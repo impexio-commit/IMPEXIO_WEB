@@ -3,10 +3,11 @@
    IMPEXIO v2
    ============================================================ */
 
-let sciRecords  = JSON.parse(localStorage.getItem('sci_records') || '[]');
-let editingId   = null;
-let currentStep = 1;
-let rowCount    = 0;
+   const API_BASE  = 'http://localhost:5135/api';
+   let sciRecords  = [];
+   let editingId   = null;
+   let currentStep = 1;
+   let rowCount    = 0;
 
 // ── Init ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
@@ -15,9 +16,19 @@ document.addEventListener('DOMContentLoaded', () => {
   setTodayDate();
   autoSetInvNo();
   addRow(); addRow(); addRow(); addRow(); addRow();
-  renderRecords();
+  loadRecordsFromAPI();
   goToStep(1);
 });
+async function loadRecordsFromAPI() {
+  try {
+    const res  = await fetch(`${API_BASE}/Sci`);
+    const json = await res.json();
+    sciRecords = json.data || [];
+    renderRecords();
+  } catch (err) {
+    console.error('Failed to load SCI records:', err);
+  }
+}
 
 function setTodayDate() {
   const el = document.getElementById('f_date');
@@ -235,104 +246,181 @@ function clearForm() {
 }
 
 // ── Save ──────────────────────────────────────────────────────
-function saveRecord() {
+async function saveRecord() {
   const invno = gv('f_invno');
   const date  = gv('f_date');
   if (!invno) { showToast('⚠️','Please enter Invoice No.'); goToStep(1); return; }
   if (!date)  { showToast('⚠️','Please select Invoice Date.'); goToStep(1); return; }
 
   calcTotals();
-  const rows = collectRows();
+  const rows = collectRows().filter(r => r.desc || r.qty || r.rate);
 
-  const rec = {
-    id: editingId ?? Date.now(),
-    invno, date,
-    con_name:  gv('f_con_name'),  con_addr1: gv('f_con_addr1'),
-    con_addr2: gv('f_con_addr2'), con_addr3: gv('f_con_addr3'),
-    not_name:  gv('f_not_name'),  not_addr1: gv('f_not_addr1'),
-    not_addr2: gv('f_not_addr2'), not_addr3: gv('f_not_addr3'),
-    country_origin: gv('f_country_origin'), country_dest: gv('f_country_dest'),
-    pol: gv('f_pol'), pod: gv('f_pod'),
-    final_dest:    gv('f_final_dest'),   vessel:        gv('f_vessel'),
-    precarriage:   gv('f_precarriage'),  place_receipt: gv('f_place_receipt'),
-    delivery_terms: gv('f_delivery_terms'), payment_terms: gv('f_payment_terms'),
-    incoterms:     gv('f_incoterms'),    other_terms:   gv('f_other_terms'),
-    marks_nos:     gv('f_marks_nos'),    gross_net_wt:  gv('f_gross_net_wt'),
-    other_ref:     gv('f_other_ref'),    remarks:       gv('f_remarks'),
-    preparedby:    gv('f_preparedby'),   signatory:     gv('f_signatory'),
-    rows,
-    tot_qty:   document.getElementById('tot_qty')?.textContent   || '0',
-    tot_amt:   document.getElementById('tot_amt')?.textContent   || '0.00',
-    amt_words: document.getElementById('amt_words')?.textContent || '',
+  const payload = {
+    invNo:         invno,
+    invDate:       date,
+    conName:       gv('f_con_name'),
+    conAddr1:      gv('f_con_addr1'),
+    conAddr2:      gv('f_con_addr2'),
+    conAddr3:      gv('f_con_addr3'),
+    notName:       gv('f_not_name'),
+    notAddr1:      gv('f_not_addr1'),
+    notAddr2:      gv('f_not_addr2'),
+    notAddr3:      gv('f_not_addr3'),
+    countryOrigin: gv('f_country_origin'),
+    countryDest:   gv('f_country_dest'),
+    pol:           gv('f_pol'),
+    pod:           gv('f_pod'),
+    finalDest:     gv('f_final_dest'),
+    vessel:        gv('f_vessel'),
+    precarriage:   gv('f_precarriage'),
+    placeReceipt:  gv('f_place_receipt'),
+    deliveryTerms: gv('f_delivery_terms'),
+    paymentTerms:  gv('f_payment_terms'),
+    incoterms:     gv('f_incoterms'),
+    otherTerms:    gv('f_other_terms'),
+    marksNos:      gv('f_marks_nos'),
+    grossNetWt:    gv('f_gross_net_wt'),
+    otherRef:      gv('f_other_ref'),
+    remarks:       gv('f_remarks'),
+    preparedBy:    gv('f_preparedby'),
+    signatory:     gv('f_signatory'),
+    totQty:        document.getElementById('tot_qty')?.textContent   || '0',
+    totAmt:        document.getElementById('tot_amt')?.textContent   || '0.00',
+    amtWords:      document.getElementById('amt_words')?.textContent || '',
+    rows: rows.map((r, i) => ({
+      sortOrder:   i,
+      description: r.desc,
+      hs:          r.hs,
+      qty:         r.qty,
+      rate:        r.rate,
+      amt:         r.amt
+    }))
   };
 
-  if (editingId !== null) {
-    const idx = sciRecords.findIndex(r => r.id === editingId);
-    if (idx > -1) sciRecords[idx] = rec; else sciRecords.unshift(rec);
-  } else {
-    sciRecords.unshift(rec);
-  }
+  try {
+    let res;
+    if (editingId !== null) {
+      res = await fetch(`${API_BASE}/Sci/${editingId}`, {
+        method:  'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload)
+      });
+    } else {
+      res = await fetch(`${API_BASE}/Sci`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload)
+      });
+    }
 
-  localStorage.setItem('sci_records', JSON.stringify(sciRecords));
-  renderRecords();
-  showToast('✅', `Invoice ${invno} saved!`);
-  editingId = rec.id;
-  setText('formTitle', `Editing: ${invno}`);
+    const json = await res.json();
+    if (json.success) {
+      if (editingId === null) editingId = json.data;
+      showToast('✅', `Invoice ${invno} saved!`);
+      setText('formTitle', `Editing: ${invno}`);
+      await loadRecordsFromAPI();
+    } else {
+      showToast('❌', json.message || 'Save failed.');
+    }
+  } catch (err) {
+    showToast('❌', 'Save failed: ' + err.message);
+  }
 }
 
 // ── Edit ──────────────────────────────────────────────────────
-function editRecord(id) {
-  const rec = sciRecords.find(r => r.id === id);
-  if (!rec) return;
-  editingId = id;
-  setText('formTitle', `Editing: ${rec.invno}`);
+async function editRecord(id) {
+  try {
+    const res  = await fetch(`${API_BASE}/Sci/${id}`);
+    const json = await res.json();
+    if (!json.success) return;
+    const rec  = json.data;
+    if (!rec) return;
 
-  const sv = (elId, v) => { const el = document.getElementById(elId); if (el) el.value = v || ''; };
-  sv('f_invno', rec.invno); sv('f_date', rec.date);
-  sv('f_con_name',  rec.con_name);  sv('f_con_addr1', rec.con_addr1);
-  sv('f_con_addr2', rec.con_addr2); sv('f_con_addr3', rec.con_addr3);
-  sv('f_not_name',  rec.not_name);  sv('f_not_addr1', rec.not_addr1);
-  sv('f_not_addr2', rec.not_addr2); sv('f_not_addr3', rec.not_addr3);
-  sv('f_country_origin', rec.country_origin); sv('f_country_dest', rec.country_dest);
-  sv('f_pol',   rec.pol);   sv('f_pod',  rec.pod);
-  sv('f_final_dest',   rec.final_dest);   sv('f_vessel',       rec.vessel);
-  sv('f_precarriage',  rec.precarriage);  sv('f_place_receipt',rec.place_receipt);
-  sv('f_delivery_terms', rec.delivery_terms); sv('f_payment_terms', rec.payment_terms);
-  sv('f_incoterms',    rec.incoterms);    sv('f_other_terms',  rec.other_terms);
-  sv('f_marks_nos',    rec.marks_nos);    sv('f_gross_net_wt', rec.gross_net_wt);
-  sv('f_other_ref',    rec.other_ref);    sv('f_remarks',      rec.remarks);
-  sv('f_preparedby',   rec.preparedby);   sv('f_signatory',    rec.signatory);
+    editingId = rec.id;
+    setText('formTitle', `Editing: ${rec.invNo}`);
 
-  document.getElementById('productBody').innerHTML = '';
-  rowCount = 0;
-  if (rec.rows?.length > 0) {
-    rec.rows.forEach(row => {
-      addRow();
-      const id2 = rowCount;
-      const sv2 = (k, v) => { const el = document.getElementById(`r_${k}_${id2}`); if (el) el.value = v || ''; };
-      sv2('desc', row.desc); sv2('hs', row.hs);
-      sv2('qty',  row.qty);  sv2('rate', row.rate);
-      calcRow(id2);
-    });
-    while (rowCount < 5) addRow();
-  } else {
-    addRow(); addRow(); addRow(); addRow(); addRow();
+    const sv = (elId, v) => {
+      const el = document.getElementById(elId);
+      if (el) el.value = v || '';
+    };
+
+    sv('f_invno',          rec.invNo);
+    sv('f_date',           rec.invDate?.split('T')[0] || '');
+    sv('f_con_name',       rec.conName);
+    sv('f_con_addr1',      rec.conAddr1);
+    sv('f_con_addr2',      rec.conAddr2);
+    sv('f_con_addr3',      rec.conAddr3);
+    sv('f_not_name',       rec.notName);
+    sv('f_not_addr1',      rec.notAddr1);
+    sv('f_not_addr2',      rec.notAddr2);
+    sv('f_not_addr3',      rec.notAddr3);
+    sv('f_country_origin', rec.countryOrigin);
+    sv('f_country_dest',   rec.countryDest);
+    sv('f_pol',            rec.pol);
+    sv('f_pod',            rec.pod);
+    sv('f_final_dest',     rec.finalDest);
+    sv('f_vessel',         rec.vessel);
+    sv('f_precarriage',    rec.precarriage);
+    sv('f_place_receipt',  rec.placeReceipt);
+    sv('f_delivery_terms', rec.deliveryTerms);
+    sv('f_payment_terms',  rec.paymentTerms);
+    sv('f_incoterms',      rec.incoterms);
+    sv('f_other_terms',    rec.otherTerms);
+    sv('f_marks_nos',      rec.marksNos);
+    sv('f_gross_net_wt',   rec.grossNetWt);
+    sv('f_other_ref',      rec.otherRef);
+    sv('f_remarks',        rec.remarks);
+    sv('f_preparedby',     rec.preparedBy);
+    sv('f_signatory',      rec.signatory);
+
+    // Restore product rows
+    document.getElementById('productBody').innerHTML = '';
+    rowCount = 0;
+    if (rec.rows?.length > 0) {
+      rec.rows.forEach(row => {
+        addRow();
+        const rid = rowCount;
+        const sv2 = (k, v) => {
+          const el = document.getElementById(`r_${k}_${rid}`);
+          if (el) el.value = v || '';
+        };
+        sv2('desc', row.description);
+        sv2('hs',   row.hs);
+        sv2('qty',  row.qty);
+        sv2('rate', row.rate);
+        calcRow(rid);
+      });
+      while (rowCount < 5) addRow();
+    } else {
+      addRow(); addRow(); addRow(); addRow(); addRow();
+    }
+    calcTotals();
+
+    document.querySelectorAll('.sl-card').forEach(c => c.classList.remove('active'));
+    document.getElementById(`scicard_${id}`)?.classList.add('active');
+    goToStep(1);
+
+  } catch (err) {
+    console.error('Edit failed:', err);
   }
-  calcTotals();
-
-  document.querySelectorAll('.sl-card').forEach(c => c.classList.remove('active'));
-  document.getElementById(`scicard_${id}`)?.classList.add('active');
-  goToStep(1);
 }
 
 // ── Delete ────────────────────────────────────────────────────
-function deleteRecord(id) {
+async function deleteRecord(id) {
   if (!confirm('Delete this Courier Invoice record?')) return;
-  sciRecords = sciRecords.filter(r => r.id !== id);
-  localStorage.setItem('sci_records', JSON.stringify(sciRecords));
-  if (editingId === id) newEntry();
-  renderRecords();
-  showToast('🗑','Record deleted.');
+  try {
+    const res  = await fetch(`${API_BASE}/Sci/${id}`, { method: 'DELETE' });
+    const json = await res.json();
+    if (json.success) {
+      if (editingId === id) newEntry();
+      await loadRecordsFromAPI();
+      showToast('🗑', 'Record deleted.');
+    } else {
+      showToast('❌', json.message || 'Delete failed.');
+    }
+  } catch (err) {
+    showToast('❌', 'Delete failed: ' + err.message);
+  }
 }
 
 // ── Render List ───────────────────────────────────────────────
@@ -350,11 +438,11 @@ function renderRecords(data = null) {
   }
   list.innerHTML = items.map(rec => `
     <div class="sl-card ${editingId===rec.id?'active':''}" id="scicard_${rec.id}" onclick="editRecord(${rec.id})">
-      <div class="sl-card-no">${rec.invno}</div>
-      <div class="sl-card-con">${rec.con_name||'—'}</div>
+<div class="sl-card-no">${rec.invNo}</div>
+      <div class="sl-card-con">${rec.conName||'—'}</div>
       <div class="sl-card-row">
-        <span class="sl-card-date">${fmtDate(rec.date)}</span>
-        <span class="sl-card-val">${rec.tot_amt||'0.00'}</span>
+        <span class="sl-card-date">${fmtDate(rec.invDate)}</span>
+        <span class="sl-card-val">${rec.totAmt||'0.00'}</span>
       </div>
       <div class="sl-card-acts">
         <button class="sl-act edit" onclick="event.stopPropagation();editRecord(${rec.id})">✏️ Edit</button>
@@ -368,9 +456,9 @@ function filterRecords() {
   const q = document.getElementById('searchInput')?.value.toLowerCase() || '';
   if (!q) { renderRecords(); return; }
   renderRecords(sciRecords.filter(r =>
-    r.invno?.toLowerCase().includes(q) ||
-    r.con_name?.toLowerCase().includes(q) ||
-    r.not_name?.toLowerCase().includes(q)
+    r.invNo?.toLowerCase().includes(q) ||
+    r.conName?.toLowerCase().includes(q) ||
+    r.notName?.toLowerCase().includes(q)
   ));
 }
 
@@ -399,9 +487,14 @@ function printRecord() {
   });
 }
 
-function printById(id) {
-  const rec = sciRecords.find(r => r.id === id);
-  if (rec) doPrint(rec);
+async function printById(id) {
+  try {
+    const res  = await fetch(`${API_BASE}/Sci/${id}`);
+    const json = await res.json();
+    if (json.success) doPrint(json.data);
+  } catch (err) {
+    showToast('❌', 'Print failed: ' + err.message);
+  }
 }
 
 function doPrint(rec) {

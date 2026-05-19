@@ -96,7 +96,8 @@ const EC2_ROWS = [
 const INPUT_TYPES = ['input'];
 const CALC_TYPES  = ['calc_cbm','calc_local_tax','calc_local_total','calc_cust_tax','calc_cust_total','calc_fob_inr','calc_fob_kg','calc_fob_usd','calc_cif_inr','calc_cif_usd'];
 
-let ec2Records  = JSON.parse(localStorage.getItem('ec2_records') || '[]');
+const API_BASE  = 'http://localhost:5135/api';
+let ec2Records  = [];
 let editingId   = null;
 let currentStep = 1;
 
@@ -107,9 +108,20 @@ document.addEventListener('DOMContentLoaded', () => {
   setTodayDate();
   autoSetRefNo();
   buildCostTable();
-  renderRecords();
+  loadRecordsFromAPI();
   goToStep(1);
 });
+
+async function loadRecordsFromAPI() {
+  try {
+    const res   = await fetch(`${API_BASE}/Ec2`);
+    const json  = await res.json();
+    ec2Records  = json.data || [];
+    renderRecords();
+  } catch (err) {
+    console.error('Failed to load EC2 records:', err);
+  }
+}
 
 function setTodayDate() {
   const el = document.getElementById('f_ratedate');
@@ -355,94 +367,130 @@ function clearForm() {
 }
 
 // ── Save ──────────────────────────────────────────────────────
-function saveRecord() {
+async function saveRecord() {
   const company  = gv('f_company');
   const refno    = gv('f_refno');
   const ratedate = gv('f_ratedate');
-  if (!company)  { showToast('⚠️','Please enter Company.');  goToStep(1); return; }
+  if (!company)  { showToast('⚠️','Please enter Company.');     goToStep(1); return; }
   if (!refno)    { showToast('⚠️','Please enter Costing Ref.'); goToStep(1); return; }
   if (!ratedate) { showToast('⚠️','Please select Rate On Date.'); goToStep(1); return; }
 
-  // Collect all input values
-  const cells = {};
+  // Collect all input cell values
+  const cells = [];
   EC2_ROWS.filter(r => r.type === 'input').forEach(row => {
-    cells[row.key] = {};
     COLS.forEach(col => {
-      cells[row.key][col] = parseFloat(document.getElementById(`cell_${row.key}_${col}`)?.value) || 0;
+      const val = parseFloat(
+        document.getElementById(`cell_${row.key}_${col}`)?.value) || 0;
+      cells.push({ rowKey: row.key, colId: col, value: val });
     });
   });
 
-  // Collect calc values
-  const calcs = {};
-  EC2_ROWS.filter(r => CALC_TYPES.includes(r.type)).forEach(row => {
-    calcs[row.key] = {};
-    COLS.forEach(col => {
-      calcs[row.key][col] = document.getElementById(`cell_${row.key}_${col}`)?.textContent || '0';
-    });
-  });
-
-  const rec = {
-    id: editingId ?? Date.now(),
-    company, refno,
+  const payload = {
+    refNo:      refno,
+    rateDate:   ratedate,
+    company:    company,
     product:    gv('f_product'),
-    ratedate,
-    usdrate:    gv('f_usdrate'),
+    usdRate:    gv('f_usdrate'),
     pol:        gv('f_pol'),
-    preparedby: gv('f_preparedby'),
+    preparedBy: gv('f_preparedby'),
     signatory:  gv('f_signatory'),
-    cells, calcs,
-    sum_fob_inr: document.getElementById('sum_fob_inr')?.textContent || '0',
-    sum_fob_usd: document.getElementById('sum_fob_usd')?.textContent || '0',
-    sum_cif_inr: document.getElementById('sum_cif_inr')?.textContent || '0',
+    sumFobInr:  document.getElementById('sum_fob_inr')?.textContent || '0',
+    sumFobUsd:  document.getElementById('sum_fob_usd')?.textContent || '0',
+    sumCifInr:  document.getElementById('sum_cif_inr')?.textContent || '0',
+    cells:      cells
   };
 
-  if (editingId !== null) {
-    const idx = ec2Records.findIndex(r => r.id === editingId);
-    if (idx > -1) ec2Records[idx] = rec; else ec2Records.unshift(rec);
-  } else {
-    ec2Records.unshift(rec);
-  }
+  try {
+    let res;
+    if (editingId !== null) {
+      res = await fetch(`${API_BASE}/Ec2/${editingId}`, {
+        method:  'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload)
+      });
+    } else {
+      res = await fetch(`${API_BASE}/Ec2`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload)
+      });
+    }
 
-  localStorage.setItem('ec2_records', JSON.stringify(ec2Records));
-  renderRecords();
-  showToast('✅', `Record ${refno} saved!`);
-  editingId = rec.id;
-  setText('formTitle', `Editing: ${refno}`);
+    const json = await res.json();
+    if (json.success) {
+      if (editingId === null) editingId = json.data;
+      showToast('✅', `Record ${refno} saved!`);
+      setText('formTitle', `Editing: ${refno}`);
+      await loadRecordsFromAPI();
+    } else {
+      showToast('❌', json.message || 'Save failed.');
+    }
+  } catch (err) {
+    showToast('❌', 'Save failed: ' + err.message);
+  }
 }
 
 // ── Edit ──────────────────────────────────────────────────────
-function editRecord(id) {
-  const rec = ec2Records.find(r => r.id === id);
-  if (!rec) return;
-  editingId = id;
-  setText('formTitle', `Editing: ${rec.refno}`);
+async function editRecord(id) {
+  try {
+    const res  = await fetch(`${API_BASE}/Ec2/${id}`);
+    const json = await res.json();
+    if (!json.success) return;
+    const rec  = json.data;
+    if (!rec) return;
 
-  const sv = (elId, v) => { const el = document.getElementById(elId); if (el) el.value = v || ''; };
-  sv('f_company',  rec.company);  sv('f_refno',    rec.refno);
-  sv('f_product',  rec.product);  sv('f_ratedate', rec.ratedate);
-  sv('f_usdrate',  rec.usdrate);  sv('f_pol',      rec.pol);
-  sv('f_preparedby', rec.preparedby); sv('f_signatory', rec.signatory);
+    editingId = rec.id;
+    setText('formTitle', `Editing: ${rec.refNo}`);
 
-  EC2_ROWS.filter(r => r.type === 'input').forEach(row => {
-    COLS.forEach(col => {
-      sv(`cell_${row.key}_${col}`, rec.cells?.[row.key]?.[col] || '');
+    const sv = (elId, v) => {
+      const el = document.getElementById(elId); if (el) el.value = v || '';
+    };
+
+    sv('f_company',   rec.company);
+    sv('f_refno',     rec.refNo);
+    sv('f_product',   rec.product);
+    sv('f_ratedate',  rec.rateDate?.split('T')[0] || '');
+    sv('f_usdrate',   rec.usdRate);
+    sv('f_pol',       rec.pol);
+    sv('f_preparedby',rec.preparedBy);
+    sv('f_signatory', rec.signatory);
+
+    // Restore cell values from flat array
+    EC2_ROWS.filter(r => r.type === 'input').forEach(row => {
+      COLS.forEach(col => {
+        const cell = rec.cells?.find(c =>
+          c.rowKey === row.key && c.colId === col);
+        const el = document.getElementById(`cell_${row.key}_${col}`);
+        if (el) el.value = cell?.value || '';
+      });
     });
-  });
 
-  recalc();
-  document.querySelectorAll('.e2l-card').forEach(c => c.classList.remove('active'));
-  document.getElementById(`ec2card_${id}`)?.classList.add('active');
-  goToStep(1);
+    recalc();
+    document.querySelectorAll('.e2l-card').forEach(c => c.classList.remove('active'));
+    document.getElementById(`ec2card_${id}`)?.classList.add('active');
+    goToStep(1);
+
+  } catch (err) {
+    console.error('Edit failed:', err);
+  }
 }
 
 // ── Delete ────────────────────────────────────────────────────
-function deleteRecord(id) {
+async function deleteRecord(id) {
   if (!confirm('Delete this Export Costing 2 record?')) return;
-  ec2Records = ec2Records.filter(r => r.id !== id);
-  localStorage.setItem('ec2_records', JSON.stringify(ec2Records));
-  if (editingId === id) newEntry();
-  renderRecords();
-  showToast('🗑','Record deleted.');
+  try {
+    const res  = await fetch(`${API_BASE}/Ec2/${id}`, { method: 'DELETE' });
+    const json = await res.json();
+    if (json.success) {
+      if (editingId === id) newEntry();
+      await loadRecordsFromAPI();
+      showToast('🗑', 'Record deleted.');
+    } else {
+      showToast('❌', json.message || 'Delete failed.');
+    }
+  } catch (err) {
+    showToast('❌', 'Delete failed: ' + err.message);
+  }
 }
 
 // ── Render List ───────────────────────────────────────────────
@@ -460,11 +508,11 @@ function renderRecords(data = null) {
   }
   list.innerHTML = items.map(rec => `
     <div class="e2l-card ${editingId===rec.id?'active':''}" id="ec2card_${rec.id}" onclick="editRecord(${rec.id})">
-      <div class="e2l-card-no">${rec.refno}</div>
+<div class="e2l-card-no">${rec.refNo}</div>
       <div class="e2l-card-co">${rec.company}</div>
       <div class="e2l-card-row">
-        <span class="e2l-card-date">${fmtDate(rec.ratedate)}</span>
-        <span class="e2l-card-val">${rec.sum_fob_usd || '$0'}</span>
+        <span class="e2l-card-date">${fmtDate(rec.rateDate)}</span>
+        <span class="e2l-card-val">${rec.sumFobUsd || '$0'}</span>
       </div>
       <div class="e2l-card-acts">
         <button class="e2l-act edit" onclick="event.stopPropagation();editRecord(${rec.id})">✏️ Edit</button>
@@ -478,7 +526,7 @@ function filterRecords() {
   const q = document.getElementById('searchInput')?.value.toLowerCase() || '';
   if (!q) { renderRecords(); return; }
   renderRecords(ec2Records.filter(r =>
-    r.refno?.toLowerCase().includes(q) ||
+    r.refNo?.toLowerCase().includes(q) ||
     r.company?.toLowerCase().includes(q) ||
     r.product?.toLowerCase().includes(q)
   ));
@@ -510,9 +558,14 @@ function printRecord() {
   });
 }
 
-function printById(id) {
-  const rec = ec2Records.find(r => r.id === id);
-  if (rec) doPrint(rec);
+async function printById(id) {
+  try {
+    const res  = await fetch(`${API_BASE}/Ec2/${id}`);
+    const json = await res.json();
+    if (json.success) doPrint(json.data);
+  } catch (err) {
+    showToast('❌', 'Print failed: ' + err.message);
+  }
 }
 
 function doPrint(rec) {

@@ -3,10 +3,11 @@
    IMPEXIO v2
    ============================================================ */
 
-let efmRecords   = JSON.parse(localStorage.getItem('efm_records') || '[]');
-let editingId    = null;
-let currentStep  = 1;
-let selectedMailType = null;
+   const API_BASE   = 'http://localhost:5135/api';
+   let efmRecords   = [];
+   let editingId    = null;
+   let currentStep  = 1;
+   let selectedMailType = null;
 
 // ── Mail type config ──────────────────────────────────────────
 const MAIL_TYPES = {
@@ -86,13 +87,24 @@ const MAIL_TYPES = {
   }
 };
 
+async function loadRecordsFromAPI() {
+  try {
+    const res  = await fetch(`${API_BASE}/Efm`);
+    const json = await res.json();
+    efmRecords = json.data || [];
+    renderRecords();
+  } catch (err) {
+    console.error('Failed to load EFM records:', err);
+  }
+}
+
 // ── Init ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   loadSess();
   populateTopbar();
   setTodayDate();
   autoSetRefNo();
-  renderRecords();
+  loadRecordsFromAPI();
   goToStep(1);
 });
 
@@ -294,24 +306,29 @@ function generateEmailPreview() {
 }
 
 // ── Save / Load records ───────────────────────────────────────
-function saveRecord() {
+async function saveRecord() {
   if (!selectedMailType) { showToastEfm('⚠️', 'Please select a mail type first.'); return; }
   if (!gv('f_refno'))   { showToastEfm('⚠️', 'Please enter a reference number.'); return; }
   if (!gv('f_to_name')) { showToastEfm('⚠️', 'Please enter the buyer name.'); return; }
 
-  const cfg = MAIL_TYPES[selectedMailType];
+  const cfg   = MAIL_TYPES[selectedMailType];
   const extra = getExtraData();
-  const rec = {
-    id:          editingId ?? Date.now(),
+
+  // Store extra fields as JSON string
+  const extraData = Object.keys(extra).length > 0
+    ? JSON.stringify(extra)
+    : null;
+
+  const payload = {
+    refNo:       gv('f_refno'),
+    mailDate:    gv('f_date'),
     mailType:    selectedMailType,
     mailLabel:   cfg.label,
     mailIcon:    cfg.icon,
-    refno:       gv('f_refno'),
-    date:        gv('f_date'),
     product:     gv('f_product'),
-    docref:      gv('f_docref'),
-    docdate:     gv('f_docdate'),
-    docvalue:    gv('f_docvalue'),
+    docRef:      gv('f_docref'),
+    docDate:     gv('f_docdate') || null,
+    docValue:    gv('f_docvalue'),
     fromCompany: gv('f_from_company'),
     fromName:    gv('f_from_name'),
     fromDesig:   gv('f_from_designation'),
@@ -323,54 +340,111 @@ function saveRecord() {
     toCountry:   gv('f_to_country'),
     toEmail:     gv('f_to_email'),
     specialNote: gv('f_special_note'),
-    ...extra
+    extraData:   extraData
   };
 
-  if (editingId !== null) {
-    const idx = efmRecords.findIndex(r => r.id === editingId);
-    if (idx >= 0) efmRecords[idx] = rec;
-  } else {
-    efmRecords.push(rec);
+  try {
+    let res;
+    if (editingId !== null) {
+      res = await fetch(`${API_BASE}/Efm/${editingId}`, {
+        method:  'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload)
+      });
+    } else {
+      res = await fetch(`${API_BASE}/Efm`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload)
+      });
+    }
+
+    const json = await res.json();
+    if (json.success) {
+      if (editingId === null) editingId = json.data;
+      showToastEfm('✅', 'Follow-up mail record saved!');
+      setText('formTitle', `Editing: ${gv('f_refno')}`);
+      await loadRecordsFromAPI();
+    } else {
+      showToastEfm('❌', json.message || 'Save failed.');
+    }
+  } catch (err) {
+    showToastEfm('❌', 'Save failed: ' + err.message);
   }
-  localStorage.setItem('efm_records', JSON.stringify(efmRecords));
-  renderRecords();
-  showToastEfm('✅', 'Follow-up mail record saved!');
 }
 
-function loadRecord(id) {
-  const rec = efmRecords.find(r => r.id === id);
-  if (!rec) return;
-  editingId = id;
-  clearForm(false);
-  selectMailType(rec.mailType);
-  sv('f_refno', rec.refno); sv('f_date', rec.date);
-  sv('f_product', rec.product); sv('f_docref', rec.docref);
-  sv('f_docdate', rec.docdate); sv('f_docvalue', rec.docvalue);
-  sv('f_from_company', rec.fromCompany); sv('f_from_name', rec.fromName);
-  sv('f_from_designation', rec.fromDesig); sv('f_from_email', rec.fromEmail);
-  sv('f_from_phone', rec.fromPhone); sv('f_from_city', rec.fromCity);
-  sv('f_to_name', rec.toName); sv('f_to_company', rec.toCompany);
-  sv('f_to_country', rec.toCountry); sv('f_to_email', rec.toEmail);
-  sv('f_special_note', rec.specialNote);
-  // Restore extra fields
-  const cfg = MAIL_TYPES[rec.mailType];
-  (cfg.extraFields || []).forEach(f => {
-    const camel = toCamel(f.id);
-    const el = document.getElementById('fextra_' + f.id);
-    if (el && rec[camel]) el.value = rec[camel];
-  });
-  setText('formTitle', 'Edit Follow-up Mail');
-  goToStep(1);
-  document.querySelectorAll('.efl-card').forEach(c => c.classList.remove('active'));
-  document.querySelector(`.efl-card[data-id="${id}"]`)?.classList.add('active');
+async function loadRecord(id) {
+  try {
+    const res  = await fetch(`${API_BASE}/Efm/${id}`);
+    const json = await res.json();
+    if (!json.success) return;
+    const rec  = json.data;
+    if (!rec) return;
+
+    editingId = rec.id;
+    clearForm(false);
+
+    // Select mail type
+    selectMailType(rec.mailType);
+
+    // Fill fields
+    sv('f_refno',        rec.refNo);
+    sv('f_date',         rec.mailDate?.split('T')[0] || '');
+    sv('f_product',      rec.product);
+    sv('f_docref',       rec.docRef);
+    sv('f_docdate',      rec.docDate?.split('T')[0] || '');
+    sv('f_docvalue',     rec.docValue);
+    sv('f_from_company', rec.fromCompany);
+    sv('f_from_name',    rec.fromName);
+    sv('f_from_designation', rec.fromDesig);
+    sv('f_from_email',   rec.fromEmail);
+    sv('f_from_phone',   rec.fromPhone);
+    sv('f_from_city',    rec.fromCity);
+    sv('f_to_name',      rec.toName);
+    sv('f_to_company',   rec.toCompany);
+    sv('f_to_country',   rec.toCountry);
+    sv('f_to_email',     rec.toEmail);
+    sv('f_special_note', rec.specialNote);
+
+    // Restore extra fields from JSON
+    if (rec.extraData) {
+      try {
+        const extra = JSON.parse(rec.extraData);
+        const cfg   = MAIL_TYPES[rec.mailType];
+        (cfg?.extraFields || []).forEach(f => {
+          const el = document.getElementById('fextra_' + f.id);
+          const camel = f.id.replace(/_([a-z])/g, (m, c) => c.toUpperCase());
+          if (el && extra[camel]) el.value = extra[camel];
+        });
+      } catch(e) { console.warn('ExtraData parse error', e); }
+    }
+
+    setText('formTitle', `Editing: ${rec.refNo}`);
+    goToStep(1);
+
+    document.querySelectorAll('.efl-card').forEach(c => c.classList.remove('active'));
+    document.querySelector(`.efl-card[data-id="${id}"]`)?.classList.add('active');
+
+  } catch (err) {
+    console.error('Load failed:', err);
+  }
 }
 
-function deleteRecord(id) {
+async function deleteRecord(id) {
   if (!confirm('Delete this follow-up mail record?')) return;
-  efmRecords = efmRecords.filter(r => r.id !== id);
-  localStorage.setItem('efm_records', JSON.stringify(efmRecords));
-  renderRecords();
-  showToastEfm('🗑', 'Record deleted.');
+  try {
+    const res  = await fetch(`${API_BASE}/Efm/${id}`, { method: 'DELETE' });
+    const json = await res.json();
+    if (json.success) {
+      if (editingId === id) newEntry();
+      await loadRecordsFromAPI();
+      showToastEfm('🗑', 'Record deleted.');
+    } else {
+      showToastEfm('❌', json.message || 'Delete failed.');
+    }
+  } catch (err) {
+    showToastEfm('❌', 'Delete failed: ' + err.message);
+  }
 }
 
 function newEntry() {
@@ -400,8 +474,10 @@ function renderRecords(query = '') {
   const list = document.getElementById('recordsList');
   const q = query.toLowerCase().trim();
   const filtered = efmRecords.filter(r =>
-    !q || r.refno?.toLowerCase().includes(q) || r.toName?.toLowerCase().includes(q) ||
-    r.mailLabel?.toLowerCase().includes(q) || r.product?.toLowerCase().includes(q)
+    !q || r.refNo?.toLowerCase().includes(q) ||
+    r.toName?.toLowerCase().includes(q) ||
+    r.mailLabel?.toLowerCase().includes(q) ||
+    r.product?.toLowerCase().includes(q)
   );
   if (!filtered.length) {
     list.innerHTML = `<div class="efl-empty"><div style="font-size:1.6rem;opacity:0.35;">📧</div><div class="efl-empty-txt">No records yet</div><div class="efl-empty-sub">Click + New to begin</div></div>`;
@@ -409,12 +485,12 @@ function renderRecords(query = '') {
   }
   list.innerHTML = filtered.slice().reverse().map(r => `
     <div class="efl-card${editingId===r.id?' active':''}" data-id="${r.id}" onclick="loadRecord(${r.id})">
-      <div class="efl-card-no">${r.refno || '—'}</div>
-      <div class="efl-card-type">${r.mailIcon || '📧'} ${r.mailLabel || '—'}</div>
-      <div class="efl-card-buyer">${r.toName || '—'}${r.toCompany ? ' · ' + r.toCompany : ''}</div>
       <div class="efl-card-row">
-        <div class="efl-card-date">${fmtDate(r.date)}</div>
-        <div class="efl-card-ref">${r.docref || ''}</div>
+<div class="efl-card-no">${r.refNo || '—'}</div>
+      <div class="efl-card-type">${r.mailIcon || '📧'} ${r.mailLabel || '—'}</div>
+      <div class="efl-card-buyer">${r.toName || '—'}
+      <div class="efl-card-date">${fmtDate(r.mailDate)}</div>
+      <div class="efl-card-ref">${r.docRef || ''}</div>
       </div>
       <div class="efl-card-acts">
         <button class="efl-act edit" onclick="event.stopPropagation();loadRecord(${r.id})">✏️ Edit</button>
@@ -473,9 +549,10 @@ function printRecord() {
   window.print();
 }
 
-function quickPrint(id) {
-  loadRecord(id);
-  setTimeout(() => { goToStep(3); setTimeout(printRecord, 400); }, 200);
+async function quickPrint(id) {
+  await loadRecord(id);
+  goToStep(3);
+  setTimeout(printRecord, 400);
 }
 
 // ── Toast ─────────────────────────────────────────────────────

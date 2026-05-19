@@ -3,10 +3,11 @@
    IMPEXIO v2
    ============================================================ */
 
-let piRecords   = JSON.parse(localStorage.getItem('pi_records') || '[]');
-let editingId   = null;
-let currentStep = 1;
-let rowCount    = 0;
+   const API_BASE  = 'http://localhost:5135/api';
+   let piRecords   = [];
+   let editingId   = null;
+   let currentStep = 1;
+   let rowCount    = 0;
 
 // ── Init ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
@@ -14,10 +15,21 @@ document.addEventListener('DOMContentLoaded', () => {
   populateTopbar();
   setTodayDate();
   autoSetPiNo();
-  addRow(); addRow(); addRow(); // start with 3 empty rows
-  renderRecords();
+  addRow(); addRow(); addRow();
+  loadRecordsFromAPI();
   goToStep(1);
 });
+
+async function loadRecordsFromAPI() {
+  try {
+    const res  = await fetch(`${API_BASE}/Pi`);
+    const json = await res.json();
+    piRecords  = json.data || [];
+    renderRecords();
+  } catch (err) {
+    console.error('Failed to load PI records:', err);
+  }
+}
 
 function setTodayDate() {
   const el = document.getElementById('f_date');
@@ -260,106 +272,185 @@ function clearForm() {
 }
 
 // ── Save ──────────────────────────────────────────────────────
-function saveRecord() {
+async function saveRecord() {
   const pino = gv('f_pino');
   const date = gv('f_date');
-  if (!pino) { showToast('⚠️','Please enter PI No.'); goToStep(1); return; }
-  if (!date) { showToast('⚠️','Please select Date.'); goToStep(1); return; }
+  if (!pino) { showToast('⚠️','Please enter PI No.');  goToStep(1); return; }
+  if (!date) { showToast('⚠️','Please select Date.');  goToStep(1); return; }
 
   calcTotals();
-  const rows = collectRows();
+  const rows = collectRows().filter(r => r.desc || r.qty || r.rate);
 
-  const rec = {
-    id: editingId ?? Date.now(),
-    pino, date,
-    exp_name:  gv('f_exp_name'),  exp_addr1: gv('f_exp_addr1'),
-    exp_addr2: gv('f_exp_addr2'), exp_addr3: gv('f_exp_addr3'),
-    buy_name:  gv('f_buy_name'),  buy_addr1: gv('f_buy_addr1'),
-    buy_addr2: gv('f_buy_addr2'), buy_addr3: gv('f_buy_addr3'),
-    country_origin: gv('f_country_origin'), country_dest: gv('f_country_dest'),
-    pol: gv('f_pol'), pod: gv('f_pod'),
-    precarriage: gv('f_precarriage'), vessel: gv('f_vessel'),
-    incoterms: gv('f_incoterms'), final_dest: gv('f_final_dest'),
-    payment_terms: gv('f_payment_terms'), delivery_terms: gv('f_delivery_terms'),
-    transhipment: gv('f_transhipment'), partial_shipment: gv('f_partial_shipment'),
-    lead_time: gv('f_lead_time'), validity: gv('f_validity'),
-    netgross_wt: gv('f_netgross_wt'), total_cbm: gv('f_total_cbm'),
-    remarks: gv('f_remarks'), preparedby: gv('f_preparedby'), signatory: gv('f_signatory'),
-    rows,
-    tot_qty:   document.getElementById('tot_qty')?.textContent || '0',
-    tot_box:   document.getElementById('tot_box')?.textContent || '0',
-    tot_amt:   document.getElementById('tot_amt')?.textContent || '0.00',
-    amt_words: document.getElementById('amt_words')?.textContent || '',
+  const payload = {
+    piNo:            pino,
+    piDate:          date,
+    expName:         gv('f_exp_name'),
+    expAddr1:        gv('f_exp_addr1'),
+    expAddr2:        gv('f_exp_addr2'),
+    expAddr3:        gv('f_exp_addr3'),
+    buyName:         gv('f_buy_name'),
+    buyAddr1:        gv('f_buy_addr1'),
+    buyAddr2:        gv('f_buy_addr2'),
+    buyAddr3:        gv('f_buy_addr3'),
+    countryOrigin:   gv('f_country_origin'),
+    countryDest:     gv('f_country_dest'),
+    pol:             gv('f_pol'),
+    pod:             gv('f_pod'),
+    precarriage:     gv('f_precarriage'),
+    vessel:          gv('f_vessel'),
+    incoterms:       gv('f_incoterms'),
+    finalDest:       gv('f_final_dest'),
+    paymentTerms:    gv('f_payment_terms'),
+    deliveryTerms:   gv('f_delivery_terms'),
+    transhipment:    gv('f_transhipment'),
+    partialShipment: gv('f_partial_shipment'),
+    leadTime:        gv('f_lead_time'),
+    validity:        gv('f_validity'),
+    netGrossWt:      gv('f_netgross_wt'),
+    totalCbm:        gv('f_total_cbm'),
+    remarks:         gv('f_remarks'),
+    preparedBy:      gv('f_preparedby'),
+    signatory:       gv('f_signatory'),
+    totQty:          document.getElementById('tot_qty')?.textContent  || '0',
+    totBox:          document.getElementById('tot_box')?.textContent  || '0',
+    totAmt:          document.getElementById('tot_amt')?.textContent  || '0.00',
+    amtWords:        document.getElementById('amt_words')?.textContent|| '',
+    rows: rows.map((r, i) => ({
+      sortOrder: i,
+      desc:      r.desc,
+      hs:        r.hs,
+      qty:       r.qty,
+      box:       r.box,
+      rate:      r.rate,
+      amt:       r.amt
+    }))
   };
 
-  if (editingId !== null) {
-    const idx = piRecords.findIndex(r => r.id === editingId);
-    if (idx > -1) piRecords[idx] = rec; else piRecords.unshift(rec);
-  } else {
-    piRecords.unshift(rec);
-  }
+  try {
+    let res;
+    if (editingId !== null) {
+      res = await fetch(`${API_BASE}/Pi/${editingId}`, {
+        method:  'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload)
+      });
+    } else {
+      res = await fetch(`${API_BASE}/Pi`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload)
+      });
+    }
 
-  localStorage.setItem('pi_records', JSON.stringify(piRecords));
-  renderRecords();
-  showToast('✅', `PI ${pino} saved!`);
-  editingId = rec.id;
-  setText('formTitle', `Editing: ${pino}`);
+    const json = await res.json();
+    if (json.success) {
+      if (editingId === null) editingId = json.data;
+      showToast('✅', `PI ${pino} saved!`);
+      setText('formTitle', `Editing: ${pino}`);
+      await loadRecordsFromAPI();
+    } else {
+      showToast('❌', json.message || 'Save failed.');
+    }
+  } catch (err) {
+    showToast('❌', 'Save failed: ' + err.message);
+  }
 }
 
 // ── Edit ──────────────────────────────────────────────────────
-function editRecord(id) {
-  const rec = piRecords.find(r => r.id === id);
-  if (!rec) return;
-  editingId = id;
-  setText('formTitle', `Editing: ${rec.pino}`);
+async function editRecord(id) {
+  try {
+    const res  = await fetch(`${API_BASE}/Pi/${id}`);
+    const json = await res.json();
+    if (!json.success) return;
+    const rec  = json.data;
+    if (!rec) return;
 
-  const sv = (elId, v) => { const el = document.getElementById(elId); if (el) el.value = v || ''; };
-  sv('f_pino', rec.pino); sv('f_date', rec.date);
-  sv('f_exp_name', rec.exp_name); sv('f_exp_addr1', rec.exp_addr1);
-  sv('f_exp_addr2', rec.exp_addr2); sv('f_exp_addr3', rec.exp_addr3);
-  sv('f_buy_name', rec.buy_name); sv('f_buy_addr1', rec.buy_addr1);
-  sv('f_buy_addr2', rec.buy_addr2); sv('f_buy_addr3', rec.buy_addr3);
-  sv('f_country_origin', rec.country_origin); sv('f_country_dest', rec.country_dest);
-  sv('f_pol', rec.pol); sv('f_pod', rec.pod);
-  sv('f_precarriage', rec.precarriage); sv('f_vessel', rec.vessel);
-  sv('f_incoterms', rec.incoterms); sv('f_final_dest', rec.final_dest);
-  sv('f_payment_terms', rec.payment_terms); sv('f_delivery_terms', rec.delivery_terms);
-  sv('f_transhipment', rec.transhipment); sv('f_partial_shipment', rec.partial_shipment);
-  sv('f_lead_time', rec.lead_time); sv('f_validity', rec.validity);
-  sv('f_netgross_wt', rec.netgross_wt); sv('f_total_cbm', rec.total_cbm);
-  sv('f_remarks', rec.remarks); sv('f_preparedby', rec.preparedby);
-  sv('f_signatory', rec.signatory);
+    editingId = rec.id;
+    setText('formTitle', `Editing: ${rec.piNo}`);
 
-  // Restore rows
-  document.getElementById('productBody').innerHTML = '';
-  rowCount = 0;
-  if (rec.rows && rec.rows.length > 0) {
-    rec.rows.forEach(row => {
-      addRow();
-      const id2 = rowCount;
-      const sv2 = (k, v) => { const el = document.getElementById(`r_${k}_${id2}`); if (el) el.value = v || ''; };
-      sv2('desc', row.desc); sv2('hs', row.hs);
-      sv2('qty',  row.qty);  sv2('box', row.box); sv2('rate', row.rate);
-      calcRow(id2);
-    });
-  } else {
-    addRow(); addRow(); addRow();
+    const sv = (elId, v) => {
+      const el = document.getElementById(elId);
+      if (el) el.value = v || '';
+    };
+
+    sv('f_pino',            rec.piNo);
+    sv('f_date',            rec.piDate?.split('T')[0] || '');
+    sv('f_exp_name',        rec.expName);
+    sv('f_exp_addr1',       rec.expAddr1);
+    sv('f_exp_addr2',       rec.expAddr2);
+    sv('f_exp_addr3',       rec.expAddr3);
+    sv('f_buy_name',        rec.buyName);
+    sv('f_buy_addr1',       rec.buyAddr1);
+    sv('f_buy_addr2',       rec.buyAddr2);
+    sv('f_buy_addr3',       rec.buyAddr3);
+    sv('f_country_origin',  rec.countryOrigin);
+    sv('f_country_dest',    rec.countryDest);
+    sv('f_pol',             rec.pol);
+    sv('f_pod',             rec.pod);
+    sv('f_precarriage',     rec.precarriage);
+    sv('f_vessel',          rec.vessel);
+    sv('f_incoterms',       rec.incoterms);
+    sv('f_final_dest',      rec.finalDest);
+    sv('f_payment_terms',   rec.paymentTerms);
+    sv('f_delivery_terms',  rec.deliveryTerms);
+    sv('f_transhipment',    rec.transhipment);
+    sv('f_partial_shipment',rec.partialShipment);
+    sv('f_lead_time',       rec.leadTime);
+    sv('f_validity',        rec.validity);
+    sv('f_netgross_wt',     rec.netGrossWt);
+    sv('f_total_cbm',       rec.totalCbm);
+    sv('f_remarks',         rec.remarks);
+    sv('f_preparedby',      rec.preparedBy);
+    sv('f_signatory',       rec.signatory);
+
+    // Restore product rows
+    document.getElementById('productBody').innerHTML = '';
+    rowCount = 0;
+    if (rec.rows && rec.rows.length > 0) {
+      rec.rows.forEach(row => {
+        addRow();
+        const rid = rowCount;
+        const sv2 = (k, v) => {
+          const el = document.getElementById(`r_${k}_${rid}`);
+          if (el) el.value = v || '';
+        };
+        sv2('desc', row.desc);
+        sv2('hs',   row.hs);
+        sv2('qty',  row.qty);
+        sv2('box',  row.box);
+        sv2('rate', row.rate);
+        calcRow(rid);
+      });
+    } else {
+      addRow(); addRow(); addRow();
+    }
+    calcTotals();
+
+    document.querySelectorAll('.pl-card').forEach(c => c.classList.remove('active'));
+    document.getElementById(`picard_${id}`)?.classList.add('active');
+    goToStep(1);
+
+  } catch (err) {
+    console.error('Edit failed:', err);
   }
-  calcTotals();
-
-  document.querySelectorAll('.pl-card').forEach(c => c.classList.remove('active'));
-  document.getElementById(`picard_${id}`)?.classList.add('active');
-  goToStep(1);
 }
 
 // ── Delete ────────────────────────────────────────────────────
-function deleteRecord(id) {
+async function deleteRecord(id) {
   if (!confirm('Delete this Proforma Invoice record?')) return;
-  piRecords = piRecords.filter(r => r.id !== id);
-  localStorage.setItem('pi_records', JSON.stringify(piRecords));
-  if (editingId === id) newEntry();
-  renderRecords();
-  showToast('🗑','Record deleted.');
+  try {
+    const res  = await fetch(`${API_BASE}/Pi/${id}`, { method: 'DELETE' });
+    const json = await res.json();
+    if (json.success) {
+      if (editingId === id) newEntry();
+      await loadRecordsFromAPI();
+      showToast('🗑', 'Record deleted.');
+    } else {
+      showToast('❌', json.message || 'Delete failed.');
+    }
+  } catch (err) {
+    showToast('❌', 'Delete failed: ' + err.message);
+  }
 }
 
 // ── Render List ───────────────────────────────────────────────
@@ -377,11 +468,11 @@ function renderRecords(data = null) {
   }
   list.innerHTML = items.map(rec => `
     <div class="pl-card ${editingId===rec.id?'active':''}" id="picard_${rec.id}" onclick="editRecord(${rec.id})">
-      <div class="pl-card-no">${rec.pino}</div>
-      <div class="pl-card-buyer">${rec.buy_name || rec.exp_name || '—'}</div>
+<div class="pl-card-no">${rec.piNo}</div>
+      <div class="pl-card-buyer">${rec.buyName || rec.expName || '—'}</div>
       <div class="pl-card-row">
-        <span class="pl-card-date">${fmtDate(rec.date)}</span>
-        <span class="pl-card-val">${rec.tot_amt || '0.00'}</span>
+        <span class="pl-card-date">${fmtDate(rec.piDate)}</span>
+        <span class="pl-card-val">${rec.totAmt || '0.00'}</span>
       </div>
       <div class="pl-card-acts">
         <button class="pl-act edit" onclick="event.stopPropagation();editRecord(${rec.id})">✏️ Edit</button>
@@ -395,9 +486,9 @@ function filterRecords() {
   const q = document.getElementById('searchInput')?.value.toLowerCase() || '';
   if (!q) { renderRecords(); return; }
   renderRecords(piRecords.filter(r =>
-    r.pino?.toLowerCase().includes(q) ||
-    r.buy_name?.toLowerCase().includes(q) ||
-    r.exp_name?.toLowerCase().includes(q)
+    r.piNo?.toLowerCase().includes(q) ||
+    r.buyName?.toLowerCase().includes(q) ||
+    r.expName?.toLowerCase().includes(q)
   ));
 }
 
@@ -428,9 +519,14 @@ function printRecord() {
   });
 }
 
-function printById(id) {
-  const rec = piRecords.find(r => r.id === id);
-  if (rec) doPrint(rec);
+async function printById(id) {
+  try {
+    const res  = await fetch(`${API_BASE}/Pi/${id}`);
+    const json = await res.json();
+    if (json.success) doPrint(json.data);
+  } catch (err) {
+    showToast('❌', 'Print failed: ' + err.message);
+  }
 }
 
 function doPrint(rec) {

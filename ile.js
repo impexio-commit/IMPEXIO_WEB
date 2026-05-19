@@ -3,16 +3,28 @@
    IMPEXIO v2
    ============================================================ */
 
-let ileRecords  = JSON.parse(localStorage.getItem('ile_records') || '[]');
-let editingId   = null;
-let currentStep = 1;
-let rowCount    = 0;
+   const API_BASE  = 'http://localhost:5135/api';
+   let ileRecords  = [];
+   let editingId   = null;
+   let currentStep = 1;
+   let rowCount    = 0;
 
 document.addEventListener('DOMContentLoaded', () => {
   loadSess(); populateTopbar(); setTodayDate(); autoSetRefNo();
   addRow(); addRow(); addRow();
-  renderRecords(); goToStep(1);
+  loadRecordsFromAPI(); goToStep(1);
 });
+
+async function loadRecordsFromAPI() {
+  try {
+    const res  = await fetch(`${API_BASE}/Ile`);
+    const json = await res.json();
+    ileRecords = json.data || [];
+    renderRecords();
+  } catch (err) {
+    console.error('Failed to load ILE records:', err);
+  }
+}
 
 function setTodayDate() { const el=document.getElementById('f_date'); if(el&&!el.value) el.value=new Date().toISOString().split('T')[0]; }
 function autoSetRefNo()  { const el=document.getElementById('f_refno'); if(el&&!el.value) el.value=`ILE/2026/${String(ileRecords.length+1).padStart(4,'0')}`; }
@@ -227,59 +239,171 @@ function generateLetterPreview() {
 }
 
 // ── Save / Load ───────────────────────────────────────────────
-function saveRecord() {
-  if (!gv('f_sup_name'))     { showToastIle('⚠️','Please enter the Supplier Name.'); return; }
+async function saveRecord() {
+  if (!gv('f_sup_name'))     { showToastIle('⚠️','Please enter Supplier Name.'); return; }
   if (!gv('f_from_company')) { showToastIle('⚠️','Please enter your Company Name.'); return; }
   const rows = getProductRows();
   if (!rows.length)          { showToastIle('⚠️','Please add at least one product.'); return; }
 
-  const chk = {};
-  ['c_price','c_moq','c_lead','c_payment','c_sample','c_catalogue','c_cert','c_packing','c_pol','c_photo','c_test','c_spec']
-    .forEach(id => { chk[id] = document.getElementById(id)?.checked || false; });
+  // Collect checklist as comma separated string
+  const chkItems = ['c_price','c_moq','c_lead','c_payment','c_sample',
+    'c_catalogue','c_cert','c_packing','c_pol','c_photo','c_test','c_spec'];
+  const checklist = chkItems
+    .filter(id => document.getElementById(id)?.checked)
+    .join(',');
 
-  const rec = {
-    id: editingId??Date.now(),
-    refno:gv('f_refno'),date:gv('f_date'),responseBy:gv('f_response_by'),
-    fromCompany:gv('f_from_company'),fromContact:gv('f_from_contact'),fromDesig:gv('f_from_desig'),
-    fromAddr:gv('f_from_addr'),fromEmail:gv('f_from_email'),fromPhone:gv('f_from_phone'),
-    supName:gv('f_sup_name'),supContact:gv('f_sup_contact'),supCountry:gv('f_sup_country'),
-    supAddr:gv('f_sup_addr'),supEmail:gv('f_sup_email'),supWebsite:gv('f_sup_website'),
-    pod:gv('f_pod'),incoterms:gv('f_incoterms'),container:gv('f_container'),
-    deliveryBy:gv('f_delivery_by'),coo:gv('f_coo'),priceBasis:gv('f_price_basis'),
-    paymentTerms:gv('f_payment_terms'),currency:gv('f_currency'),moq:gv('f_moq'),
-    remarks:gv('f_remarks'),preparedby:gv('f_preparedby'),signatory:gv('f_signatory'),
-    rows, checklist: chk
+  const payload = {
+    refNo:        gv('f_refno'),
+    refDate:      gv('f_date'),
+    responseBy:   gv('f_response_by') || null,
+    fromCompany:  gv('f_from_company'),
+    fromContact:  gv('f_from_contact'),
+    fromDesig:    gv('f_from_desig'),
+    fromAddr:     gv('f_from_addr'),
+    fromEmail:    gv('f_from_email'),
+    fromPhone:    gv('f_from_phone'),
+    supName:      gv('f_sup_name'),
+    supContact:   gv('f_sup_contact'),
+    supCountry:   gv('f_sup_country'),
+    supAddr:      gv('f_sup_addr'),
+    supEmail:     gv('f_sup_email'),
+    supWebsite:   gv('f_sup_website'),
+    pod:          gv('f_pod'),
+    incoterms:    gv('f_incoterms'),
+    container:    gv('f_container'),
+    deliveryBy:   gv('f_delivery_by') || null,
+    coo:          gv('f_coo'),
+    priceBasis:   gv('f_price_basis'),
+    paymentTerms: gv('f_payment_terms'),
+    currency:     gv('f_currency'),
+    moq:          gv('f_moq'),
+    remarks:      gv('f_remarks'),
+    preparedBy:   gv('f_preparedby'),
+    signatory:    gv('f_signatory'),
+    checklist:    checklist,
+    rows: rows.map((r, i) => ({
+      sortOrder:   i,
+      description: r.desc,
+      hs:          r.hs,
+      qty:         r.qty,
+      unit:        r.unit,
+      spec:        r.spec
+    }))
   };
-  if (editingId!==null) { const idx=ileRecords.findIndex(r=>r.id===editingId); if(idx>=0) ileRecords[idx]=rec; }
-  else ileRecords.push(rec);
-  localStorage.setItem('ile_records',JSON.stringify(ileRecords));
-  renderRecords(); showToastIle('✅','Enquiry letter saved!');
+
+  try {
+    let res;
+    if (editingId !== null) {
+      res = await fetch(`${API_BASE}/Ile/${editingId}`, {
+        method:  'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload)
+      });
+    } else {
+      res = await fetch(`${API_BASE}/Ile`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload)
+      });
+    }
+    const json = await res.json();
+    if (json.success) {
+      if (editingId === null) editingId = json.data;
+      showToastIle('✅', `Record ${gv('f_refno')} saved!`);
+      setText('formTitle', `Editing: ${gv('f_refno')}`);
+      await loadRecordsFromAPI();
+    } else {
+      showToastIle('❌', json.message || 'Save failed.');
+    }
+  } catch (err) {
+    showToastIle('❌', 'Save failed: ' + err.message);
+  }
 }
 
-function loadRecord(id) {
-  const rec=ileRecords.find(r=>r.id===id); if(!rec) return;
-  editingId=id; clearForm(false);
-  sv('f_refno',rec.refno); sv('f_date',rec.date); sv('f_response_by',rec.responseBy);
-  sv('f_from_company',rec.fromCompany); sv('f_from_contact',rec.fromContact); sv('f_from_desig',rec.fromDesig);
-  sv('f_from_addr',rec.fromAddr); sv('f_from_email',rec.fromEmail); sv('f_from_phone',rec.fromPhone);
-  sv('f_sup_name',rec.supName); sv('f_sup_contact',rec.supContact); sv('f_sup_country',rec.supCountry);
-  sv('f_sup_addr',rec.supAddr); sv('f_sup_email',rec.supEmail); sv('f_sup_website',rec.supWebsite);
-  sv('f_pod',rec.pod); sv('f_incoterms',rec.incoterms); sv('f_container',rec.container);
-  sv('f_delivery_by',rec.deliveryBy); sv('f_coo',rec.coo); sv('f_price_basis',rec.priceBasis);
-  sv('f_payment_terms',rec.paymentTerms); sv('f_currency',rec.currency); sv('f_moq',rec.moq);
-  sv('f_remarks',rec.remarks); sv('f_preparedby',rec.preparedby); sv('f_signatory',rec.signatory);
-  loadProductRows(rec.rows);
-  if (rec.checklist) Object.entries(rec.checklist).forEach(([k,v])=>{ const el=document.getElementById(k); if(el) el.checked=v; });
-  setText('formTitle','Edit Enquiry Letter'); goToStep(1);
-  document.querySelectorAll('.ill-card').forEach(c=>c.classList.remove('active'));
-  document.querySelector(`.ill-card[data-id="${id}"]`)?.classList.add('active');
+async function loadRecord(id) {
+  try {
+    const res  = await fetch(`${API_BASE}/Ile/${id}`);
+    const json = await res.json();
+    if (!json.success) return;
+    const rec  = json.data;
+    if (!rec) return;
+
+    editingId = rec.id;
+    clearForm(false);
+
+    sv('f_refno',        rec.refNo);
+    sv('f_date',         rec.refDate?.split('T')[0] || '');
+    sv('f_response_by',  rec.responseBy?.split('T')[0] || '');
+    sv('f_from_company', rec.fromCompany);
+    sv('f_from_contact', rec.fromContact);
+    sv('f_from_desig',   rec.fromDesig);
+    sv('f_from_addr',    rec.fromAddr);
+    sv('f_from_email',   rec.fromEmail);
+    sv('f_from_phone',   rec.fromPhone);
+    sv('f_sup_name',     rec.supName);
+    sv('f_sup_contact',  rec.supContact);
+    sv('f_sup_country',  rec.supCountry);
+    sv('f_sup_addr',     rec.supAddr);
+    sv('f_sup_email',    rec.supEmail);
+    sv('f_sup_website',  rec.supWebsite);
+    sv('f_pod',          rec.pod);
+    sv('f_incoterms',    rec.incoterms);
+    sv('f_container',    rec.container);
+    sv('f_delivery_by',  rec.deliveryBy?.split('T')[0] || '');
+    sv('f_coo',          rec.coo);
+    sv('f_price_basis',  rec.priceBasis);
+    sv('f_payment_terms',rec.paymentTerms);
+    sv('f_currency',     rec.currency);
+    sv('f_moq',          rec.moq);
+    sv('f_remarks',      rec.remarks);
+    sv('f_preparedby',   rec.preparedBy);
+    sv('f_signatory',    rec.signatory);
+
+    // Restore checklist
+    if (rec.checklist) {
+      const checked = rec.checklist.split(',');
+      ['c_price','c_moq','c_lead','c_payment','c_sample',
+       'c_catalogue','c_cert','c_packing','c_pol','c_photo','c_test','c_spec']
+        .forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.checked = checked.includes(id);
+        });
+    }
+
+    // Restore product rows
+    loadProductRows(rec.rows?.map(r => ({
+      desc: r.description,
+      hs:   r.hs,
+      qty:  r.qty,
+      unit: r.unit,
+      spec: r.spec
+    })));
+
+    setText('formTitle', `Edit: ${rec.refNo}`);
+    goToStep(1);
+    document.querySelectorAll('.ill-card').forEach(c => c.classList.remove('active'));
+    document.querySelector(`.ill-card[data-id="${id}"]`)?.classList.add('active');
+
+  } catch (err) {
+    console.error('Load failed:', err);
+  }
 }
 
-function deleteRecord(id) {
-  if(!confirm('Delete this record?')) return;
-  ileRecords=ileRecords.filter(r=>r.id!==id);
-  localStorage.setItem('ile_records',JSON.stringify(ileRecords));
-  renderRecords(); showToastIle('🗑','Record deleted.');
+async function deleteRecord(id) {
+  if (!confirm('Delete this record?')) return;
+  try {
+    const res  = await fetch(`${API_BASE}/Ile/${id}`, { method: 'DELETE' });
+    const json = await res.json();
+    if (json.success) {
+      if (editingId === id) newEntry();
+      await loadRecordsFromAPI();
+      showToastIle('🗑', 'Record deleted.');
+    } else {
+      showToastIle('❌', json.message || 'Delete failed.');
+    }
+  } catch (err) {
+    showToastIle('❌', 'Delete failed: ' + err.message);
+  }
 }
 
 function newEntry() {
@@ -309,12 +433,11 @@ function renderRecords(query='') {
   const filtered=ileRecords.filter(r=>!q||r.refno?.toLowerCase().includes(q)||r.supName?.toLowerCase().includes(q)||r.rows?.[0]?.desc?.toLowerCase().includes(q));
   if(!filtered.length){list.innerHTML=`<div class="ill-empty"><div style="font-size:1.6rem;opacity:0.35;">📩</div><div class="ill-empty-txt">No records yet</div><div class="ill-empty-sub">Click + New to begin</div></div>`;return;}
   list.innerHTML=filtered.slice().reverse().map(r=>`
-    <div class="ill-card${editingId===r.id?' active':''}" data-id="${r.id}" onclick="loadRecord(${r.id})">
-      <div class="ill-card-no">${r.refno||'—'}</div>
-      <div class="ill-card-sup">${r.supName||'—'}${r.supCountry?' · '+r.supCountry:''}</div>
       <div class="ill-card-row">
-        <div class="ill-card-date">${fmtDate(r.date)}</div>
-        <div class="ill-card-prod">${r.rows?.[0]?.desc||''}</div>
+<div class="ill-card-no">${r.refNo||'—'}</div>
+      <div class="ill-card-sup">${r.supName||'—'}
+      <div class="ill-card-date">${fmtDate(r.refDate)}</div>
+      <div class="ill-card-prod">${r.rows?.[0]?.description||''}</div>
       </div>
       <div class="ill-card-acts">
         <button class="ill-act edit" onclick="event.stopPropagation();loadRecord(${r.id})">✏️ Edit</button>

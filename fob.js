@@ -24,8 +24,9 @@ const EXPENSE_ITEMS = [
 
 const COLS = ['20', '40', '40hq', 'lcl'];
 
-let fobRecords = JSON.parse(localStorage.getItem('fob_records') || '[]');
-let editingId  = null;
+const API_BASE = 'http://localhost:5135/api';
+let fobRecords  = [];
+let editingId   = null;
 let currentStep = 1;
 
 // ── Init ──────────────────────────────────────────────────────
@@ -35,11 +36,21 @@ document.addEventListener('DOMContentLoaded', () => {
   setTodayDate();
   autoSetFobNo();
   buildChargesTable();
-  renderRecords();
+  loadRecordsFromAPI();
   goToStep(1);
 });
-
+async function loadRecordsFromAPI() {
+  try {
+    const res  = await fetch(`${API_BASE}/Fob`);
+    const json = await res.json();
+    fobRecords = json.data || [];
+    renderRecords();
+  } catch (err) {
+    console.error('Failed to load FOB records:', err);
+  }
+}
 function setTodayDate() {
+
   const el = document.getElementById('f_fobdate');
   if (el && !el.value) el.value = new Date().toISOString().split('T')[0];
 }
@@ -235,7 +246,7 @@ function clearForm() {
 }
 
 // ── Save ──────────────────────────────────────────────────────
-function saveRecord() {
+async function saveRecord() {
   const company = gv('f_company').trim();
   const fobno   = gv('f_fobno').trim();
   const fobdate = gv('f_fobdate');
@@ -251,34 +262,64 @@ function saveRecord() {
     });
   });
 
-  const charges = {};
+  const charges = [];
   EXPENSE_ITEMS.filter(i => !i.group).forEach(item => {
-    charges[item.key] = {};
-    COLS.forEach(col => { charges[item.key][col] = parseFloat(gv(`e_${item.key}_${col}`)) || 0; });
+    charges.push({
+      chargeKey: item.key,
+      amt20:     parseFloat(gv(`e_${item.key}_20`))   || 0,
+      amt40:     parseFloat(gv(`e_${item.key}_40`))   || 0,
+      amt40Hq:   parseFloat(gv(`e_${item.key}_40hq`)) || 0,
+      amtLcl:    parseFloat(gv(`e_${item.key}_lcl`))  || 0,
+    });
   });
 
-  const cbms = {};
-  COLS.forEach(col => { cbms[col] = parseFloat(gv(`cbm_${col}`)) || 0; });
-
-  const rec = {
-    id: editingId ?? Date.now(),
-    company, pol: gv('f_pol'), fobno, fobdate,
-    remarks: gv('f_remarks'), preparedby: gv('f_preparedby'), signatory: gv('f_signatory'),
-    charges, cbms, totals,
+  const payload = {
+    fobNo:      fobno,
+    fobDate:    fobdate,
+    company:    company,
+    pol:        gv('f_pol'),
+    remarks:    gv('f_remarks'),
+    preparedBy: gv('f_preparedby'),
+    signatory:  gv('f_signatory'),
+    cbm20:      parseFloat(gv('cbm_20'))   || 0,
+    cbm40:      parseFloat(gv('cbm_40'))   || 0,
+    cbm40Hq:    parseFloat(gv('cbm_40hq')) || 0,
+    cbmLcl:     parseFloat(gv('cbm_lcl'))  || 0,
+    total20:    totals['20']   || 0,
+    total40:    totals['40']   || 0,
+    total40Hq:  totals['40hq'] || 0,
+    totalLcl:   totals['lcl']  || 0,
+    charges:    charges
   };
 
-  if (editingId !== null) {
-    const idx = fobRecords.findIndex(r => r.id === editingId);
-    if (idx > -1) fobRecords[idx] = rec; else fobRecords.unshift(rec);
-  } else {
-    fobRecords.unshift(rec);
-  }
+  try {
+    let res;
+    if (editingId !== null) {
+      res = await fetch(`${API_BASE}/Fob/${editingId}`, {
+        method:  'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload)
+      });
+    } else {
+      res = await fetch(`${API_BASE}/Fob`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload)
+      });
+    }
 
-  localStorage.setItem('fob_records', JSON.stringify(fobRecords));
-  renderRecords();
-  showToast('✅', `Record ${fobno} saved!`);
-  editingId = rec.id;
-  setText('formTitle', `Editing: ${fobno}`);
+    const json = await res.json();
+    if (json.success) {
+      if (editingId === null) editingId = json.data;
+      showToast('✅', `Record ${fobno} saved!`);
+      setText('formTitle', `Editing: ${fobno}`);
+      await loadRecordsFromAPI();
+    } else {
+      showToast('❌', json.message || 'Save failed.');
+    }
+  } catch (err) {
+    showToast('❌', 'Save failed: ' + err.message);
+  }
 }
 
 // ── Edit ──────────────────────────────────────────────────────
@@ -306,13 +347,21 @@ function editRecord(id) {
 }
 
 // ── Delete ────────────────────────────────────────────────────
-function deleteRecord(id) {
+async function deleteRecord(id) {
   if (!confirm('Delete this FOB record?')) return;
-  fobRecords = fobRecords.filter(r => r.id !== id);
-  localStorage.setItem('fob_records', JSON.stringify(fobRecords));
-  if (editingId === id) newEntry();
-  renderRecords();
-  showToast('🗑', 'Record deleted.');
+  try {
+    const res  = await fetch(`${API_BASE}/Fob/${id}`, { method: 'DELETE' });
+    const json = await res.json();
+    if (json.success) {
+      if (editingId === id) newEntry();
+      await loadRecordsFromAPI();
+      showToast('🗑', 'Record deleted.');
+    } else {
+      showToast('❌', json.message || 'Delete failed.');
+    }
+  } catch (err) {
+    showToast('❌', 'Delete failed: ' + err.message);
+  }
 }
 
 // ── Render List ───────────────────────────────────────────────
@@ -384,9 +433,14 @@ function printRecord() {
   });
 }
 
-function printById(id) {
-  const rec = fobRecords.find(r => r.id === id);
-  if (rec) doPrint(rec);
+async function printById(id) {
+  try {
+    const res  = await fetch(`${API_BASE}/Fob/${id}`);
+    const json = await res.json();
+    if (json.success) doPrint(json.data);
+  } catch (err) {
+    showToast('❌', 'Print failed: ' + err.message);
+  }
 }
 
 function doPrint(rec) {
