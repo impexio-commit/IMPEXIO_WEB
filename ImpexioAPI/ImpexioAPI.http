@@ -1,6 +1,0 @@
-@ImpexioAPI_HostAddress = http://localhost:5209
-
-GET {{ImpexioAPI_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
