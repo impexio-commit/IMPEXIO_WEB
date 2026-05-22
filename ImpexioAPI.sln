@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36518.9 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImpexioAPI", "ImpexioAPI\ImpexioAPI.csproj", "{D1713958-2C80-4589-BD89-36116070744F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D1713958-2C80-4589-BD89-36116070744F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1713958-2C80-4589-BD89-36116070744F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1713958-2C80-4589-BD89-36116070744F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1713958-2C80-4589-BD89-36116070744F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0160B214-C509-4B44-85DA-8C672639D28D}
+	EndGlobalSection
+EndGlobal
