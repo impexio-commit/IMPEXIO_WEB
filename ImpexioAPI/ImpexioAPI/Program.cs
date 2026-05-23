@@ -1,3 +1,9 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using ImpexioAPI.Repositories;
+using ImpexioAPI.Services;
+
 using ImpexioAPI.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,7 +29,27 @@ builder.Services.AddScoped<EqRepository>();
 builder.Services.AddScoped<SciRepository>();
 builder.Services.AddScoped<IleRepository>();
 builder.Services.AddScoped<BilRepository>();
+builder.Services.AddScoped<AdminRepository>();
+builder.Services.AddScoped<AdminAuthService>();
 
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
+            ValidAudience = builder.Configuration["JwtSettings:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:SecretKey"]!))
+        };
+    });
+
+builder.Services.AddAuthorization();
 var app = builder.Build();
 
 app.UseDeveloperExceptionPage();
