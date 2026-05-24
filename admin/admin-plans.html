@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IMPEXIO — Plans</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="admin-styles.css"/>
+</head>
+<body>
+<button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+
+<div class="admin-sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="sidebar-logo">🚢</div>
+    <div>
+      <div class="sidebar-brand-name">IMPEXIO</div>
+      <div class="sidebar-brand-sub">Admin Panel</div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Main</div>
+    <a class="nav-item" href="admin-dashboard.html"><span class="nav-item-icon">📊</span> Dashboard</a>
+    <div class="nav-section-label">Management</div>
+    <a class="nav-item" href="admin-customers.html"><span class="nav-item-icon">🏢</span> Customers</a>
+    <a class="nav-item active" href="admin-plans.html"><span class="nav-item-icon">📋</span> Plans</a>
+    <a class="nav-item" href="admin-subscriptions.html"><span class="nav-item-icon">📅</span> Subscriptions</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sidebarAv">O</div>
+      <div>
+        <div class="sidebar-uname" id="sidebarName">Owner</div>
+        <div class="sidebar-role">👑 Owner</div>
+      </div>
+    </div>
+    <button class="btn-sidebar-logout" onclick="doLogout()">⏻ Logout</button>
+  </div>
+</div>
+
+<div class="admin-main">
+  <div class="admin-topbar">
+    <div class="topbar-title">Plan Master</div>
+    <div class="topbar-right">
+      <div class="topbar-badge">📋 3 Plans Available</div>
+    </div>
+  </div>
+
+  <div class="admin-content">
+
+    <!-- Plan Cards -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;margin-bottom:1.75rem;" id="planCards">
+      <div style="text-align:center;padding:3rem;color:var(--text-soft);">Loading plans...</div>
+    </div>
+
+    <!-- Plans Table -->
+    <div class="table-card">
+      <div class="table-card-head">
+        <div class="table-card-title">Plan Details</div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Plan Name</th>
+              <th>Duration</th>
+              <th>Price</th>
+              <th>Max Users</th>
+              <th>Description</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="plansBody">
+            <tr><td colspan="6"><div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-txt">Loading...</div></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="adminToast"></div>
+
+<script>
+const API_BASE = 'http://localhost:5135/api';
+
+function getSess(){ try{return JSON.parse(localStorage.getItem('impexio_admin')||'null');}catch{return null;} }
+function getToken(){ return getSess()?.token||''; }
+function authHeaders(){ return {'Content-Type':'application/json','Authorization':'Bearer '+getToken()}; }
+function doLogout(){ localStorage.removeItem('impexio_admin'); window.location.href='admin-login.html'; }
+function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('open'); }
+
+const sess = getSess();
+if(!sess||sess.role!=='Owner') window.location.href='admin-login.html';
+else {
+  document.getElementById('sidebarName').textContent = sess.fullName||'Owner';
+  document.getElementById('sidebarAv').textContent   = (sess.fullName||'O')[0].toUpperCase();
+}
+
+function showToast(icon,msg){
+  const t=document.getElementById('adminToast');
+  t.innerHTML=`<span>${icon}</span><span>${msg}</span>`;
+  t.style.opacity='1'; clearTimeout(t._t);
+  t._t=setTimeout(()=>t.style.opacity='0',3000);
+}
+
+const PLAN_ICONS  = { 3:'🌱', 6:'🚀', 12:'👑' };
+const PLAN_COLORS = { 3:'rgba(22,163,74,0.1)', 6:'rgba(42,82,152,0.1)', 12:'rgba(201,168,76,0.15)' };
+const PLAN_BORDER = { 3:'rgba(22,163,74,0.3)', 6:'rgba(42,82,152,0.3)', 12:'rgba(201,168,76,0.4)' };
+
+async function loadPlans(){
+  try {
+    const res  = await fetch(`${API_BASE}/admin/plans`, { headers: authHeaders() });
+    const json = await res.json();
+    const plans = json.data || [];
+
+    // Plan cards
+    const cards = document.getElementById('planCards');
+    if(!plans.length){
+      cards.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text-soft);">No plans found</div>`;
+    } else {
+      cards.innerHTML = plans.map(p => `
+        <div style="background:var(--white);border:2px solid ${PLAN_BORDER[p.durationMonths]||'var(--border)'};border-radius:20px;padding:1.75rem;text-align:center;transition:all 0.2s;" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform='translateY(0)'">
+          <div style="font-size:2.5rem;margin-bottom:0.75rem;">${PLAN_ICONS[p.durationMonths]||'📋'}</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:700;color:var(--navy);margin-bottom:0.35rem;">${p.planName}</div>
+          <div style="font-size:0.75rem;color:var(--text-soft);margin-bottom:1.25rem;">${p.durationMonths} Months Access</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:700;color:var(--navy);margin-bottom:0.25rem;">₹${Number(p.price).toLocaleString('en-IN')}</div>
+          <div style="font-size:0.7rem;color:var(--text-soft);margin-bottom:1.25rem;">per subscription</div>
+          <div style="background:${PLAN_COLORS[p.durationMonths]||'var(--ivory2)'};border-radius:8px;padding:0.6rem;font-size:0.78rem;color:var(--text-mid);">${p.description||'Access to all modules'}</div>
+          <div style="margin-top:1rem;">
+            <span class="badge ${p.isActive?'badge-green':'badge-red'}">${p.isActive?'✅ Active':'❌ Inactive'}</span>
+          </div>
+        </div>`).join('');
+    }
+
+    // Table
+    const tbody = document.getElementById('plansBody');
+    if(!plans.length){
+      tbody.innerHTML=`<tr><td colspan="6"><div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-txt">No plans found</div></div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = plans.map(p => `
+      <tr>
+        <td><strong>${p.planName}</strong></td>
+        <td><span class="badge badge-gold">${p.durationMonths} Months</span></td>
+        <td><strong style="font-size:0.9rem;">₹${Number(p.price).toLocaleString('en-IN')}</strong></td>
+        <td>${p.maxUsers}</td>
+        <td style="font-size:0.78rem;color:var(--text-soft);">${p.description||'—'}</td>
+        <td>${p.isActive?'<span class="badge badge-green">✅ Active</span>':'<span class="badge badge-red">❌ Inactive</span>'}</td>
+      </tr>`).join('');
+
+  } catch(err){ console.error(err); showToast('❌','Failed to load plans.'); }
+}
+
+loadPlans();
+</script>
+</body>
+</html>
