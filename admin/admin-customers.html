@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IMPEXIO — Customers</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="admin-styles.css"/>
+</head>
+<body>
+<button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+
+<div class="admin-sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="sidebar-logo">🚢</div>
+    <div>
+      <div class="sidebar-brand-name">IMPEXIO</div>
+      <div class="sidebar-brand-sub">Admin Panel</div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Main</div>
+    <a class="nav-item" href="admin-dashboard.html"><span class="nav-item-icon">📊</span> Dashboard</a>
+    <div class="nav-section-label">Management</div>
+    <a class="nav-item active" href="admin-customers.html"><span class="nav-item-icon">🏢</span> Customers</a>
+    <a class="nav-item" href="admin-plans.html"><span class="nav-item-icon">📋</span> Plans</a>
+    <a class="nav-item" href="admin-subscriptions.html"><span class="nav-item-icon">📅</span> Subscriptions</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sidebarAv">O</div>
+      <div>
+        <div class="sidebar-uname" id="sidebarName">Owner</div>
+        <div class="sidebar-role">👑 Owner</div>
+      </div>
+    </div>
+    <button class="btn-sidebar-logout" onclick="doLogout()">⏻ Logout</button>
+  </div>
+</div>
+
+<div class="admin-main">
+  <div class="admin-topbar">
+    <div class="topbar-title">Customer Master</div>
+    <div class="topbar-right">
+      <button class="btn-primary btn-gold" onclick="openModal()">＋ Add Customer</button>
+    </div>
+  </div>
+
+  <div class="admin-content">
+    <div class="table-card">
+      <div class="table-card-head">
+        <div class="table-card-title">All Customers</div>
+        <div class="table-search">
+          <span>🔍</span>
+          <input type="text" id="searchInput" placeholder="Search customers..." oninput="filterTable()"/>
+        </div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Client Code</th>
+              <th>Company Name</th>
+              <th>Contact Person</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Plan</th>
+              <th>Sub Expiry</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="customersBody">
+            <tr><td colspan="9"><div class="empty-state"><div class="empty-state-icon">🏢</div><div class="empty-state-txt">Loading...</div></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Customer Modal -->
+<div class="modal-overlay" id="customerModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="modalTitle">Add Customer</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editId"/>
+      <div class="mf-grid-2">
+        <div class="mf">
+          <label class="ml">Client Code <span style="color:red">*</span></label>
+          <input type="text" class="mi" id="f_clientcode" placeholder="e.g. CUST001"/>
+        </div>
+        <div class="mf">
+          <label class="ml">Company Name <span style="color:red">*</span></label>
+          <input type="text" class="mi" id="f_companyname" placeholder="Company name"/>
+        </div>
+        <div class="mf">
+          <label class="ml">Contact Person</label>
+          <input type="text" class="mi" id="f_contact" placeholder="Contact name"/>
+        </div>
+        <div class="mf">
+          <label class="ml">Email <span style="color:red">*</span></label>
+          <input type="email" class="mi" id="f_email" placeholder="company@email.com"/>
+        </div>
+        <div class="mf">
+          <label class="ml">Phone</label>
+          <input type="text" class="mi" id="f_phone" placeholder="+91 98765 43210"/>
+        </div>
+        <div class="mf">
+          <label class="ml">GSTIN</label>
+          <input type="text" class="mi" id="f_gstin" placeholder="GST number"/>
+        </div>
+        <div class="mf">
+          <label class="ml">City</label>
+          <input type="text" class="mi" id="f_city" placeholder="City"/>
+        </div>
+        <div class="mf">
+          <label class="ml">State</label>
+          <input type="text" class="mi" id="f_state" placeholder="State"/>
+        </div>
+      </div>
+      <div class="mf">
+        <label class="ml">Address</label>
+        <input type="text" class="mi" id="f_address" placeholder="Full address"/>
+      </div>
+      <div class="mf-grid-2">
+        <div class="mf">
+          <label class="ml">Country</label>
+          <input type="text" class="mi" id="f_country" placeholder="India" value="India"/>
+        </div>
+        <div class="mf" id="statusField" style="display:none;">
+          <label class="ml">Status</label>
+          <select class="mi mi-select" id="f_isactive">
+            <option value="true">Active</option>
+            <option value="false">Inactive</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- User credentials section -->
+      <div style="background:var(--ivory2);border-radius:10px;padding:1rem;margin-top:0.5rem;" id="userSection">
+        <div style="font-size:0.75rem;font-weight:700;color:var(--navy);margin-bottom:0.75rem;">👤 Customer Login Credentials</div>
+        <div class="mf-grid-2">
+          <div class="mf">
+            <label class="ml">User Full Name <span style="color:red">*</span></label>
+            <input type="text" class="mi" id="f_username" placeholder="User's full name"/>
+          </div>
+          <div class="mf">
+            <label class="ml">User Email <span style="color:red">*</span></label>
+            <input type="email" class="mi" id="f_useremail" placeholder="user@company.com"/>
+          </div>
+          <div class="mf">
+            <label class="ml">Password <span style="color:red">*</span></label>
+            <input type="password" class="mi" id="f_password" placeholder="Min 8 characters"/>
+          </div>
+          <div class="mf">
+            <label class="ml">Phone</label>
+            <input type="text" class="mi" id="f_userphone" placeholder="+91 98765 43210"/>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-primary" style="background:var(--ivory2);color:var(--text-mid);border:1px solid var(--border);" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveCustomer()">💾 Save Customer</button>
+    </div>
+  </div>
+</div>
+
+<!-- View Customer Modal -->
+<div class="modal-overlay" id="viewModal">
+  <div class="modal" style="max-width:680px;">
+    <div class="modal-head">
+      <div class="modal-title" id="viewTitle">Customer Details</div>
+      <button class="modal-close" onclick="closeViewModal()">✕</button>
+    </div>
+    <div class="modal-body" id="viewBody"></div>
+    <div class="modal-foot">
+      <button class="btn-primary" style="background:var(--ivory2);color:var(--text-mid);border:1px solid var(--border);" onclick="closeViewModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<div id="adminToast"></div>
+
+<script>
+const API_BASE = 'http://localhost:5135/api';
+let allCustomers = [];
+
+function getSess(){ try{return JSON.parse(localStorage.getItem('impexio_admin')||'null');}catch{return null;} }
+function getToken(){ return getSess()?.token||''; }
+function authHeaders(){ return {'Content-Type':'application/json','Authorization':'Bearer '+getToken()}; }
+function doLogout(){ localStorage.removeItem('impexio_admin'); window.location.href='admin-login.html'; }
+function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('open'); }
+
+const sess = getSess();
+if(!sess||sess.role!=='Owner') window.location.href='admin-login.html';
+else {
+  document.getElementById('sidebarName').textContent = sess.fullName||'Owner';
+  document.getElementById('sidebarAv').textContent   = (sess.fullName||'O')[0].toUpperCase();
+}
+
+function fmtDate(d){ if(!d)return'—'; try{return new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});}catch{return d;} }
+
+function showToast(icon,msg){
+  const t=document.getElementById('adminToast');
+  t.innerHTML=`<span>${icon}</span><span>${msg}</span>`;
+  t.style.opacity='1'; clearTimeout(t._t);
+  t._t=setTimeout(()=>t.style.opacity='0',3000);
+}
+
+async function loadCustomers(){
+  try {
+    const res=await fetch(`${API_BASE}/admin/customers`,{headers:authHeaders()});
+    const json=await res.json();
+    allCustomers=json.data||[];
+    renderTable(allCustomers);
+  } catch(err){ console.error(err); }
+}
+
+function renderTable(data){
+  const tbody=document.getElementById('customersBody');
+  if(!data.length){
+    tbody.innerHTML=`<tr><td colspan="9"><div class="empty-state"><div class="empty-state-icon">🏢</div><div class="empty-state-txt">No customers yet</div><div class="empty-state-sub">Click + Add Customer to get started</div></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML=data.map(c=>`
+    <tr>
+      <td><span style="font-family:monospace;font-size:0.78rem;color:var(--navy-light);font-weight:700;">${c.clientCode}</span></td>
+      <td><strong>${c.companyName}</strong></td>
+      <td>${c.contactPerson||'—'}</td>
+      <td style="font-size:0.78rem;">${c.email}</td>
+      <td>${c.phone||'—'}</td>
+      <td>${c.planName?`<span class="badge badge-gold">${c.planName}</span>`:'<span class="badge badge-gray">No Plan</span>'}</td>
+      <td>${fmtDate(c.subEndDate)}</td>
+      <td>${c.isActive?'<span class="badge badge-green">✅ Active</span>':'<span class="badge badge-red">❌ Inactive</span>'}</td>
+      <td>
+        <button class="btn-act btn-act-view" onclick="viewCustomer(${c.id})">👁 View</button>
+        <button class="btn-act btn-act-edit" onclick="editCustomer(${c.id})">✏️</button>
+        <button class="btn-act ${c.isActive?'btn-act-toggle-on':'btn-act-toggle-off'}" onclick="toggleCustomer(${c.id},${c.isActive})">${c.isActive?'🔴 Deactivate':'🟢 Activate'}</button>
+      </td>
+    </tr>`).join('');
+}
+
+function filterTable(){
+  const q=document.getElementById('searchInput').value.toLowerCase();
+  if(!q){renderTable(allCustomers);return;}
+  renderTable(allCustomers.filter(c=>
+    c.companyName?.toLowerCase().includes(q)||
+    c.clientCode?.toLowerCase().includes(q)||
+    c.email?.toLowerCase().includes(q)||
+    c.contactPerson?.toLowerCase().includes(q)
+  ));
+}
+
+// Modal
+let isEdit=false;
+function openModal(){ isEdit=false; clearForm(); document.getElementById('modalTitle').textContent='Add Customer'; document.getElementById('statusField').style.display='none'; document.getElementById('userSection').style.display='block'; document.getElementById('customerModal').classList.add('open'); }
+function closeModal(){ document.getElementById('customerModal').classList.remove('open'); }
+
+function clearForm(){
+  ['f_clientcode','f_companyname','f_contact','f_email','f_phone','f_gstin','f_city','f_state','f_address','f_country','f_username','f_useremail','f_password','f_userphone'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value=id==='f_country'?'India':'';
+  });
+  document.getElementById('editId').value='';
+}
+
+function editCustomer(id){
+  const c=allCustomers.find(x=>x.id===id); if(!c) return;
+  isEdit=true;
+  document.getElementById('modalTitle').textContent='Edit Customer';
+  document.getElementById('statusField').style.display='block';
+  document.getElementById('userSection').style.display='none';
+  document.getElementById('editId').value=id;
+  document.getElementById('f_clientcode').value=c.clientCode||'';
+  document.getElementById('f_clientcode').disabled=true;
+  document.getElementById('f_companyname').value=c.companyName||'';
+  document.getElementById('f_contact').value=c.contactPerson||'';
+  document.getElementById('f_email').value=c.email||'';
+  document.getElementById('f_phone').value=c.phone||'';
+  document.getElementById('f_gstin').value=c.gstin||'';
+  document.getElementById('f_city').value=c.city||'';
+  document.getElementById('f_state').value=c.state||'';
+  document.getElementById('f_address').value=c.address||'';
+  document.getElementById('f_country').value=c.country||'India';
+  document.getElementById('f_isactive').value=c.isActive?'true':'false';
+  document.getElementById('customerModal').classList.add('open');
+}
+
+async function saveCustomer(){
+  const companyName=document.getElementById('f_companyname').value.trim();
+  const email=document.getElementById('f_email').value.trim();
+  const clientCode=document.getElementById('f_clientcode').value.trim();
+  if(!companyName||!email||!clientCode){showToast('⚠️','Please fill all required fields.');return;}
+
+  const editId=document.getElementById('editId').value;
+  const payload={
+    clientCode,companyName,
+    contactPerson:document.getElementById('f_contact').value.trim(),
+    email,
+    phone:document.getElementById('f_phone').value.trim(),
+    gstin:document.getElementById('f_gstin').value.trim(),
+    city:document.getElementById('f_city').value.trim(),
+    state:document.getElementById('f_state').value.trim(),
+    address:document.getElementById('f_address').value.trim(),
+    country:document.getElementById('f_country').value.trim()||'India',
+    isActive:editId?document.getElementById('f_isactive').value==='true':true
+  };
+
+  try {
+    let res;
+    if(editId){
+      res=await fetch(`${API_BASE}/admin/customers/${editId}`,{method:'PUT',headers:authHeaders(),body:JSON.stringify(payload)});
+    } else {
+      // Create customer first
+      res=await fetch(`${API_BASE}/admin/customers`,{method:'POST',headers:authHeaders(),body:JSON.stringify(payload)});
+      const json=await res.json();
+      if(!json.success){showToast('❌',json.message||'Failed.');return;}
+      const newCustId=json.data;
+
+      // Create user account
+      const userName=document.getElementById('f_username').value.trim();
+      const userEmail=document.getElementById('f_useremail').value.trim();
+      const password=document.getElementById('f_password').value;
+      if(!userName||!userEmail||!password){showToast('⚠️','Please fill user credentials.');return;}
+
+      const userRes=await fetch(`${API_BASE}/admin/customers/${newCustId}/users`,{
+        method:'POST',headers:authHeaders(),
+        body:JSON.stringify({customerId:newCustId,fullName:userName,email:userEmail,phone:document.getElementById('f_userphone').value.trim(),password})
+      });
+      const userJson=await userRes.json();
+      if(!userJson.success){showToast('❌',userJson.message||'User creation failed.');return;}
+      showToast('✅','Customer and user created!');
+      closeModal(); loadCustomers(); return;
+    }
+
+    const json=await res.json();
+    if(json.success){showToast('✅','Customer updated!');closeModal();loadCustomers();}
+    else showToast('❌',json.message||'Failed.');
+  } catch(err){showToast('❌','Error: '+err.message);}
+}
+
+async function toggleCustomer(id,isActive){
+  if(!confirm(isActive?'Deactivate this customer?':'Activate this customer?'))return;
+  const c=allCustomers.find(x=>x.id===id);if(!c)return;
+  try{
+    const res=await fetch(`${API_BASE}/admin/customers/${id}`,{method:'PUT',headers:authHeaders(),body:JSON.stringify({...c,isActive:!isActive,clientCode:c.clientCode,companyName:c.companyName,email:c.email,country:c.country||'India'})});
+    const json=await res.json();
+    if(json.success){showToast(isActive?'🔴':'🟢',isActive?'Customer deactivated.':'Customer activated.');loadCustomers();}
+    else showToast('❌',json.message||'Failed.');
+  }catch(err){showToast('❌',err.message);}
+}
+
+async function viewCustomer(id){
+  const c=allCustomers.find(x=>x.id===id);if(!c)return;
+  document.getElementById('viewTitle').textContent=c.companyName;
+  document.getElementById('viewBody').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:1rem;">
+      ${[['Client Code',c.clientCode],['Company',c.companyName],['Contact',c.contactPerson||'—'],['Email',c.email],['Phone',c.phone||'—'],['GSTIN',c.gstin||'—'],['City',c.city||'—'],['State',c.state||'—'],['Country',c.country||'—'],['Plan',c.planName||'No Plan'],['Sub Expiry',fmtDate(c.subEndDate)],['Status',c.isActive?'✅ Active':'❌ Inactive']].map(([l,v])=>`
+        <div style="background:var(--ivory2);border-radius:8px;padding:0.65rem 0.85rem;">
+          <div style="font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-soft);margin-bottom:0.2rem;">${l}</div>
+          <div style="font-size:0.85rem;font-weight:600;color:var(--navy);">${v}</div>
+        </div>`).join('')}
+    </div>
+    <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+      <a href="admin-subscriptions.html?cid=${c.id}" class="btn-primary">📅 Manage Subscription</a>
+    </div>`;
+  document.getElementById('viewModal').classList.add('open');
+}
+function closeViewModal(){ document.getElementById('viewModal').classList.remove('open'); }
+
+loadCustomers();
+</script>
+</body>
+</html>

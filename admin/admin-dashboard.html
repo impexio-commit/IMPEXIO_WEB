@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IMPEXIO — Admin Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="admin-styles.css"/>
+</head>
+<body>
+
+<!-- Sidebar Toggle (mobile) -->
+<button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+
+<!-- ── SIDEBAR ── -->
+<div class="admin-sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="sidebar-logo">🚢</div>
+    <div>
+      <div class="sidebar-brand-name">IMPEXIO</div>
+      <div class="sidebar-brand-sub">Admin Panel</div>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Main</div>
+    <a class="nav-item active" href="admin-dashboard.html">
+      <span class="nav-item-icon">📊</span> Dashboard
+    </a>
+
+    <div class="nav-section-label">Management</div>
+    <a class="nav-item" href="admin-customers.html">
+      <span class="nav-item-icon">🏢</span> Customers
+    </a>
+    <a class="nav-item" href="admin-plans.html">
+      <span class="nav-item-icon">📋</span> Plans
+    </a>
+    <a class="nav-item" href="admin-subscriptions.html">
+      <span class="nav-item-icon">📅</span> Subscriptions
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sidebarAv">O</div>
+      <div>
+        <div class="sidebar-uname" id="sidebarName">Owner</div>
+        <div class="sidebar-role">👑 Owner</div>
+      </div>
+    </div>
+    <button class="btn-sidebar-logout" onclick="doLogout()">⏻ Logout</button>
+  </div>
+</div>
+
+<!-- ── MAIN ── -->
+<div class="admin-main">
+  <div class="admin-topbar">
+    <div class="topbar-title">Dashboard</div>
+    <div class="topbar-right">
+      <div class="topbar-badge">👑 Owner Panel</div>
+    </div>
+  </div>
+
+  <div class="admin-content">
+
+    <!-- Stats -->
+    <div class="stats-grid" id="statsGrid">
+      <div class="stat-card">
+        <div class="stat-icon">🏢</div>
+        <div>
+          <div class="stat-val" id="statTotal">—</div>
+          <div class="stat-lbl">Total Customers</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#16a34a;">✅</div>
+        <div>
+          <div class="stat-val" id="statActive">—</div>
+          <div class="stat-lbl">Active Customers</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#c9a84c;">📅</div>
+        <div>
+          <div class="stat-val" id="statSubs">—</div>
+          <div class="stat-lbl">Active Subscriptions</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#dc2626;">⚠️</div>
+        <div>
+          <div class="stat-val" id="statExpiring">—</div>
+          <div class="stat-lbl">Expiring This Month</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Customers -->
+    <div class="table-card">
+      <div class="table-card-head">
+        <div class="table-card-title">Recent Customers</div>
+        <a href="admin-customers.html" class="btn-primary">View All →</a>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Client Code</th>
+              <th>Company</th>
+              <th>Contact</th>
+              <th>Plan</th>
+              <th>Sub Expiry</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="recentCustomers">
+            <tr><td colspan="6">
+              <div class="empty-state">
+                <div class="empty-state-icon">🏢</div>
+                <div class="empty-state-txt">Loading customers...</div>
+              </div>
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="adminToast"></div>
+
+<script>
+  const API_BASE = 'http://localhost:5135/api';
+
+  // ── Auth check ──────────────────────────────────────────
+  function getSess() {
+    try { return JSON.parse(localStorage.getItem('impexio_admin') || 'null'); }
+    catch { return null; }
+  }
+  function getToken() { return getSess()?.token || ''; }
+  function authHeaders() {
+    return { 'Content-Type':'application/json', 'Authorization':'Bearer '+getToken() };
+  }
+  function doLogout() {
+    localStorage.removeItem('impexio_admin');
+    window.location.href = 'admin-login.html';
+  }
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+  }
+
+  // Populate sidebar user
+  const sess = getSess();
+  if (!sess || sess.role !== 'Owner') {
+    window.location.href = 'admin-login.html';
+  } else {
+    document.getElementById('sidebarName').textContent = sess.fullName || 'Owner';
+    document.getElementById('sidebarAv').textContent   = (sess.fullName || 'O')[0].toUpperCase();
+  }
+
+  function fmtDate(d) {
+    if (!d) return '—';
+    try { return new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}); }
+    catch { return d; }
+  }
+
+  // ── Load dashboard data ──────────────────────────────────
+  async function loadDashboard() {
+    try {
+      const res  = await fetch(`${API_BASE}/admin/customers`, { headers: authHeaders() });
+      const json = await res.json();
+      if (!json.success) return;
+
+      const customers = json.data || [];
+      const active    = customers.filter(c => c.isActive);
+      const withSub   = customers.filter(c => c.subActive);
+      const now       = new Date();
+      const endOfMonth = new Date(now.getFullYear(), now.getMonth()+1, 0);
+      const expiring  = customers.filter(c => {
+        if (!c.subEndDate) return false;
+        const ed = new Date(c.subEndDate);
+        return ed >= now && ed <= endOfMonth;
+      });
+
+      // Stats
+      document.getElementById('statTotal').textContent    = customers.length;
+      document.getElementById('statActive').textContent   = active.length;
+      document.getElementById('statSubs').textContent     = withSub.length;
+      document.getElementById('statExpiring').textContent = expiring.length;
+
+      // Recent 5 customers
+      const recent = customers.slice(0, 5);
+      const tbody  = document.getElementById('recentCustomers');
+
+      if (!recent.length) {
+        tbody.innerHTML = `<tr><td colspan="6">
+          <div class="empty-state">
+            <div class="empty-state-icon">🏢</div>
+            <div class="empty-state-txt">No customers yet</div>
+            <div class="empty-state-sub">Add your first customer to get started</div>
+          </div></td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = recent.map(c => `
+        <tr>
+          <td><span style="font-family:monospace;font-size:0.78rem;color:var(--navy-light);font-weight:700;">${c.clientCode}</span></td>
+          <td><strong>${c.companyName}</strong></td>
+          <td>${c.contactPerson || '—'}</td>
+          <td>${c.planName ? `<span class="badge badge-gold">${c.planName}</span>` : '<span class="badge badge-gray">No Plan</span>'}</td>
+          <td>${fmtDate(c.subEndDate)}</td>
+          <td>${c.isActive
+            ? '<span class="badge badge-green">✅ Active</span>'
+            : '<span class="badge badge-red">❌ Inactive</span>'}</td>
+        </tr>`).join('');
+
+    } catch(err) {
+      console.error('Dashboard load failed:', err);
+    }
+  }
+
+  loadDashboard();
+</script>
+</body>
+</html>
