@@ -308,9 +308,9 @@ async function saveRecord() {
                    : `${API_BASE}/Cbm`;
     const method = editingId !== null ? 'PUT' : 'POST';
 
-    const res = await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
+    const res = await fetch(`${API_BASE}/Cbm`, {
+      method: 'POST',
+      headers: authHeaders(),
       body: JSON.stringify(payload)
     });
 

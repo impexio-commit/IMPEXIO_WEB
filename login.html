@@ -138,6 +138,231 @@
 
 </div>
 
-<script src="app.js"></script>
+<script>
+// ── IMPEXIO Login — API Connected ─────────────────────────────
+const API_BASE = 'http://localhost:5135/api';
+
+let currentStep   = 0;
+let sessionData   = {};
+
+// ── Helpers ───────────────────────────────────────────────────
+function showStep(n) {
+  document.querySelectorAll('.login-step').forEach((s,i) => {
+    s.classList.toggle('active', i === n);
+  });
+  document.querySelectorAll('.sp-dot').forEach((d,i) => {
+    d.classList.toggle('active', i === n);
+    d.classList.toggle('done',   i < n);
+  });
+  currentStep = n;
+}
+
+function showErr(stepN, msg) {
+  const err = document.getElementById(`err${stepN}`);
+  const txt = document.getElementById(`err${stepN}msg`);
+  if (err) err.style.display = 'flex';
+  if (txt) txt.textContent   = msg;
+}
+
+function hideErr(stepN) {
+  const err = document.getElementById(`err${stepN}`);
+  if (err) err.style.display = 'none';
+}
+
+function goBack(stepN) {
+  showStep(stepN - 1);
+}
+
+// Enter key support
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  if (currentStep === 0) verifyClient();
+  else if (currentStep === 1) verifyLogin();
+  else if (currentStep === 2) pickCompany();
+  else if (currentStep === 3) pickYear();
+});
+
+// ── STEP 0: Verify Client Code ────────────────────────────────
+// We keep this step for UX but just move to login step
+function verifyClient() {
+  const code = document.getElementById('clientCode').value.trim();
+  hideErr(0);
+
+  if (!code) {
+    showErr(0, 'Please enter your client code.');
+    return;
+  }
+
+  // Store client code and move to login
+  sessionData.clientCode = code;
+  showStep(1);
+}
+
+// ── STEP 1: Login with API ────────────────────────────────────
+async function verifyLogin() {
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+  hideErr(1);
+
+  if (!username || !password) {
+    showErr(1, 'Please enter your username and password.');
+    return;
+  }
+
+  const btn = document.querySelector('#step1 .btn-step');
+  const origText = btn.textContent;
+  btn.textContent = 'Signing in...';
+  btn.disabled = true;
+
+  try {
+    const res  = await fetch(`${API_BASE}/admin/auth/login`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ email: username, password })
+    });
+
+    const json = await res.json();
+
+    if (json.success) {
+      const data = json.data;
+
+      // Save to both storages
+      const sessObj = {
+        token:       data.token,
+        username:    data.fullName,
+        email:       data.email,
+        role:        data.role,
+        clientCode:  data.clientCode  || sessionData.clientCode || 'OWNER',
+        companyName: data.companyName || 'IMPEXIO Owner',
+        expiry:      data.expiry
+      };
+
+      sessionStorage.setItem('impexio', JSON.stringify(sessObj));
+      localStorage.setItem('impexio_admin', JSON.stringify({
+        ...sessObj, fullName: data.fullName
+      }));
+
+      sessionData = { ...sessionData, ...sessObj };
+
+      // Owner → skip to admin panel directly
+      if (data.role === 'Owner') {
+        window.location.href = 'admin/admin-dashboard.html';
+        return;
+      }
+
+      // Customer → show company/year selection
+      // Build company list from session
+      const companies = [{
+        id:   1,
+        name: data.companyName || 'My Company',
+        city: ''
+      }];
+      sessionData.companies = companies;
+      buildCompanyList(companies);
+      showStep(2);
+
+    } else {
+      showErr(1, json.message || 'Invalid credentials. Please try again.');
+    }
+  } catch (err) {
+    showErr(1, 'Cannot connect to server. Please check your connection.');
+  } finally {
+    btn.textContent = origText;
+    btn.disabled    = false;
+  }
+}
+
+// ── STEP 2: Company Selection ─────────────────────────────────
+function buildCompanyList(companies) {
+  const list = document.getElementById('compList');
+  list.innerHTML = companies.map((c, i) => `
+    <div class="sel-item${i === 0 ? ' selected' : ''}"
+         onclick="selectItem(this, 'compList')"
+         data-id="${c.id}" data-name="${c.name}">
+      <span class="sel-ico">🏢</span>
+      <div>
+        <div class="sel-name">${c.name}</div>
+        <div class="sel-sub">${c.city || 'Main Branch'}</div>
+      </div>
+    </div>`).join('');
+}
+
+function selectItem(el, listId) {
+  document.querySelectorAll(`#${listId} .sel-item`)
+    .forEach(i => i.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function pickCompany() {
+  const selected = document.querySelector('#compList .sel-item.selected');
+  if (!selected) {
+    alert('Please select a company.'); return;
+  }
+  sessionData.company = {
+    id:   selected.dataset.id,
+    name: selected.dataset.name
+  };
+
+  // Build year list
+  const years = [
+    { label: 'FY 2025-26', value: '2025-26' },
+    { label: 'FY 2024-25', value: '2024-25' },
+    { label: 'FY 2023-24', value: '2023-24' }
+  ];
+  buildYearList(years);
+  showStep(3);
+}
+
+// ── STEP 3: Year Selection ────────────────────────────────────
+function buildYearList(years) {
+  const list = document.getElementById('yearList');
+  list.innerHTML = years.map((y, i) => `
+    <div class="sel-item${i === 0 ? ' selected' : ''}"
+         onclick="selectItem(this, 'yearList')"
+         data-label="${y.label}" data-value="${y.value}">
+      <span class="sel-ico">📅</span>
+      <div>
+        <div class="sel-name">${y.label}</div>
+        <div class="sel-sub">${i === 0 ? 'Current Year' : 'Previous Year'}</div>
+      </div>
+    </div>`).join('');
+}
+
+function pickYear() {
+  const selected = document.querySelector('#yearList .sel-item.selected');
+  if (!selected) {
+    alert('Please select a financial year.'); return;
+  }
+
+  // Update session with company + year
+  const finalSess = {
+    ...JSON.parse(sessionStorage.getItem('impexio') || '{}'),
+    company: sessionData.company,
+    year:    { label: selected.dataset.label, value: selected.dataset.value }
+  };
+  sessionStorage.setItem('impexio', JSON.stringify(finalSess));
+
+  // Redirect to main dashboard
+  window.location.href = 'main.html';
+}
+
+// ── Auto-check existing session ───────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  try {
+    const raw  = sessionStorage.getItem('impexio');
+    if (!raw) return;
+    const sess = JSON.parse(raw);
+    if (!sess?.token) return;
+    if (sess.expiry && new Date(sess.expiry) < new Date()) {
+      sessionStorage.removeItem('impexio'); return;
+    }
+    // Already logged in — redirect
+    if (sess.role === 'Owner') window.location.href = 'admin/admin-dashboard.html';
+    else if (sess.company)     window.location.href = 'main.html';
+  } catch(e) {}
+
+  showStep(0);
+});
+</script>
 </body>
 </html>

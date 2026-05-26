@@ -33,15 +33,45 @@ const YEARS = [
 ];
 
 // ── Session ───────────────────────────────────────────────────
-const sess = {
+constsess = {
   clientCode: null, username: null, role: null,
   company: null, year: null
 };
 
 function saveSess() { sessionStorage.setItem('impexio', JSON.stringify(sess)); }
+// ── Session Management ────────────────────────────────────────
+let sess = null;
+
 function loadSess() {
-  const s = sessionStorage.getItem('impexio');
-  if (s) Object.assign(sess, JSON.parse(s));
+  try {
+    const raw = sessionStorage.getItem('impexio');
+    if (!raw) { redirectToLogin(); return; }
+    sess = JSON.parse(raw);
+    if (!sess || !sess.token) { redirectToLogin(); return; }
+
+    // Check expiry
+    if (sess.expiry && new Date(sess.expiry) < new Date()) {
+      sessionStorage.removeItem('impexio');
+      redirectToLogin(); return;
+    }
+  } catch(e) {
+    redirectToLogin();
+  }
+}
+
+function redirectToLogin() {
+  window.location.href = 'login.html';
+}
+
+function getToken() {
+  return sess?.token || '';
+}
+
+function authHeaders() {
+  return {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer ' + getToken()
+  };
 }
 function page() {
   const p = location.pathname;
@@ -339,7 +369,8 @@ function openMod(name) {
 function doLogout() {
   if (confirm('Logout from IMPEXIO?')) {
     sessionStorage.removeItem('impexio');
-    window.location.href = 'index.html';
+    localStorage.removeItem('impexio_admin');
+    window.location.href = 'login.html';
   }
 }
 
