@@ -60,15 +60,15 @@
         <table class="admin-table">
           <thead>
             <tr>
-              <th>Client Code</th>
-              <th>Company Name</th>
-              <th>Contact Person</th>
-              <th>Email</th>
-              <th>Phone</th>
-              <th>Plan</th>
-              <th>Sub Expiry</th>
-              <th>Status</th>
-              <th>Actions</th>
+                <th>Client Code</th>
+                <th>Company Name</th>
+                <th>Contact Person</th>
+                <th>Email</th>
+                <th>Users</th>
+                <th>Plan</th>
+                <th>Sub Expiry</th>
+                <th>Status</th>
+                <th>Actions</th>
             </tr>
           </thead>
           <tbody id="customersBody">
@@ -91,8 +91,8 @@
       <input type="hidden" id="editId"/>
       <div class="mf-grid-2">
         <div class="mf">
-          <label class="ml">Client Code <span style="color:red">*</span></label>
-          <input type="text" class="mi" id="f_clientcode" placeholder="e.g. CUST001"/>
+          <label class="ml">Client Code</label>
+          <input type="text" class="mi" id="f_clientcode" placeholder="Auto generated (e.g. IMP001)" disabled style="opacity:0.5;cursor:not-allowed;"/>
         </div>
         <div class="mf">
           <label class="ml">Company Name <span style="color:red">*</span></label>
@@ -234,13 +234,20 @@ function renderTable(data){
       <td><strong>${c.companyName}</strong></td>
       <td>${c.contactPerson||'—'}</td>
       <td style="font-size:0.78rem;">${c.email}</td>
-      <td>${c.phone||'—'}</td>
-      <td>${c.planName?`<span class="badge badge-gold">${c.planName}</span>`:'<span class="badge badge-gray">No Plan</span>'}</td>
+<td>${c.phone||'—'}</td>
+        <td>
+          <span style="display:inline-flex;align-items:center;gap:0.3rem;background:rgba(15,37,64,0.08);border-radius:50px;padding:0.18rem 0.6rem;font-size:0.72rem;font-weight:700;color:var(--navy);">
+            👤 ${c.userCount||0} user${c.userCount===1?'':'s'}
+          </span>
+        </td>
+        <td>${c.planName?
+    `<span class="badge badge-gold">${c.planName}</span>`:'<span class="badge badge-gray">No Plan</span>'}</td>
       <td>${fmtDate(c.subEndDate)}</td>
       <td>${c.isActive?'<span class="badge badge-green">✅ Active</span>':'<span class="badge badge-red">❌ Inactive</span>'}</td>
       <td>
-        <button class="btn-act btn-act-view" onclick="viewCustomer(${c.id})">👁 View</button>
+<button class="btn-act btn-act-view" onclick="viewCustomer(${c.id})">👁 View</button>
         <button class="btn-act btn-act-edit" onclick="editCustomer(${c.id})">✏️</button>
+        <button class="btn-act" style="background:rgba(42,82,152,0.1);color:var(--navy-light);" onclick="window.location.href='admin-customer-users.html?cid=${c.id}&cname=${encodeURIComponent(c.companyName)}&code=${c.clientCode}'">👥 Users</button>
         <button class="btn-act ${c.isActive?'btn-act-toggle-on':'btn-act-toggle-off'}" onclick="toggleCustomer(${c.id},${c.isActive})">${c.isActive?'🔴 Deactivate':'🟢 Activate'}</button>
       </td>
     </tr>`).join('');
@@ -292,14 +299,14 @@ function editCustomer(id){
 }
 
 async function saveCustomer(){
-  const companyName=document.getElementById('f_companyname').value.trim();
+    const companyName=document.getElementById('f_companyname').value.trim();
   const email=document.getElementById('f_email').value.trim();
-  const clientCode=document.getElementById('f_clientcode').value.trim();
-  if(!companyName||!email||!clientCode){showToast('⚠️','Please fill all required fields.');return;}
+  if(!companyName||!email){showToast('⚠️','Please fill all required fields.');return;}
 
   const editId=document.getElementById('editId').value;
   const payload={
-    clientCode,companyName,
+    clientCode: null,
+    companyName,
     contactPerson:document.getElementById('f_contact').value.trim(),
     email,
     phone:document.getElementById('f_phone').value.trim(),
@@ -334,7 +341,7 @@ async function saveCustomer(){
       });
       const userJson=await userRes.json();
       if(!userJson.success){showToast('❌',userJson.message||'User creation failed.');return;}
-      showToast('✅','Customer and user created!');
+      showToast('✅',`Customer created! Client Code: ${custJson.clientCode||'Auto assigned'}`);
       closeModal(); loadCustomers(); return;
     }
 
