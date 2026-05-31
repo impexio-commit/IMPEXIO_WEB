@@ -59,9 +59,22 @@ namespace ImpexioAPI.Repositories
                 commandType: CommandType.StoredProcedure);
         }
 
+        // ── Auto generate ClientCode ──────────────────────────
+        public async Task<string> GetNextClientCodeAsync()
+        {
+            using var conn = _db.CreateConnection();
+            return await conn.QuerySingleAsync<string>(
+                "SP_Customer_GetNextClientCode",
+                commandType: CommandType.StoredProcedure);
+        }
+
         public async Task<int> InsertCustomerAsync(Customer c)
         {
             using var conn = _db.CreateConnection();
+            // Auto set ClientCode if not provided
+            if (string.IsNullOrWhiteSpace(c.ClientCode))
+                c.ClientCode = await GetNextClientCodeAsync();
+
             return await conn.QuerySingleAsync<int>(
                 "SP_Customer_Insert",
                 new

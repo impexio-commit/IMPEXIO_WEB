@@ -4,6 +4,7 @@ using ImpexioAPI.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using BCrypt.Net;
 
 namespace ImpexioAPI.Controllers
 {
@@ -58,12 +59,10 @@ namespace ImpexioAPI.Controllers
                     return BadRequest(new { success = false, message = "Company Name is required." });
                 if (string.IsNullOrWhiteSpace(dto.Email))
                     return BadRequest(new { success = false, message = "Email is required." });
-                if (string.IsNullOrWhiteSpace(dto.ClientCode))
-                    return BadRequest(new { success = false, message = "Client Code is required." });
 
                 var model = new Customer
                 {
-                    ClientCode = dto.ClientCode,
+                    ClientCode = "", // Auto generated in repository
                     CompanyName = dto.CompanyName,
                     ContactPerson = dto.ContactPerson,
                     Email = dto.Email,
@@ -77,7 +76,9 @@ namespace ImpexioAPI.Controllers
                 };
 
                 var newId = await _repo.InsertCustomerAsync(model);
-                return Ok(new { success = true, message = "Customer created.", data = newId });
+                // Get the generated ClientCode
+                var created = await _repo.GetCustomerByIdAsync(newId);
+                return Ok(new { success = true, message = "Customer created.", data = newId, clientCode = created?.ClientCode });
             }
             catch (Exception ex)
             {
@@ -92,6 +93,7 @@ namespace ImpexioAPI.Controllers
             {
                 var model = new Customer
                 {
+                    ClientCode = "", // Auto generated in repository
                     CompanyName = dto.CompanyName,
                     ContactPerson = dto.ContactPerson,
                     Email = dto.Email,
@@ -240,5 +242,4 @@ namespace ImpexioAPI.Controllers
             }
         }
     }
-}
 }

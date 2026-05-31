@@ -34,7 +34,9 @@
         public string? SubEndDate { get; set; }
         public bool? SubActive { get; set; }
         public string? PlanName { get; set; }
+        public int UserCount { get; set; }
     }
+}
 
     // ── CUSTOMER USER ─────────────────────────────────────────
     public class CustomerUser
@@ -112,4 +114,3 @@
         public string NewPassword { get; set; } = "";
         public string ConfirmPassword { get; set; } = "";
     }
-}

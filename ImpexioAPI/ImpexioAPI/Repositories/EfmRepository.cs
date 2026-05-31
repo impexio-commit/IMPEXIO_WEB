@@ -14,12 +14,14 @@ namespace ImpexioAPI.Repositories
         }
 
         // ── GET ALL ──────────────────────────────────────────
-        public async Task<List<EfmRecord>> GetAllAsync()
+        public async Task<List<EfmRecord>> GetAllAsync(string clientCode = "")
         {
             using var conn = _db.CreateConnection();
-            return (await conn.QueryAsync<EfmRecord>(
+            var records = (await conn.QueryAsync<EfmRecord>(
                 "SP_EFM_GetAll",
+                new { ClientCode = clientCode },
                 commandType: CommandType.StoredProcedure)).ToList();
+            return records;
         }
 
         // ── GET BY ID ────────────────────────────────────────

@@ -14,7 +14,7 @@ namespace ImpexioAPI.Repositories
         }
 
         // ── GET ALL ──────────────────────────────────────────
-        public async Task<List<FobRecord>> GetAllAsync()
+        public async Task<List<FobRecord>> GetAllAsync(string clientCode)
         {
             using var conn = _db.CreateConnection();
 

@@ -13,12 +13,14 @@ namespace ImpexioAPI.Repositories
             _db = db;
         }
 
-        public async Task<List<BilRecord>> GetAllAsync()
+        public async Task<List<BilRecord>> GetAllAsync(string clientCode = "")
         {
             using var conn = _db.CreateConnection();
-            return (await conn.QueryAsync<BilRecord>(
+            var records = (await conn.QueryAsync<BilRecord>(
                 "SP_BIL_GetAll",
+                new { ClientCode = clientCode },
                 commandType: CommandType.StoredProcedure)).ToList();
+            return records;
         }
 
         public async Task<BilRecord?> GetByIdAsync(int id)
@@ -28,6 +30,7 @@ namespace ImpexioAPI.Repositories
                 "SP_BIL_GetById",
                 new { Id = id },
                 commandType: CommandType.StoredProcedure);
+
         }
 
         public async Task<int> InsertAsync(BilRecord rec)

@@ -2,9 +2,13 @@
 using ImpexioAPI.Models;
 using ImpexioAPI.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
+
 
 namespace ImpexioAPI.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class PiController : ControllerBase
@@ -22,7 +26,8 @@ namespace ImpexioAPI.Controllers
         {
             try
             {
-                var records = await _repo.GetAllAsync();
+                var clientCode = User.FindFirstValue("ClientCode") ?? "";
+                var records = await _repo.GetAllAsync(clientCode);
                 return Ok(new { success = true, data = records });
             }
             catch (Exception ex)

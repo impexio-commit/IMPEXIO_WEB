@@ -4,8 +4,6 @@ using System.Text;
 using ImpexioAPI.Repositories;
 using ImpexioAPI.Services;
 
-using ImpexioAPI.Repositories;
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();

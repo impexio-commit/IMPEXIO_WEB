@@ -14,12 +14,12 @@ namespace ImpexioAPI.Repositories
         }
 
         // ── GET ALL ──────────────────────────────────────────
-        public async Task<List<EcRecord>> GetAllAsync()
+        public async Task<List<EcRecord>> GetAllAsync(string clientCode = "")
         {
             using var conn = _db.CreateConnection();
-
             var records = (await conn.QueryAsync<EcRecord>(
                 "SP_EC_GetAll",
+                new { ClientCode = clientCode },
                 commandType: CommandType.StoredProcedure)).ToList();
 
             foreach (var rec in records)

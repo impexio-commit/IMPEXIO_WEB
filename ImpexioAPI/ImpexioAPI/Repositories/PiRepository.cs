@@ -14,12 +14,12 @@ namespace ImpexioAPI.Repositories
         }
 
         // ── GET ALL ──────────────────────────────────────────
-        public async Task<List<PiRecord>> GetAllAsync()
+        public async Task<List<PiRecord>> GetAllAsync(string clientCode = "")
         {
             using var conn = _db.CreateConnection();
-
             var records = (await conn.QueryAsync<PiRecord>(
                 "SP_PI_GetAll",
+                new { ClientCode = clientCode },
                 commandType: CommandType.StoredProcedure)).ToList();
 
             foreach (var rec in records)

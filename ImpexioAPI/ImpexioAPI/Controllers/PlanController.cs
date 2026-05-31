@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ImpexioAPI.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/admin/plans")]
     public class PlanController : ControllerBase

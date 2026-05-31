@@ -3,7 +3,7 @@
     // ── CUSTOMER DTO ──────────────────────────────────────────
     public class CustomerDto
     {
-        public string ClientCode { get; set; } = "";
+        public string? ClientCode { get; set; }
         public string CompanyName { get; set; } = "";
         public string? ContactPerson { get; set; }
         public string Email { get; set; } = "";
