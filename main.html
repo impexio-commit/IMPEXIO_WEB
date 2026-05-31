@@ -429,11 +429,8 @@
               <text x="45" y="42" text-anchor="middle" font-size="11" font-weight="700" fill="#0f2540">142</text>
               <text x="45" y="53" text-anchor="middle" font-size="7" fill="#6b7fa3">Total</text>
             </svg>
-            <div class="donut-legend">
-              <div class="legend-item"><div class="legend-dot" style="background:#0f2540;"></div><div class="legend-lbl">Proforma Invoice</div><div class="legend-val">51</div></div>
-              <div class="legend-item"><div class="legend-dot" style="background:#c9a84c;"></div><div class="legend-lbl">Export Quotation</div><div class="legend-val">34</div></div>
-              <div class="legend-item"><div class="legend-dot" style="background:#2a5298;"></div><div class="legend-lbl">CBM Calculation</div><div class="legend-val">32</div></div>
-              <div class="legend-item"><div class="legend-dot" style="background:#0f5c52;"></div><div class="legend-lbl">Courier Invoice</div><div class="legend-val">25</div></div>
+            <div class="donut-legend" id="donutLegend">
+              <div class="legend-item"><div class="legend-dot" style="background:#0f2540;"></div><div class="legend-lbl">Loading...</div><div class="legend-val">—</div></div>
             </div>
           </div>
         </div>
@@ -456,12 +453,8 @@
       <div class="db-panel">
         <div class="db-panel-head"><div class="db-panel-title">⚡ Recent Activity</div></div>
         <div class="db-panel-body" style="padding-top:0.5rem;">
-          <div class="act-feed">
-            <div class="act-item"><div class="act-icon" style="background:rgba(15,37,64,0.08);">📄</div><div style="flex:1;"><div class="act-title">PI/2026/0042 Created</div><div class="act-sub">Global Traders LLC — Dubai · ₹6.8L</div></div><div class="act-time">2h ago</div></div>
-            <div class="act-item"><div class="act-icon" style="background:rgba(201,168,76,0.12);">📋</div><div style="flex:1;"><div class="act-title">EQ/2026/0038 Sent</div><div class="act-sub">Euro Ceramics GmbH — Germany · $18,350</div></div><div class="act-time">5h ago</div></div>
-            <div class="act-item"><div class="act-icon" style="background:rgba(15,92,82,0.1);">📐</div><div style="flex:1;"><div class="act-title">CBM/2026/0091 Saved</div><div class="act-sub">40' HC Container — 48.5 m³ · 720 cartons</div></div><div class="act-time">Yesterday</div></div>
-            <div class="act-item"><div class="act-icon" style="background:rgba(42,82,152,0.1);">🧮</div><div style="flex:1;"><div class="act-title">Export Costing Updated</div><div class="act-sub">FOB ₹4.52L · CIF ₹5.12L · USD ₹85</div></div><div class="act-time">2 days ago</div></div>
-            <div class="act-item"><div class="act-icon" style="background:rgba(239,68,68,0.08);">✈️</div><div style="flex:1;"><div class="act-title">SCI/2026/0031 Printed</div><div class="act-sub">Sample — Frankfurt · $31.50</div></div><div class="act-time">3 days ago</div></div>
+          <div class="act-feed" id="actFeed">
+            <div style="text-align:center;padding:1.5rem;color:var(--text-soft);font-size:0.8rem;">Loading activity...</div>
           </div>
         </div>
       </div>
@@ -472,12 +465,12 @@
       <!-- Module Usage -->
       <div class="db-panel">
         <div class="db-panel-head"><div class="db-panel-title">🔧 Module Usage</div><div class="db-panel-act">This Month</div></div>
-        <div class="db-panel-body">
-          <div class="prog-item"><div class="prog-top"><span class="prog-label">📄 Proforma Invoice</span><span class="prog-val">38</span></div><div class="prog-track"><div class="prog-fill" data-w="85" style="background:linear-gradient(90deg,#0f2540,#2a5298);"></div></div></div>
-          <div class="prog-item"><div class="prog-top"><span class="prog-label">📋 Export Quotation</span><span class="prog-val">26</span></div><div class="prog-track"><div class="prog-fill" data-w="65" style="background:linear-gradient(90deg,#c9a84c,#e8c97a);"></div></div></div>
-          <div class="prog-item"><div class="prog-top"><span class="prog-label">📐 CBM Calculation</span><span class="prog-val">24</span></div><div class="prog-track"><div class="prog-fill" data-w="55" style="background:linear-gradient(90deg,#0f5c52,#22c55e);"></div></div></div>
-          <div class="prog-item"><div class="prog-top"><span class="prog-label">🧮 Export Costing</span><span class="prog-val">18</span></div><div class="prog-track"><div class="prog-fill" data-w="42" style="background:linear-gradient(90deg,#2a5298,#60a5fa);"></div></div></div>
-          <div class="prog-item"><div class="prog-top"><span class="prog-label">✈️ Courier Invoice</span><span class="prog-val">12</span></div><div class="prog-track"><div class="prog-fill" data-w="28" style="background:linear-gradient(90deg,#7c3aed,#a78bfa);"></div></div></div>
+        <div class="db-panel-body" id="moduleProgress">
+          <div class="prog-item"><div class="prog-top"><span class="prog-label">📄 Proforma Invoice</span><span class="prog-val">—</span></div><div class="prog-track"><div class="prog-fill" data-w="0" style="background:linear-gradient(90deg,#0f2540,#2a5298);"></div></div></div>
+          <div class="prog-item"><div class="prog-top"><span class="prog-label">📋 Export Quotation</span><span class="prog-val">—</span></div><div class="prog-track"><div class="prog-fill" data-w="0" style="background:linear-gradient(90deg,#c9a84c,#e8c97a);"></div></div></div>
+          <div class="prog-item"><div class="prog-top"><span class="prog-label">📐 CBM Calculation</span><span class="prog-val">—</span></div><div class="prog-track"><div class="prog-fill" data-w="0" style="background:linear-gradient(90deg,#0f5c52,#22c55e);"></div></div></div>
+          <div class="prog-item"><div class="prog-top"><span class="prog-label">🧮 Export Costing</span><span class="prog-val">—</span></div><div class="prog-track"><div class="prog-fill" data-w="0" style="background:linear-gradient(90deg,#2a5298,#60a5fa);"></div></div></div>
+          <div class="prog-item"><div class="prog-top"><span class="prog-label">✈️ Courier Invoice</span><span class="prog-val">—</span></div><div class="prog-track"><div class="prog-fill" data-w="0" style="background:linear-gradient(90deg,#7c3aed,#a78bfa);"></div></div></div>
         </div>
       </div>
       <!-- FOB/CIF Summary -->
@@ -567,43 +560,220 @@
 
 <script src="app.js"></script>
 <script>
+const API_BASE = 'http://localhost:5135/api';
+
+function txt(id,v){ const e=document.getElementById(id); if(e) e.textContent=v; }
+function htm(id,v){ const e=document.getElementById(id); if(e) e.innerHTML=v; }
+
+function toggleSidebar() {
+  const sb = document.getElementById('dbSidebar');
+  const ov = document.getElementById('dbOv');
+  const open = sb.classList.toggle('open');
+  ov.style.display = open ? 'block' : 'none';
+}
+
+function openMod(name) {
+  const t = document.getElementById('toast');
+  document.getElementById('toastIcon').textContent='🚀';
+  document.getElementById('toastMsg').textContent='Opening: '+name;
+  t.style.transform='translateY(0)'; t.style.opacity='1';
+  clearTimeout(t._t);
+  t._t=setTimeout(()=>{ t.style.transform='translateY(80px)'; t.style.opacity='0'; },3000);
+}
+
+function doLogout() {
+  if(confirm('Logout from IMPEXIO?')){
+    sessionStorage.removeItem('impexio');
+    localStorage.removeItem('impexio_admin');
+    window.location.href='login.html';
+  }
+}
+
+function goToAdmin() {
+  const s = JSON.parse(sessionStorage.getItem('impexio')||'{}');
+  if(s.role==='Owner'){ window.location.href='admin/admin-dashboard.html'; return; }
+  alert('Access Denied.');
+}
+
+// ── Load real dashboard data from API ────────────────────────
+async function loadDashboardData() {
+  try {
+    const token = sess?.token || '';
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + token
+    };
+
+    // Load summary
+    const sumRes  = await fetch(`${API_BASE}/dashboard/summary`, { headers });
+    const sumJson = await sumRes.json();
+
+    if (sumJson.success) {
+      const d = sumJson.data;
+
+      // Stat cards — real numbers
+      txt('sDocs', d.totalDocuments || 0);
+      const cbmVal = d.totalCbm ? d.totalCbm.toFixed(1) : '0';
+      const fobVal = d.totalFob  ? '₹' + (d.totalFob/100000).toFixed(1) + 'L' : '₹0';
+
+      // Update FOB card
+      const fobCard = document.querySelector('.db-stat-card.c2 .db-stat-val');
+      if(fobCard) fobCard.textContent = fobVal;
+
+      // Update CBM card
+      const cbmCard = document.querySelector('.db-stat-card.c4 .db-stat-val');
+      if(cbmCard) cbmCard.textContent = cbmVal;
+
+      // This month
+      const subTxt = document.querySelector('.db-stat-card.c1 .db-stat-sub');
+      if(subTxt) subTxt.textContent = `📄 ${d.thisMonthDocs || 0} generated this month`;
+
+      // Module wise progress bars
+      if(d.moduleWise && d.moduleWise.length) {
+        const total    = d.totalDocuments || 1;
+        const progWrap = document.getElementById('moduleProgress');
+        if(progWrap) {
+          progWrap.innerHTML = d.moduleWise
+            .filter(m => m.count > 0)
+            .sort((a,b) => b.count - a.count)
+            .slice(0,5)
+            .map(m => {
+              const pct = Math.round((m.count/total)*100);
+              return `
+                <div class="prog-item">
+                  <div class="prog-top">
+                    <span class="prog-label">${m.icon} ${m.name}</span>
+                    <span class="prog-val">${m.count}</span>
+                  </div>
+                  <div class="prog-track">
+                    <div class="prog-fill" data-w="${pct}" style="background:var(--navy);width:0;"></div>
+                  </div>
+                </div>`;
+            }).join('');
+          // Animate
+          setTimeout(() => {
+            progWrap.querySelectorAll('.prog-fill').forEach(el => {
+              el.style.width = (el.dataset.w||0) + '%';
+            });
+          }, 400);
+        }
+
+        // Donut legend — real data
+        const donutLegend = document.getElementById('donutLegend');
+        const COLORS = ['#0f2540','#c9a84c','#0f5c52','#2a5298','#6b7fa3'];
+        if(donutLegend) {
+          const top4 = d.moduleWise
+            .filter(m => m.count > 0)
+            .sort((a,b) => b.count - a.count)
+            .slice(0,4);
+          donutLegend.innerHTML = top4.map((m,i) => `
+            <div class="legend-item">
+              <div class="legend-dot" style="background:${COLORS[i]};border-radius:2px;"></div>
+              <span class="legend-lbl">${m.name.split(' ')[0]}</span>
+              <span class="legend-val">${m.count}</span>
+            </div>`).join('');
+        }
+      }
+    }
+
+    // Load recent activity
+    const recRes  = await fetch(`${API_BASE}/dashboard/recent`, { headers });
+    const recJson = await recRes.json();
+
+    if(recJson.success && recJson.data.length) {
+      const actFeed = document.getElementById('actFeed');
+      const MODULE_ICONS = {
+        CBM:'📐', FOB:'💰', EC:'🧮', EC2:'📊',
+        PI:'📄',  EQ:'📋', SCI:'✈️', ILE:'📩',
+        EFM:'📈', BIL:'🎯'
+      };
+      const MODULE_BG = {
+        CBM:'rgba(15,37,64,0.1)',  FOB:'rgba(201,168,76,0.12)',
+        EC:'rgba(15,92,82,0.1)',   EC2:'rgba(42,82,152,0.1)',
+        PI:'rgba(15,37,64,0.08)', EQ:'rgba(201,168,76,0.1)',
+        SCI:'rgba(15,92,82,0.08)',ILE:'rgba(42,82,152,0.08)',
+        EFM:'rgba(107,127,163,0.12)',BIL:'rgba(15,37,64,0.06)'
+      };
+
+      if(actFeed) {
+        actFeed.innerHTML = recJson.data.slice(0,6).map(r => {
+          const timeAgo = getTimeAgo(r.createdAt);
+          return `
+            <div class="act-item">
+              <div class="act-icon" style="background:${MODULE_BG[r.module]||'rgba(15,37,64,0.1)'}">
+                ${MODULE_ICONS[r.module]||'📄'}
+              </div>
+              <div style="flex:1;min-width:0;">
+                <div class="act-title">${r.module} — ${r.docNo||'—'}</div>
+                <div class="act-sub">${r.party||'—'}</div>
+              </div>
+              <div class="act-time">${timeAgo}</div>
+            </div>`;
+        }).join('');
+      }
+    } else {
+      const actFeed = document.getElementById('actFeed');
+      if(actFeed) actFeed.innerHTML = `
+        <div style="text-align:center;padding:1.5rem;color:var(--text-soft);font-size:0.8rem;">
+          No activity yet — start creating documents!
+        </div>`;
+    }
+
+  } catch(err) {
+    console.error('Dashboard data load failed:', err);
+  }
+}
+
+function getTimeAgo(dateStr) {
+  if(!dateStr) return '—';
+  try {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff/60000);
+    const hrs  = Math.floor(mins/60);
+    const days = Math.floor(hrs/24);
+    if(mins < 1)  return 'Just now';
+    if(mins < 60) return `${mins}m ago`;
+    if(hrs  < 24) return `${hrs}h ago`;
+    if(days < 7)  return `${days}d ago`;
+    return new Date(dateStr).toLocaleDateString('en-IN',{day:'2-digit',month:'short'});
+  } catch{ return '—'; }
+}
+
+// ── Init ─────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   loadSess();
-  if (!sess.username || !sess.year) { window.location.href = 'login.html'; return; }
-  const c = sess.company, y = sess.year;
+  if (!sess || !sess.token || !sess.year) {
+    window.location.href = 'login.html'; return;
+  }
+
+  const c = sess.company;
+  const y = sess.year;
 
   // Topbar
-  const setH = (id, v) => { const e=document.getElementById(id); if(e) e.innerHTML=v; };
-  setH('chipCo', '🏢 <strong>' + (c ? c.name.split(' ').slice(0,3).join(' ') : '—') + '</strong>');
-  setH('chipYr', '📅 <strong>FY ' + (y ? y.label : '—') + '</strong>');
-  setH('topUser', sess.username || 'Admin');
-  setH('wName', sess.username || 'Admin');
+  htm('chipCo', '🏢 <strong>' + (c ? c.name.split(' ').slice(0,3).join(' ') : sess.companyName||'—') + '</strong>');
+  htm('chipYr', '📅 <strong>FY ' + (y ? y.label : '—') + '</strong>');
+  txt('topUser', sess.username || 'User');
+  txt('wName',   sess.username || 'User');
 
   // Sidebar user
-  const av = document.getElementById('sideAv'); if(av) av.textContent = (sess.username||'A')[0].toUpperCase();
-  const su = document.getElementById('sideUname'); if(su) su.textContent = sess.username||'Admin';
-  const sr = document.getElementById('sideRole'); if(sr) sr.textContent = sess.role||'Administrator';
+  const av = document.getElementById('sideAv');
+  if(av) av.textContent = (sess.username||'U')[0].toUpperCase();
+  txt('sideUname', sess.username || 'User');
+  txt('sideRole',  sess.role     || 'Customer');
 
   // Date
   const dt = document.getElementById('todayDate');
   if(dt) dt.textContent = new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 
-  // Buyers
+  // Buyers from localStorage (still works)
   try {
     const buyers = JSON.parse(localStorage.getItem('impexio_buyers')||'[]');
-    const ctrs = [...new Set(buyers.map(b=>b.country).filter(Boolean))].length;
-    const set = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
-    set('bdCount', buyers.length);
-    set('bdCtrs', ctrs);
-    set('sideCount', buyers.length);
-    set('sDocs', 142 + buyers.length);
-    set('sCtrs', ctrs || 6);
+    const ctrs   = [...new Set(buyers.map(b=>b.country).filter(Boolean))].length;
+    txt('bdCount',  buyers.length);
+    txt('bdCtrs',   ctrs);
+    txt('sideCount',buyers.length);
+    txt('sCtrs',    ctrs||0);
   } catch(e){}
-
-  // Progress bars
-  setTimeout(() => {
-    document.querySelectorAll('.prog-fill').forEach(el => { el.style.width = (el.dataset.w||0) + '%'; });
-  }, 400);
 
   // Animations
   document.querySelectorAll('.db-stat-card').forEach((el,i) => {
@@ -616,30 +786,10 @@ document.addEventListener('DOMContentLoaded', () => {
     el.style.transition=`opacity 0.35s ${i*0.03}s ease,transform 0.35s ${i*0.03}s ease`;
     requestAnimationFrame(()=>{ el.style.opacity='1'; el.style.transform='translateY(0)'; });
   });
-});
 
-function toggleSidebar() {
-  const sb = document.getElementById('dbSidebar');
-  const ov = document.getElementById('dbOv');
-  const open = sb.classList.toggle('open');
-  ov.style.display = open ? 'block' : 'none';
-}
-function openMod(name) {
-  const t = document.getElementById('toast');
-  document.getElementById('toastIcon').textContent='🚀';
-  document.getElementById('toastMsg').textContent='Opening: '+name;
-  t.style.transform='translateY(0)'; t.style.opacity='1';
-  clearTimeout(t._t);
-  t._t=setTimeout(()=>{ t.style.transform='translateY(80px)'; t.style.opacity='0'; },3000);
-}
-function goToAdmin() {
-  const s = JSON.parse(sessionStorage.getItem('impexio')||'{}');
-  if(s.role!=='Administrator'){ alert('Access Denied. Only Administrators can access Admin Master.'); return; }
-  window.location.href='login-master/admin-master.html';
-}
-function doLogout() {
-  if(confirm('Logout from IMPEXIO?')){ sessionStorage.removeItem('impexio'); window.location.href='index.html'; }
-}
+  // Load real data from API
+  loadDashboardData();
+});
 </script>
 </body>
 </html>

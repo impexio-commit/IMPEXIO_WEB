@@ -341,7 +341,7 @@ async function saveCustomer(){
       });
       const userJson=await userRes.json();
       if(!userJson.success){showToast('❌',userJson.message||'User creation failed.');return;}
-      showToast('✅',`Customer created! Client Code: ${custJson.clientCode||'Auto assigned'}`);
+      showToast('✅', `Customer created successfully!`);
       closeModal(); loadCustomers(); return;
     }
 

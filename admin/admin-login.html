@@ -384,14 +384,22 @@
       }
     }
 
-    // Check if already logged in
+    // Only redirect if token is still valid
     const existing = localStorage.getItem('impexio_admin');
     if (existing) {
       try {
-        const sess = JSON.parse(existing);
-        if (sess.role === 'Owner') window.location.href = 'admin-dashboard.html';
-        else if (sess.role === 'Customer') window.location.href = '../main.html';
-      } catch(e) {}
+        const s = JSON.parse(existing);
+        if (s?.token && s?.expiry && new Date(s.expiry) > new Date()) {
+          if (s.role === 'Owner') {
+            window.location.href = 'admin-dashboard.html'; return;
+          }
+        } else {
+          // Expired — clear it
+          localStorage.removeItem('impexio_admin');
+        }
+      } catch(e) {
+        localStorage.removeItem('impexio_admin');
+      }
     }
   </script>
 </body>
