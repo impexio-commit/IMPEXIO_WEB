@@ -41,7 +41,9 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 async function loadRecordsFromAPI() {
   try {
-    const res  = await fetch(`${API_BASE}/Fob`);
+    const res  = await fetch(`${API_BASE}/Fob`, {
+      headers: authHeaders()
+    });
     const json = await res.json();
     fobRecords = json.data || [];
     renderRecords();
@@ -297,13 +299,13 @@ async function saveRecord() {
     if (editingId !== null) {
       res = await fetch(`${API_BASE}/Fob/${editingId}`, {
         method:  'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body:    JSON.stringify(payload)
       });
     } else {
       res = await fetch(`${API_BASE}/Fob`, {
         method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body:    JSON.stringify(payload)
       });
     }
@@ -350,8 +352,10 @@ function editRecord(id) {
 async function deleteRecord(id) {
   if (!confirm('Delete this FOB record?')) return;
   try {
-    const res  = await fetch(`${API_BASE}/Fob/${id}`, { method: 'DELETE' });
-    const json = await res.json();
+    const res  = await fetch(`${API_BASE}/Fob/${id}`, {
+      method: 'DELETE',
+      headers: authHeaders()
+    });    const json = await res.json();
     if (json.success) {
       if (editingId === id) newEntry();
       await loadRecordsFromAPI();

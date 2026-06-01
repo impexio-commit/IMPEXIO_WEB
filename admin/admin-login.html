@@ -392,7 +392,7 @@
         if (s?.token && s?.expiry && new Date(s.expiry) > new Date()) {
           if (s.role === 'Owner') {
             window.location.href = 'admin-dashboard.html'; return;
-          }
+          } 
         } else {
           // Expired — clear it
           localStorage.removeItem('impexio_admin');
