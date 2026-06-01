@@ -3,7 +3,7 @@
    IMPEXIO v2
    ============================================================ */
 
-   const API_BASE  = 'http://localhost:5135/api';
+   // API_BASE defined in app.js
    let ileRecords  = [];
    let editingId   = null;
    let currentStep = 1;

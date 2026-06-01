@@ -96,7 +96,7 @@ const EC2_ROWS = [
 const INPUT_TYPES = ['input'];
 const CALC_TYPES  = ['calc_cbm','calc_local_tax','calc_local_total','calc_cust_tax','calc_cust_total','calc_fob_inr','calc_fob_kg','calc_fob_usd','calc_cif_inr','calc_cif_usd'];
 
-const API_BASE  = 'http://localhost:5135/api';
+// API_BASE defined in app.js
 let ec2Records  = [];
 let editingId   = null;
 let currentStep = 1;

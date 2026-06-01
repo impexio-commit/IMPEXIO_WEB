@@ -3,7 +3,7 @@
    IMPEXIO v2 — API INTEGRATED
    ============================================================ */
 
-   const API_BASE  = 'http://localhost:5135/api';
+  // API_BASE defined in app.js
    let eqRecords   = [];
    let editingId   = null;
    let currentStep = 1;

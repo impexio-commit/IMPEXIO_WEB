@@ -24,7 +24,7 @@ const EXPENSE_ITEMS = [
 
 const COLS = ['20', '40', '40hq', 'lcl'];
 
-const API_BASE = 'http://localhost:5135/api';
+// API_BASE defined in app.js
 let fobRecords  = [];
 let editingId   = null;
 let currentStep = 1;

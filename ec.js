@@ -37,7 +37,7 @@ const EC_ROWS = [
 
 const INPUT_KEYS = EC_ROWS.filter(r => r.type.startsWith('input')).map(r => r.key);
 
-const API_BASE  = 'http://localhost:5135/api';
+// API_BASE defined in app.js
 let ecRecords   = [];
 let editingId   = null;
 let currentStep = 1;
