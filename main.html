@@ -596,6 +596,7 @@ function goToAdmin() {
 
 // ── Load real dashboard data from API ────────────────────────
 async function loadDashboardData() {
+  loadSess();
   try {
     const token = sess?.token || '';
     const headers = {

@@ -41,8 +41,10 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 async function loadRecordsFromAPI() {
   try {
-    const res  = await fetch(`${API_BASE}/Fob`, {
-      headers: authHeaders()
+    const sess  = JSON.parse(sessionStorage.getItem('impexio') || '{}');
+    const token = sess?.token || '';
+    const res   = await fetch(`${API_BASE}/Fob`, {
+      headers: { 'Authorization': 'Bearer ' + token }
     });
     const json = await res.json();
     fobRecords = json.data || [];
@@ -255,6 +257,7 @@ async function saveRecord() {
   if (!company) { showToast('⚠️', 'Please enter Company Name.'); goToStep(1); return; }
   if (!fobno)   { showToast('⚠️', 'Please enter FOB Ref. No.'); goToStep(1); return; }
   if (!fobdate) { showToast('⚠️', 'Please select FOB Date.');   goToStep(1); return; }
+  
 
   const totals = {};
   COLS.forEach(col => {
@@ -299,13 +302,19 @@ async function saveRecord() {
     if (editingId !== null) {
       res = await fetch(`${API_BASE}/Fob/${editingId}`, {
         method:  'PUT',
-        headers: authHeaders(),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + (JSON.parse(sessionStorage.getItem('impexio')||'{}')?.token||'')
+        },
         body:    JSON.stringify(payload)
       });
     } else {
       res = await fetch(`${API_BASE}/Fob`, {
         method:  'POST',
-        headers: authHeaders(),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + (JSON.parse(sessionStorage.getItem('impexio')||'{}')?.token||'')
+        },
         body:    JSON.stringify(payload)
       });
     }
@@ -325,36 +334,70 @@ async function saveRecord() {
 }
 
 // ── Edit ──────────────────────────────────────────────────────
-function editRecord(id) {
-  const rec = fobRecords.find(r => r.id === id);
-  if (!rec) return;
-  editingId = id;
-  setText('formTitle', `Editing: ${rec.fobno}`);
+async function editRecord(id) {
+  try {
+    const sess = JSON.parse(sessionStorage.getItem('impexio') || '{}');
+    const token = sess?.token || '';
+    const res  = await fetch(`${API_BASE}/Fob/${id}`, {
+      headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+token }
+    });
+    const json = await res.json();
+    if (!json.success) return;
+    const rec = json.data;
 
-  const sv = (elId, v) => { const el = document.getElementById(elId); if (el) el.value = v || ''; };
-  sv('f_company', rec.company); sv('f_pol', rec.pol);
-  sv('f_fobno',   rec.fobno);   sv('f_fobdate', rec.fobdate);
-  sv('f_remarks', rec.remarks); sv('f_preparedby', rec.preparedby);
-  sv('f_signatory', rec.signatory);
+    editingId = id;
+    setText('formTitle', `Editing: ${rec.fobNo}`);
 
-  COLS.forEach(col => sv(`cbm_${col}`, rec.cbms?.[col]));
-  EXPENSE_ITEMS.filter(i => !i.group).forEach(item => {
-    COLS.forEach(col => sv(`e_${item.key}_${col}`, rec.charges?.[item.key]?.[col] || ''));
-  });
+    const sv = (elId, v) => {
+      const el = document.getElementById(elId);
+      if (el) el.value = v || '';
+    };
 
-  calcTotals();
-  document.querySelectorAll('.fl-card').forEach(c => c.classList.remove('active'));
-  document.getElementById(`fcard_${id}`)?.classList.add('active');
-  goToStep(1);
+    sv('f_company',   rec.company);
+    sv('f_pol',       rec.pol);
+    sv('f_fobno',     rec.fobNo);
+    sv('f_fobdate',   rec.fobDate?.split('T')[0] || '');
+    sv('f_remarks',   rec.remarks);
+    sv('f_preparedby',rec.preparedBy);
+    sv('f_signatory', rec.signatory);
+
+    // Restore CBM values from charges
+    const cols20   = ['20','40','40hq','lcl'];
+    sv('cbm_20',   rec.cbm20   || '');
+    sv('cbm_40',   rec.cbm40   || '');
+    sv('cbm_40hq', rec.cbm40Hq || '');
+    sv('cbm_lcl',  rec.cbmLcl  || '');
+
+    // Restore expense charges
+    if (rec.charges && rec.charges.length) {
+      rec.charges.forEach(charge => {
+        sv(`e_${charge.chargeKey}_20`,   charge.amt20);
+        sv(`e_${charge.chargeKey}_40`,   charge.amt40);
+        sv(`e_${charge.chargeKey}_40hq`, charge.amt40Hq);
+        sv(`e_${charge.chargeKey}_lcl`,  charge.amtLcl);
+      });
+    }
+
+    calcTotals();
+    document.querySelectorAll('.fl-card').forEach(c => c.classList.remove('active'));
+    document.getElementById(`fcard_${id}`)?.classList.add('active');
+    goToStep(1);
+
+  } catch(err) {
+    console.error('Edit failed:', err);
+    showToast('❌', 'Failed to load record.');
+  }
 }
 
 // ── Delete ────────────────────────────────────────────────────
 async function deleteRecord(id) {
   if (!confirm('Delete this FOB record?')) return;
   try {
-    const res  = await fetch(`${API_BASE}/Fob/${id}`, {
+    const sess  = JSON.parse(sessionStorage.getItem('impexio') || '{}');
+    const token = sess?.token || '';
+    const res   = await fetch(`${API_BASE}/Fob/${id}`, {
       method: 'DELETE',
-      headers: authHeaders()
+      headers: { 'Authorization': 'Bearer ' + token }
     });    const json = await res.json();
     if (json.success) {
       if (editingId === id) newEntry();
@@ -383,11 +426,11 @@ function renderRecords(data = null) {
   }
   list.innerHTML = items.map(rec => `
     <div class="fl-card ${editingId === rec.id ? 'active' : ''}" id="fcard_${rec.id}" onclick="editRecord(${rec.id})">
-      <div class="fl-card-no">${rec.fobno}</div>
-      <div class="fl-card-co">${rec.company}</div>
+      <div class="fl-card-no">${rec.fobNo || rec.fobno || '—'}</div>
+      <div class="fl-card-co">${rec.company || '—'}</div>
       <div class="fl-card-row">
-        <span class="fl-card-date">${fmtDate(rec.fobdate)}</span>
-        <span class="fl-card-val">₹${fmtNum(rec.totals?.['20'] || 0)}</span>
+        <span class="fl-card-date">${fmtDate(rec.fobDate || rec.fobdate)}</span>
+        <span class="fl-card-val">₹${fmtNum(rec.total20 || rec.totals?.['20'] || 0)}</span>
       </div>
       <div class="fl-card-acts">
         <button class="fl-act edit" onclick="event.stopPropagation();editRecord(${rec.id})">✏️ Edit</button>
@@ -401,7 +444,7 @@ function filterRecords() {
   const q = document.getElementById('searchInput')?.value.toLowerCase() || '';
   if (!q) { renderRecords(); return; }
   renderRecords(fobRecords.filter(r =>
-    r.fobno?.toLowerCase().includes(q) ||
+    (r.fobNo||r.fobno)?.toLowerCase().includes(q) ||
     r.company?.toLowerCase().includes(q) ||
     r.pol?.toLowerCase().includes(q)
   ));
