@@ -43,6 +43,7 @@
    CIF VALUE IN INR    → auto = FOB VALUE INR + MARINE INS + SEA FREIGHT
    CIF VALUE IN $      → auto = CIF VALUE INR ÷ USD RATE
    ============================================================ */
+   const API_BASE = 'https://impexio.in/api';
 
 
    function getAuthHeaders() {

@@ -3,6 +3,8 @@
    IMPEXIO v2
    ============================================================ */
 
+   const API_BASE = 'https://impexio.in/api';
+
    function getAuthHeaders() {
     const sess  = JSON.parse(sessionStorage.getItem('impexio') || '{}');
     const token = sess?.token || '';
@@ -12,7 +14,7 @@
     };
   }
 
-  
+
 // API_BASE defined in app.js
    let piRecords   = [];
    let editingId   = null;

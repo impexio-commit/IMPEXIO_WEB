@@ -5,6 +5,10 @@
 
   // API_BASE defined in app.js
 
+  const API_BASE = 'https://impexio.in/api';
+ 
+
+
   function getAuthHeaders() {
     const sess  = JSON.parse(sessionStorage.getItem('impexio') || '{}');
     const token = sess?.token || '';

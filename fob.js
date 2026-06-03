@@ -3,6 +3,8 @@
    IMPEXIO v2
    ============================================================ */
 
+   const API_BASE = 'https://impexio.in/api';
+
 const EXPENSE_ITEMS = [
   { key: 'docs_stuffing',     label: 'Docs Stuffing',              group: true },
   { key: 'thc_docs',          label: 'THC & Docs' },

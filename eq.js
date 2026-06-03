@@ -3,6 +3,9 @@
    IMPEXIO v2 — API INTEGRATED
    ============================================================ */
 
+   const API_BASE = 'https://impexio.in/api';
+
+
    function getAuthHeaders() {
     const sess  = JSON.parse(sessionStorage.getItem('impexio') || '{}');
     const token = sess?.token || '';
@@ -12,7 +15,7 @@
     };
   }
 
-  
+
   // API_BASE defined in app.js
    let eqRecords   = [];
    let editingId   = null;

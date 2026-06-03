@@ -5,6 +5,8 @@
 
 // Container columns: [id, fcl_key, lcl_key]
 
+const API_BASE = 'https://impexio.in/api';
+
 
 function getAuthHeaders() {
   const sess  = JSON.parse(sessionStorage.getItem('impexio') || '{}');
