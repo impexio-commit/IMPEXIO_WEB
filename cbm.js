@@ -6,7 +6,7 @@
 // ── API Base URL ──────────────────────────────────────
 // API_BASE defined in app.js
 
-const API_BASE = 'https://impexio.in/api/cbm/index.php';
+const API_BASE = 'https://impexio.in/api';
 
 
 function getAuthHeaders() {
@@ -318,8 +318,8 @@ async function saveRecord() {
 
   try {
     const url    = editingId !== null
-                   ? `${API_BASE}/Cbm/${editingId}`
-                   : `${API_BASE}/Cbm`;
+                   ? `${API_BASE}/cbm/index.php?id=${editingId}`
+                   : `${API_BASE}/cbm/index.php`;
     const method = editingId !== null ? 'PUT' : 'POST';
 
     const res = await fetch(`${API_BASE}/cbm/index.php?id=${id}`, {
