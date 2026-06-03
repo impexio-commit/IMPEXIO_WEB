@@ -3,11 +3,20 @@
    IMPEXIO v2
    ============================================================ */
 
+   function getAuthHeaders() {
+    const sess  = JSON.parse(sessionStorage.getItem('impexio') || '{}');
+    const token = sess?.token || '';
+    return {
+      'Content-Type':  'application/json',
+      'Authorization': 'Bearer ' + token
+    };
+  }
    // API_BASE defined in app.js
    let efmRecords   = [];
    let editingId    = null;
    let currentStep  = 1;
    let selectedMailType = null;
+
 
 // ── Mail type config ──────────────────────────────────────────
 const MAIL_TYPES = {
@@ -348,13 +357,13 @@ async function saveRecord() {
     if (editingId !== null) {
       res = await fetch(`${API_BASE}/Efm/${editingId}`, {
         method:  'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body:    JSON.stringify(payload)
       });
     } else {
       res = await fetch(`${API_BASE}/Efm`, {
         method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body:    JSON.stringify(payload)
       });
     }

@@ -5,6 +5,18 @@
 
 // ── API Base URL ──────────────────────────────────────
 // API_BASE defined in app.js
+
+
+function getAuthHeaders() {
+  const sess  = JSON.parse(sessionStorage.getItem('impexio') || '{}');
+  const token = sess?.token || '';
+  return {
+    'Content-Type':  'application/json',
+    'Authorization': 'Bearer ' + token
+  };
+}
+
+
 let cbmRecords = [];
 let editingId   = null;
 let currentStep = 1;
@@ -310,7 +322,7 @@ async function saveRecord() {
 
     const res = await fetch(`${API_BASE}/Cbm`, {
       method: 'POST',
-      headers: authHeaders(),
+      headers: getAuthHeaders(),
       body: JSON.stringify(payload)
     });
 

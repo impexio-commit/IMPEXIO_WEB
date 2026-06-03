@@ -4,6 +4,15 @@
    ============================================================ */
 
    // API_BASE defined in app.js
+
+   function getAuthHeaders() {
+    const sess  = JSON.parse(sessionStorage.getItem('impexio') || '{}');
+    const token = sess?.token || '';
+    return {
+      'Content-Type':  'application/json',
+      'Authorization': 'Bearer ' + token
+    };
+  }
    let ileRecords  = [];
    let editingId   = null;
    let currentStep = 1;
@@ -296,13 +305,13 @@ async function saveRecord() {
     if (editingId !== null) {
       res = await fetch(`${API_BASE}/Ile/${editingId}`, {
         method:  'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers:getAuthHeaders(),
         body:    JSON.stringify(payload)
       });
     } else {
       res = await fetch(`${API_BASE}/Ile`, {
         method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers:getAuthHeaders(),
         body:    JSON.stringify(payload)
       });
     }

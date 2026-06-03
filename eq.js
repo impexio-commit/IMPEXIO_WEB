@@ -3,6 +3,16 @@
    IMPEXIO v2 — API INTEGRATED
    ============================================================ */
 
+   function getAuthHeaders() {
+    const sess  = JSON.parse(sessionStorage.getItem('impexio') || '{}');
+    const token = sess?.token || '';
+    return {
+      'Content-Type':  'application/json',
+      'Authorization': 'Bearer ' + token
+    };
+  }
+
+  
   // API_BASE defined in app.js
    let eqRecords   = [];
    let editingId   = null;
@@ -288,13 +298,13 @@
        if (editingId !== null) {
          res = await fetch(`${API_BASE}/Eq/${editingId}`, {
            method:  'PUT',
-           headers: { 'Content-Type': 'application/json' },
+           headers: getAuthHeaders(),
            body:    JSON.stringify(payload)
          });
        } else {
          res = await fetch(`${API_BASE}/Eq`, {
            method:  'POST',
-           headers: { 'Content-Type': 'application/json' },
+           headers: getAuthHeaders(),
            body:    JSON.stringify(payload)
          });
        }

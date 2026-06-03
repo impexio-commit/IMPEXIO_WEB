@@ -4,6 +4,20 @@
    ============================================================ */
 
 // Container columns: [id, fcl_key, lcl_key]
+
+
+function getAuthHeaders() {
+  const sess  = JSON.parse(sessionStorage.getItem('impexio') || '{}');
+  const token = sess?.token || '';
+  return {
+    'Content-Type':  'application/json',
+    'Authorization': 'Bearer ' + token
+  };
+}
+
+
+
+
 const EC_COLS = [
   { id:'20',   label:"20' Container" },
   { id:'40gp', label:"40' GP Container" },
@@ -356,13 +370,13 @@ async function saveRecord() {
     if (editingId !== null) {
       res = await fetch(`${API_BASE}/Ec/${editingId}`, {
         method:  'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body:    JSON.stringify(payload)
       });
     } else {
       res = await fetch(`${API_BASE}/Ec`, {
         method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body:    JSON.stringify(payload)
       });
     }

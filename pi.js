@@ -3,6 +3,16 @@
    IMPEXIO v2
    ============================================================ */
 
+   function getAuthHeaders() {
+    const sess  = JSON.parse(sessionStorage.getItem('impexio') || '{}');
+    const token = sess?.token || '';
+    return {
+      'Content-Type':  'application/json',
+      'Authorization': 'Bearer ' + token
+    };
+  }
+
+  
 // API_BASE defined in app.js
    let piRecords   = [];
    let editingId   = null;
@@ -331,13 +341,13 @@ async function saveRecord() {
     if (editingId !== null) {
       res = await fetch(`${API_BASE}/Pi/${editingId}`, {
         method:  'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body:    JSON.stringify(payload)
       });
     } else {
       res = await fetch(`${API_BASE}/Pi`, {
         method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body:    JSON.stringify(payload)
       });
     }

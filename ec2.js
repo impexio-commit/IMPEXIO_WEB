@@ -44,6 +44,17 @@
    CIF VALUE IN $      → auto = CIF VALUE INR ÷ USD RATE
    ============================================================ */
 
+
+   function getAuthHeaders() {
+    const sess  = JSON.parse(sessionStorage.getItem('impexio') || '{}');
+    const token = sess?.token || '';
+    return {
+      'Content-Type':  'application/json',
+      'Authorization': 'Bearer ' + token
+    };
+  }
+
+
 const COLS = ['c1','c2','c3']; // LCL1, LCL2, 40' HQ FCL
 
 const EC2_ROWS = [
@@ -405,13 +416,13 @@ async function saveRecord() {
     if (editingId !== null) {
       res = await fetch(`${API_BASE}/Ec2/${editingId}`, {
         method:  'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body:    JSON.stringify(payload)
       });
     } else {
       res = await fetch(`${API_BASE}/Ec2`, {
         method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body:    JSON.stringify(payload)
       });
     }
