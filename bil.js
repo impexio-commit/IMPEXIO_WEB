@@ -25,7 +25,7 @@ function getAuthHeaders() {
 
    async function loadRecordsFromAPI() {
     try {
-      const res  = await fetch(`${API_BASE}/Bil`);
+      const res  = await fetch(`${API_BASE}/bil/index.php`);
       const json = await res.json();
       bilRecords = json.data || [];
       renderRecords();
@@ -276,13 +276,13 @@ async function saveRecord() {
   try {
     let res;
     if (editingId !== null) {
-      res = await fetch(`${API_BASE}/Bil/${editingId}`, {
+      res = await fetch(`${API_BASE}//bil/index.php?id=${id}`, {
         method:  'PUT',
         headers: getAuthHeaders(),
         body:    JSON.stringify(payload)
       });
     } else {
-      res = await fetch(`${API_BASE}/Bil`, {
+      res = await fetch(`${API_BASE}/bil/index.php`, {
         method:  'POST',
         headers: getAuthHeaders(),
         body:    JSON.stringify(payload)
@@ -304,7 +304,7 @@ async function saveRecord() {
 
 async function loadRecord(id) {
   try {
-    const res  = await fetch(`${API_BASE}/Bil/${id}`);
+    const res  = await fetch(`${API_BASE}/bil/index.php?id=${id}`);
     const json = await res.json();
     if (!json.success) return;
     const rec  = json.data;
@@ -360,7 +360,8 @@ async function loadRecord(id) {
 async function deleteRecord(id) {
   if (!confirm('Delete this record?')) return;
   try {
-    const res  = await fetch(`${API_BASE}/Bil/${id}`, { method: 'DELETE' });
+    const res  = await fetch(`${API_BASE}/bil/index.php?id=${id}
+`, { method: 'DELETE' });
     const json = await res.json();
     if (json.success) {
       if (editingId === id) newEntry();

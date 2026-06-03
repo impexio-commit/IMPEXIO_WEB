@@ -126,7 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function loadRecordsFromAPI() {
   try {
-    const res   = await fetch(`${API_BASE}/Ec2`);
+    const res   = await fetch(`${API_BASE}/ec2/index.php`);
     const json  = await res.json();
     ec2Records  = json.data || [];
     renderRecords();
@@ -415,13 +415,13 @@ async function saveRecord() {
   try {
     let res;
     if (editingId !== null) {
-      res = await fetch(`${API_BASE}/Ec2/${editingId}`, {
+      res = await fetch(`${API_BASE}/ec2/index.php?id=${id}`, {
         method:  'PUT',
         headers: getAuthHeaders(),
         body:    JSON.stringify(payload)
       });
     } else {
-      res = await fetch(`${API_BASE}/Ec2`, {
+      res = await fetch(`${API_BASE}/ec/index.php`, {
         method:  'POST',
         headers: getAuthHeaders(),
         body:    JSON.stringify(payload)
@@ -445,7 +445,7 @@ async function saveRecord() {
 // ── Edit ──────────────────────────────────────────────────────
 async function editRecord(id) {
   try {
-    const res  = await fetch(`${API_BASE}/Ec2/${id}`);
+    const res  = await fetch(`${API_BASE}/ec2/index.php?id=${id}`);
     const json = await res.json();
     if (!json.success) return;
     const rec  = json.data;
@@ -491,7 +491,7 @@ async function editRecord(id) {
 async function deleteRecord(id) {
   if (!confirm('Delete this Export Costing 2 record?')) return;
   try {
-    const res  = await fetch(`${API_BASE}/Ec2/${id}`, { method: 'DELETE' });
+    const res  = await fetch(`${API_BASE}/ec2/index.php?id=${id}`, { method: 'DELETE' });
     const json = await res.json();
     if (json.success) {
       if (editingId === id) newEntry();
@@ -572,7 +572,7 @@ function printRecord() {
 
 async function printById(id) {
   try {
-    const res  = await fetch(`${API_BASE}/Ec2/${id}`);
+    const res  = await fetch(`${API_BASE}/ec2/index.php?id=${id}`);
     const json = await res.json();
     if (json.success) doPrint(json.data);
   } catch (err) {

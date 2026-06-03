@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function loadRecordsFromAPI() {
   try {
-    const res = await fetch(`${API_BASE}/Ec`, {
+    const res = await fetch(`${API_BASE}/ec/index.php`, {
       headers: getAuthHeaders()
     });
 
@@ -373,13 +373,13 @@ async function saveRecord() {
   try {
     let res;
     if (editingId !== null) {
-      res = await fetch(`${API_BASE}/Ec/${editingId}`, {
+      res = await fetch(`${API_BASE}/ec/index.php?id=${id}`, {
         method:  'PUT',
         headers: getAuthHeaders(),
         body:    JSON.stringify(payload)
       });
     } else {
-      res = await fetch(`${API_BASE}/Ec`, {
+      res = await fetch(`${API_BASE}/ec/index.php`, {
         method:  'POST',
         headers: getAuthHeaders(),
         body:    JSON.stringify(payload)
@@ -403,7 +403,7 @@ async function saveRecord() {
 // ── Edit ──────────────────────────────────────────────────────
 async function editRecord(id) {
   try {
-    const res  = await fetch(`${API_BASE}/Ec/${id}`);
+    const res  = await fetch(`${API_BASE}/ec/index.php?id=${id}`);
     const json = await res.json();
     if (!json.success) return;
     const rec  = json.data;
@@ -441,7 +441,7 @@ async function editRecord(id) {
 async function deleteRecord(id) {
   if (!confirm('Delete this Export Costing record?')) return;
   try {
-    const res  = await fetch(`${API_BASE}/Ec/${id}`, { method: 'DELETE' });
+    const res  = await fetch(`${API_BASE}/ec/index.php?id=${id}`, { method: 'DELETE' });
     const json = await res.json();
     if (json.success) {
       if (editingId === id) newEntry();
