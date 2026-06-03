@@ -69,9 +69,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function loadRecordsFromAPI() {
   try {
-    const res  = await fetch(`${API_BASE}/Ec`);
+    const res = await fetch(`${API_BASE}/Ec`, {
+      headers: getAuthHeaders()
+    });
+
     const json = await res.json();
-    ecRecords  = json.data || [];
+    ecRecords = json.data || [];
     renderRecords();
   } catch (err) {
     console.error('Failed to load EC records:', err);
