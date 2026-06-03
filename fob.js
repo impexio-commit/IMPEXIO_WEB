@@ -45,7 +45,7 @@ async function loadRecordsFromAPI() {
   try {
     const sess  = JSON.parse(sessionStorage.getItem('impexio') || '{}');
     const token = sess?.token || '';
-    const res   = await fetch(`${API_BASE}/Fob`, {
+    const res   = await fetch(`${API_BASE}/fob/index.php`, {
       headers: { 'Authorization': 'Bearer ' + token }
     });
     const json = await res.json();
@@ -302,7 +302,7 @@ async function saveRecord() {
   try {
     let res;
     if (editingId !== null) {
-      res = await fetch(`${API_BASE}/Fob/${editingId}`, {
+      res = await fetch(`${API_BASE}/fob/index.php?id=${id}`, {
         method:  'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -311,7 +311,7 @@ async function saveRecord() {
         body:    JSON.stringify(payload)
       });
     } else {
-      res = await fetch(`${API_BASE}/Fob`, {
+      res = await fetch(`${API_BASE}/fob/index.php`, {
         method:  'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -340,7 +340,7 @@ async function editRecord(id) {
   try {
     const sess = JSON.parse(sessionStorage.getItem('impexio') || '{}');
     const token = sess?.token || '';
-    const res  = await fetch(`${API_BASE}/Fob/${id}`, {
+    const res  = await fetch(`${API_BASE}/fob/index.php?id=${id}`, {
       headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+token }
     });
     const json = await res.json();
@@ -397,7 +397,7 @@ async function deleteRecord(id) {
   try {
     const sess  = JSON.parse(sessionStorage.getItem('impexio') || '{}');
     const token = sess?.token || '';
-    const res   = await fetch(`${API_BASE}/Fob/${id}`, {
+    const res   = await fetch(`${API_BASE}/fob/index.php?id=${id}`, {
       method: 'DELETE',
       headers: { 'Authorization': 'Bearer ' + token }
     });    const json = await res.json();
@@ -484,7 +484,7 @@ function printRecord() {
 
 async function printById(id) {
   try {
-    const res  = await fetch(`${API_BASE}/Fob/${id}`);
+    const res  = await fetch(`${API_BASE}/fob/index.php?id=${id}`);
     const json = await res.json();
     if (json.success) doPrint(json.data);
   } catch (err) {

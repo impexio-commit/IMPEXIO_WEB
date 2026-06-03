@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function loadRecordsFromAPI() {
   try {
-    const res  = await fetch(`${API_BASE}/Ile`);
+    const res  = await fetch(`${API_BASE}/ile/index.php`);
     const json = await res.json();
     ileRecords = json.data || [];
     renderRecords();
@@ -304,13 +304,13 @@ async function saveRecord() {
   try {
     let res;
     if (editingId !== null) {
-      res = await fetch(`${API_BASE}/Ile/${editingId}`, {
+      res = await fetch(`${API_BASE}/ile/index.php?id=${id}`, {
         method:  'PUT',
         headers:getAuthHeaders(),
         body:    JSON.stringify(payload)
       });
     } else {
-      res = await fetch(`${API_BASE}/Ile`, {
+      res = await fetch(`${API_BASE}/ile/index.php`, {
         method:  'POST',
         headers:getAuthHeaders(),
         body:    JSON.stringify(payload)
@@ -332,7 +332,7 @@ async function saveRecord() {
 
 async function loadRecord(id) {
   try {
-    const res  = await fetch(`${API_BASE}/Ile/${id}`);
+    const res  = await fetch(`${API_BASE}/ile/index.php?id=${id}`);
     const json = await res.json();
     if (!json.success) return;
     const rec  = json.data;
@@ -402,7 +402,8 @@ async function loadRecord(id) {
 async function deleteRecord(id) {
   if (!confirm('Delete this record?')) return;
   try {
-    const res  = await fetch(`${API_BASE}/Ile/${id}`, { method: 'DELETE' });
+    const res  = await fetch(`${API_BASE}//ile/index.php?id=${id}
+`, { method: 'DELETE' });
     const json = await res.json();
     if (json.success) {
       if (editingId === id) newEntry();

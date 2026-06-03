@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function loadRecordsFromAPI() {
   try {
-    const res  = await fetch(`${API_BASE}/Pi`);
+    const res  = await fetch(`${API_BASE}/pi/index.php`);
     const json = await res.json();
     piRecords  = json.data || [];
     renderRecords();
@@ -341,13 +341,13 @@ async function saveRecord() {
   try {
     let res;
     if (editingId !== null) {
-      res = await fetch(`${API_BASE}/Pi/${editingId}`, {
+      res = await fetch(`${API_BASE}/pi/index.php?id=${id}`, {
         method:  'PUT',
         headers: getAuthHeaders(),
         body:    JSON.stringify(payload)
       });
     } else {
-      res = await fetch(`${API_BASE}/Pi`, {
+      res = await fetch(`${API_BASE}/pi/index.php`, {
         method:  'POST',
         headers: getAuthHeaders(),
         body:    JSON.stringify(payload)
@@ -371,7 +371,7 @@ async function saveRecord() {
 // ── Edit ──────────────────────────────────────────────────────
 async function editRecord(id) {
   try {
-    const res  = await fetch(`${API_BASE}/Pi/${id}`);
+    const res  = await fetch(`${API_BASE}/pi/index.php?id=${id}`);
     const json = await res.json();
     if (!json.success) return;
     const rec  = json.data;
@@ -451,7 +451,7 @@ async function editRecord(id) {
 async function deleteRecord(id) {
   if (!confirm('Delete this Proforma Invoice record?')) return;
   try {
-    const res  = await fetch(`${API_BASE}/Pi/${id}`, { method: 'DELETE' });
+    const res  = await fetch(`${API_BASE}/pi/index.php?id=${id}`, { method: 'DELETE' });
     const json = await res.json();
     if (json.success) {
       if (editingId === id) newEntry();
@@ -533,7 +533,7 @@ function printRecord() {
 
 async function printById(id) {
   try {
-    const res  = await fetch(`${API_BASE}/Pi/${id}`);
+    const res  = await fetch(`${API_BASE}/pi/index.php?id=${id}`);
     const json = await res.json();
     if (json.success) doPrint(json.data);
   } catch (err) {

@@ -35,7 +35,7 @@
    
    async function loadRecordsFromAPI() {
      try {
-       const res  = await fetch(`${API_BASE}/Eq`);
+       const res  = await fetch(`${API_BASE}/eq/index.php`);
        const json = await res.json();
        eqRecords  = json.data || [];
        renderRecords();
@@ -299,13 +299,13 @@
      try {
        let res;
        if (editingId !== null) {
-         res = await fetch(`${API_BASE}/Eq/${editingId}`, {
+         res = await fetch(`${API_BASE}/eq/index.php?id=${id}`, {
            method:  'PUT',
            headers: getAuthHeaders(),
            body:    JSON.stringify(payload)
          });
        } else {
-         res = await fetch(`${API_BASE}/Eq`, {
+         res = await fetch(`${API_BASE}/eq/index.php`, {
            method:  'POST',
            headers: getAuthHeaders(),
            body:    JSON.stringify(payload)
@@ -329,7 +329,7 @@
    // ── Edit ──────────────────────────────────────────────────────
    async function editRecord(id) {
      try {
-       const res  = await fetch(`${API_BASE}/Eq/${id}`);
+       const res  = await fetch(`${API_BASE}/eq/index.php?id=${id}`);
        const json = await res.json();
        if (!json.success) return;
        const rec  = json.data;
@@ -406,7 +406,7 @@
    async function deleteRecord(id) {
      if (!confirm('Delete this Export Quotation?')) return;
      try {
-       const res  = await fetch(`${API_BASE}/Eq/${id}`, { method: 'DELETE' });
+       const res  = await fetch(`${API_BASE}/eq/index.php?id=${id}`, { method: 'DELETE' });
        const json = await res.json();
        if (json.success) {
          if (editingId === id) newEntry();
@@ -484,7 +484,7 @@
    
    async function printById(id) {
      try {
-       const res  = await fetch(`${API_BASE}/Eq/${id}`);
+       const res  = await fetch(`${API_BASE}/eq/index.php?id=${id}`);
        const json = await res.json();
        if (json.success) doPrint(json.data);
      } catch (err) {
