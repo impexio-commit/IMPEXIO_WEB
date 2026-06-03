@@ -6,7 +6,7 @@
 // ── API Base URL ──────────────────────────────────────
 // API_BASE defined in app.js
 
-const API_BASE = 'https://impexio.in/api';
+const API_BASE = 'https://impexio.in/api/cbm/index.php';
 
 
 function getAuthHeaders() {
@@ -322,7 +322,7 @@ async function saveRecord() {
                    : `${API_BASE}/Cbm`;
     const method = editingId !== null ? 'PUT' : 'POST';
 
-    const res = await fetch(`${API_BASE}/Cbm`, {
+    const res = await fetch(`${API_BASE}/cbm/index.php?id=${id}`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify(payload)
@@ -373,7 +373,7 @@ function loadFormData(rec){
 
 async function loadRecordsFromAPI() {
   try {
-    const res = await fetch(`${API_BASE}/Cbm`);
+    const res = await fetch(`${API_BASE}/cbm/index.php?id=${id}`);
     if (res.ok) {
       const json = await res.json();
       const data = json.data || [];
@@ -435,7 +435,7 @@ function filterRecords(){
 async function deleteRecord(id){
   if(!confirm('Delete this CBM record?'))return;
   try {
-    const res  = await fetch(`${API_BASE}/Cbm/${id}`, { method:'DELETE' });
+    const res  = await fetch(`${API_BASE}/cbm/index.php?id=${id}`, { method:'DELETE' });
     const json = await res.json();
     if(res.ok && json.success){
       showToastCbm('🗑','Record deleted.');
