@@ -215,7 +215,7 @@ function showToast(icon,msg){
 
 async function loadCustomers(){
   try {
-    const res=await fetch(`${API_BASE}/admin/customers`,{headers:authHeaders()});
+    const res=await fetch(`${API_BASE}/admin/customers.php`,{headers:authHeaders()});
     const json=await res.json();
     allCustomers=json.data||[];
     renderTable(allCustomers);

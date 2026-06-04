@@ -359,7 +359,7 @@ async function saveSubscription(){
   };
 
   try {
-    const res  = await fetch(`${API_BASE}/admin/customers/${custId}/subscriptions`, {
+    const res  = await fetch(`${API_BASE}/admin/subscriptions.php?customerId=${customerId}`, {
       method: 'POST', headers: authHeaders(), body: JSON.stringify(payload)
     });
     const json = await res.json();
