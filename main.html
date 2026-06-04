@@ -605,7 +605,7 @@ async function loadDashboardData() {
     };
 
     // Load summary
-    const sumRes  = await fetch(`${API_BASE}/dashboard/summary`, { headers });
+    const sumRes  = await fetch(`${API_BASE}/dashboard/index.php?action=summary`, { headers });
     const sumJson = await sumRes.json();
 
     if (sumJson.success) {
@@ -677,7 +677,7 @@ async function loadDashboardData() {
     }
 
     // Load recent activity
-    const recRes  = await fetch(`${API_BASE}/dashboard/recent`, { headers });
+    const recRes  = await fetch(`${API_BASE}/dashboard/index.php?action=recent`, { headers });
     const recJson = await recRes.json();
 
     if(recJson.success && recJson.data.length) {
