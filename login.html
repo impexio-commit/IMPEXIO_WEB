@@ -1,368 +1,242 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>IMPEXIO — Login</title>
-  <link rel="stylesheet" href="styles.css"/>
-  <link rel="icon" href="impexio_logo.png" type="image/png"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMPEXIO Login</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #1a3a52 0%, #2d5a7b 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .login-container { background: white; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); width: 100%; max-width: 400px; padding: 40px; }
+        .logo { text-align: center; margin-bottom: 30px; }
+        .logo h1 { color: #1a3a52; font-size: 28px; margin-bottom: 5px; }
+        .logo p { color: #666; font-size: 14px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; color: #333; font-weight: 500; font-size: 14px; }
+        input[type="text"], input[type="email"], input[type="password"], input[type="date"], select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; transition: border-color 0.3s; }
+        input:focus, select:focus { outline: none; border-color: #2d5a7b; box-shadow: 0 0 5px rgba(45, 90, 123, 0.3); }
+        .btn { width: 100%; padding: 12px; background: #2d5a7b; color: white; border: none; border-radius: 5px; font-size: 16px; font-weight: 600; cursor: pointer; transition: background 0.3s; margin-top: 10px; }
+        .btn:hover { background: #1a3a52; }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
+        .alert { padding: 12px; border-radius: 5px; margin-bottom: 20px; font-size: 14px; display: none; }
+        .alert.error { background: #fee; color: #c33; border: 1px solid #fcc; }
+        .alert.info { background: #eef; color: #33c; border: 1px solid #ccf; }
+        .wizard { display: none; }
+        .wizard.active { display: block; }
+        .wizard-nav { display: flex; gap: 10px; margin-bottom: 20px; }
+        .step-dot { width: 30px; height: 30px; border-radius: 50%; background: #ddd; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #666; font-size: 12px; }
+        .step-dot.active { background: #2d5a7b; color: white; }
+        .step-title { margin-bottom: 20px; color: #333; font-size: 18px; font-weight: 600; }
+        .loading { display: none; text-align: center; color: #666; margin-top: 20px; }
+        .spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid #2d5a7b; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
 </head>
-<body class="login-body">
+<body>
+    <div class="login-container">
+        <div class="logo">
+            <h1>🚀 IMPEXIO</h1>
+            <p>Trade Suite v1.0</p>
+        </div>
 
-<div class="login-shell">
-<!--This line is added-->
-  <!-- ══ LEFT ══ -->
-  <div class="login-left">
-    <div class="ll-grid"></div>
-    <div class="ll-blob1"></div>
-    <div class="ll-blob2"></div>
+        <div id="alertBox" class="alert"></div>
 
-    <div class="ll-inner">
-      <div class="ll-logo-box">
-        <img src="impexio_logo.png" alt="IMPEXIO" class="ll-logo"/>
-      </div>
-      <div class="ll-name">IMPEXIO</div>
-      <div class="ll-sub">Export · Import · Document Suite</div>
+        <!-- STEP 1: Client Code -->
+        <div id="step1" class="wizard active">
+            <div class="wizard-nav">
+                <div class="step-dot active">1</div>
+                <div class="step-dot">2</div>
+                <div class="step-dot">3</div>
+            </div>
+            <div class="step-title">Enter Client Code</div>
+            <div class="form-group">
+                <label>Client Code *</label>
+                <input type="text" id="clientCode" placeholder="e.g., IMP001" autofocus>
+            </div>
+            <button class="btn" onclick="goStep2()">Next →</button>
+        </div>
 
-      <div class="ll-perks">
-        <div class="ll-perk"><span class="ll-perk-ico">📦</span><span class="ll-perk-txt">Complete Export Document Management</span></div>
-        <div class="ll-perk"><span class="ll-perk-ico">🚢</span><span class="ll-perk-txt">Import Purchase &amp; Inquiry System</span></div>
-        <div class="ll-perk"><span class="ll-perk-ico">🌐</span><span class="ll-perk-txt">EXIM Marketing &amp; Analysis Tools</span></div>
-        <div class="ll-perk"><span class="ll-perk-ico">🔐</span><span class="ll-perk-txt">Secure Multi-Company Access</span></div>
-        <div class="ll-perk"><span class="ll-perk-ico">📊</span><span class="ll-perk-txt">GST Compliant Reports &amp; Invoices</span></div>
-      </div>
+        <!-- STEP 2: Email & Password -->
+        <div id="step2" class="wizard">
+            <div class="wizard-nav">
+                <div class="step-dot active">1</div>
+                <div class="step-dot active">2</div>
+                <div class="step-dot">3</div>
+            </div>
+            <div class="step-title">Login Credentials</div>
+            <div class="form-group">
+                <label>Email *</label>
+                <input type="email" id="email" placeholder="your@email.com">
+            </div>
+            <div class="form-group">
+                <label>Password *</label>
+                <input type="password" id="password" placeholder="Enter password">
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn" onclick="goStep1()" style="background: #999;">← Back</button>
+                <button class="btn" onclick="doLogin()" style="flex: 1;">Login</button>
+            </div>
+        </div>
+
+        <!-- STEP 3: Company & Year (For Customers Only) -->
+        <div id="step3" class="wizard">
+            <div class="wizard-nav">
+                <div class="step-dot active">1</div>
+                <div class="step-dot active">2</div>
+                <div class="step-dot active">3</div>
+            </div>
+            <div class="step-title">Select Company & Year</div>
+            <div class="form-group">
+                <label>Company</label>
+                <input type="text" id="companyName" placeholder="Company name" disabled>
+            </div>
+            <div class="form-group">
+                <label>Financial Year *</label>
+                <select id="year" onchange="updateYear()">
+                    <option value="">Select year</option>
+                </select>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn" onclick="goStep2()" style="background: #999;">← Back</button>
+                <button class="btn" onclick="goMain()" style="flex: 1;">Enter →</button>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Loading...</p>
+        </div>
     </div>
-  </div>
 
-  <!-- ══ RIGHT ══ -->
-  <div class="login-right">
+    <script>
+        const API_BASE = 'https://impexio.in/api';
 
-    <div class="login-card">
-      <!-- Progress -->
-      <div class="step-progress">
-        <div class="sp-dot active" id="dot0"></div>
-        <div class="sp-dot" id="dot1"></div>
-        <div class="sp-dot" id="dot2"></div>
-        <div class="sp-dot" id="dot3"></div>
-      </div>
+        function showAlert(msg, type='error') {
+            const box = document.getElementById('alertBox');
+            box.textContent = msg;
+            box.className = `alert ${type}`;
+            box.style.display = 'block';
+            setTimeout(() => { box.style.display = 'none'; }, 5000);
+        }
 
-      <!-- STEP 0: CLIENT CODE -->
-      <div class="login-step active" id="step0">
-        <div class="step-hd">
-          <div class="step-ico-wrap">🔑</div>
-          <div class="step-title">Client Verification</div>
-          <div class="step-sub">Enter your client code to begin</div>
-        </div>
+        function setLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
 
-        <div class="ferr" id="err0"><span>⚠️</span><span id="err0msg">Invalid client code.</span></div>
+        function goStep1() {
+            document.getElementById('step1').classList.add('active');
+            document.getElementById('step2').classList.remove('active');
+            document.getElementById('step3').classList.remove('active');
+        }
 
-        <div class="fgroup">
-          <label class="flabel">Client Code</label>
-          <div class="finput-wrap">
-            <span class="finput-ico">🏷️</span>
-            <input type="text" class="finput" id="clientCode" placeholder="e.g. Demo001" autocomplete="off"/>
-          </div>
-          <div class="fhint">Contact your administrator for your client code.</div>
-        </div>
+        function goStep2() {
+            const cc = document.getElementById('clientCode').value.trim();
+            if (!cc) {
+                showAlert('Please enter Client Code');
+                return;
+            }
+            document.getElementById('step1').classList.remove('active');
+            document.getElementById('step2').classList.add('active');
+            document.getElementById('step3').classList.remove('active');
+            document.getElementById('email').focus();
+        }
 
-        <button class="btn-step" onclick="verifyClient()">Continue &nbsp;→</button>
-      </div>
+        async function doLogin() {
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
 
-      <!-- STEP 1: LOGIN -->
-      <div class="login-step" id="step1">
-        <div class="step-hd">
-          <div class="step-ico-wrap">🔐</div>
-          <div class="step-title">Welcome Back</div>
-          <div class="step-sub">Login to your IMPEXIO account</div>
-        </div>
+            if (!email || !password) {
+                showAlert('Email and password required');
+                return;
+            }
 
-        <div class="ferr" id="err1"><span>⚠️</span><span id="err1msg">Invalid credentials.</span></div>
+            setLoading(true);
 
-        <div class="fgroup">
-          <label class="flabel">Username</label>
-          <div class="finput-wrap">
-            <span class="finput-ico">👤</span>
-            <input type="text" class="finput" id="username" placeholder="Enter username" autocomplete="username"/>
-          </div>
-        </div>
+            try {
+                const res = await fetch(`${API_BASE}/auth/login.php`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
 
-        <div class="fgroup">
-          <label class="flabel">Password</label>
-          <div class="finput-wrap">
-            <span class="finput-ico">🔒</span>
-            <input type="password" class="finput" id="password" placeholder="Enter password" autocomplete="current-password"/>
-          </div>
-        </div>
+                const json = await res.json();
+                setLoading(false);
 
-        <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.8rem;margin-bottom:0.5rem;">
-          <label style="display:flex;align-items:center;gap:0.4rem;cursor:pointer;color:var(--text-soft);">
-            <input type="checkbox" id="stayIn" style="accent-color:var(--navy)"/> Stay signed in
-          </label>
-          <a href="#" style="color:var(--navy);font-weight:600;font-size:0.8rem;">Forgot Password?</a>
-        </div>
+                if (!json.success) {
+                    showAlert(json.message || 'Login failed');
+                    return;
+                }
 
-        <button class="btn-step" onclick="verifyLogin()">Login &nbsp;→</button>
-        <button class="btn-back-step" onclick="goBack(1)">← Back</button>
-      </div>
+                // Save to session storage
+                const sess = {
+                    token: json.data.token,
+                    username: json.data.fullName,
+                    email: json.data.email,
+                    role: json.data.role,
+                    clientCode: json.data.clientCode,
+                    companyName: json.data.companyName,
+                    expiry: json.data.expiry,
+                    subExpiry: json.data.subExpiry
+                };
 
-      <!-- STEP 2: COMPANY -->
-      <div class="login-step" id="step2">
-        <div class="step-hd">
-          <div class="step-ico-wrap">🏢</div>
-          <div class="step-title">Select Company</div>
-          <div class="step-sub">Choose the company to work with</div>
-        </div>
+                sessionStorage.setItem('impexio', JSON.stringify(sess));
+                localStorage.setItem('impexio_admin', JSON.stringify(sess));
 
-        <div class="sel-list" id="compList"></div>
+                // If Owner → go to admin dashboard
+                if (json.data.role === 'Owner') {
+                    setTimeout(() => {
+                        window.location.href = 'admin/admin-dashboard.html';
+                    }, 500);
+                    return;
+                }
 
-        <button class="btn-step" onclick="pickCompany()">Continue &nbsp;→</button>
-        <button class="btn-back-step" onclick="goBack(2)">← Back</button>
-      </div>
+                // If Customer → show Step 3 (Company & Year selection)
+                document.getElementById('step2').classList.remove('active');
+                document.getElementById('step3').classList.add('active');
+                document.getElementById('companyName').value = json.data.companyName || '';
 
-      <!-- STEP 3: YEAR -->
-      <div class="login-step" id="step3">
-        <div class="step-hd">
-          <div class="step-ico-wrap">📅</div>
-          <div class="step-title">Financial Year</div>
-          <div class="step-sub">Select the year to operate in</div>
-        </div>
+                // Populate years
+                const yearSelect = document.getElementById('year');
+                yearSelect.innerHTML = '<option value="">Select year</option>';
+                const currentYear = new Date().getFullYear();
+                for (let y = currentYear; y >= currentYear - 5; y--) {
+                    const opt = document.createElement('option');
+                    opt.value = y;
+                    opt.textContent = y;
+                    yearSelect.appendChild(opt);
+                }
+                yearSelect.value = currentYear;
 
-        <div class="sel-list" id="yearList"></div>
+            } catch (err) {
+                setLoading(false);
+                showAlert('Unable to connect to server. Check your connection.');
+                console.error(err);
+            }
+        }
 
-        <button class="btn-step" onclick="pickYear()">Enter System &nbsp;→</button>
-        <button class="btn-back-step" onclick="goBack(3)">← Back</button>
-      </div>
+        function updateYear() {
+            const year = document.getElementById('year').value;
+            if (!year) {
+                showAlert('Please select a year');
+            }
+        }
 
-    </div>
-  </div>
+        function goMain() {
+            const year = document.getElementById('year').value;
+            if (!year) {
+                showAlert('Please select a year');
+                return;
+            }
 
-</div>
+            const sess = JSON.parse(sessionStorage.getItem('impexio'));
+            sess.year = { label: year, value: year };
+            sess.company = { id: 1, name: document.getElementById('companyName').value };
+            sessionStorage.setItem('impexio', JSON.stringify(sess));
 
-<script>
-// ── IMPEXIO Login — API Connected ─────────────────────────────
-const API_BASE = 'https://impexio.in/api';
-
-let currentStep   = 0;
-let sessionData   = {};
-
-// ── Helpers ───────────────────────────────────────────────────
-function showStep(n) {
-  document.querySelectorAll('.login-step').forEach((s,i) => {
-    s.classList.toggle('active', i === n);
-  });
-  document.querySelectorAll('.sp-dot').forEach((d,i) => {
-    d.classList.toggle('active', i === n);
-    d.classList.toggle('done',   i < n);
-  });
-  currentStep = n;
-}
-
-function showErr(stepN, msg) {
-  const err = document.getElementById(`err${stepN}`);
-  const txt = document.getElementById(`err${stepN}msg`);
-  if (err) err.style.display = 'flex';
-  if (txt) txt.textContent   = msg;
-}
-
-function hideErr(stepN) {
-  const err = document.getElementById(`err${stepN}`);
-  if (err) err.style.display = 'none';
-}
-
-function goBack(stepN) {
-  showStep(stepN - 1);
-}
-
-// Enter key support
-document.addEventListener('keydown', e => {
-  if (e.key !== 'Enter') return;
-  if (currentStep === 0) verifyClient();
-  else if (currentStep === 1) verifyLogin();
-  else if (currentStep === 2) pickCompany();
-  else if (currentStep === 3) pickYear();
-});
-
-// ── STEP 0: Verify Client Code ────────────────────────────────
-// We keep this step for UX but just move to login step
-function verifyClient() {
-  const code = document.getElementById('clientCode').value.trim();
-  hideErr(0);
-
-  if (!code) {
-    showErr(0, 'Please enter your client code.');
-    return;
-  }
-
-  // Store client code and move to login
-  sessionData.clientCode = code;
-  showStep(1);
-}
-
-// ── STEP 1: Login with API ────────────────────────────────────
-async function verifyLogin() {
-  const username = document.getElementById('username').value.trim();
-  const password = document.getElementById('password').value;
-  hideErr(1);
-
-  if (!username || !password) {
-    showErr(1, 'Please enter your username and password.');
-    return;
-  }
-
-  const btn = document.querySelector('#step1 .btn-step');
-  const origText = btn.textContent;
-  btn.textContent = 'Signing in...';
-  btn.disabled = true;
-
-  try {
-    const res  = await fetch(`${API_BASE}/admin/auth/login`, {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ email: username, password })
-    });
-
-    const json = await res.json();
-
-    if (json.success) {
-      const data = json.data;
-
-      // Save to both storages
-      const sessObj = {
-        token:       data.token,
-        username:    data.fullName,
-        email:       data.email,
-        role:        data.role,
-        clientCode:  data.clientCode  || sessionData.clientCode || 'OWNER',
-        companyName: data.companyName || 'IMPEXIO Owner',
-        expiry:      data.expiry
-      };
-
-      sessionStorage.setItem('impexio', JSON.stringify(sessObj));
-      localStorage.setItem('impexio_admin', JSON.stringify({
-        ...sessObj, fullName: data.fullName
-      }));
-
-      sessionData = { ...sessionData, ...sessObj };
-
-      // Owner → skip to admin panel directly
-      if (data.role === 'Owner') {
-        window.location.href = 'admin/admin-dashboard.html';
-        return;
-      }
-
-      // Customer → show company/year selection
-      // Build company list from session
-      const companies = [{
-        id:   1,
-        name: data.companyName || 'My Company',
-        city: ''
-      }];
-      sessionData.companies = companies;
-      buildCompanyList(companies);
-      showStep(2);
-
-    } else {
-      showErr(1, json.message || 'Invalid credentials. Please try again.');
-    }
-  } catch (err) {
-    showErr(1, 'Cannot connect to server. Please check your connection.');
-  } finally {
-    btn.textContent = origText;
-    btn.disabled    = false;
-  }
-}
-
-// ── STEP 2: Company Selection ─────────────────────────────────
-function buildCompanyList(companies) {
-  const list = document.getElementById('compList');
-  list.innerHTML = companies.map((c, i) => `
-    <div class="sel-item${i === 0 ? ' selected' : ''}"
-         onclick="selectItem(this, 'compList')"
-         data-id="${c.id}" data-name="${c.name}">
-      <span class="sel-ico">🏢</span>
-      <div>
-        <div class="sel-name">${c.name}</div>
-        <div class="sel-sub">${c.city || 'Main Branch'}</div>
-      </div>
-    </div>`).join('');
-}
-
-function selectItem(el, listId) {
-  document.querySelectorAll(`#${listId} .sel-item`)
-    .forEach(i => i.classList.remove('selected'));
-  el.classList.add('selected');
-}
-
-function pickCompany() {
-  const selected = document.querySelector('#compList .sel-item.selected');
-  if (!selected) {
-    alert('Please select a company.'); return;
-  }
-  sessionData.company = {
-    id:   selected.dataset.id,
-    name: selected.dataset.name
-  };
-
-  // Build year list
-  const years = [
-    { label: 'FY 2025-26', value: '2025-26' },
-    { label: 'FY 2024-25', value: '2024-25' },
-    { label: 'FY 2023-24', value: '2023-24' }
-  ];
-  buildYearList(years);
-  showStep(3);
-}
-
-// ── STEP 3: Year Selection ────────────────────────────────────
-function buildYearList(years) {
-  const list = document.getElementById('yearList');
-  list.innerHTML = years.map((y, i) => `
-    <div class="sel-item${i === 0 ? ' selected' : ''}"
-         onclick="selectItem(this, 'yearList')"
-         data-label="${y.label}" data-value="${y.value}">
-      <span class="sel-ico">📅</span>
-      <div>
-        <div class="sel-name">${y.label}</div>
-        <div class="sel-sub">${i === 0 ? 'Current Year' : 'Previous Year'}</div>
-      </div>
-    </div>`).join('');
-}
-
-function pickYear() {
-  const selected = document.querySelector('#yearList .sel-item.selected');
-  if (!selected) {
-    alert('Please select a financial year.'); return;
-  }
-
-  // Update session with company + year
-  const finalSess = {
-    ...JSON.parse(sessionStorage.getItem('impexio') || '{}'),
-    company: sessionData.company,
-    year:    { label: selected.dataset.label, value: selected.dataset.value }
-  };
-  sessionStorage.setItem('impexio', JSON.stringify(finalSess));
-
-  // Redirect to main dashboard
-  window.location.href = 'main.html';
-}
-
-// ── Auto-check existing session ───────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  try {
-    const raw  = sessionStorage.getItem('impexio');
-    if (!raw) return;
-    const sess = JSON.parse(raw);
-    if (!sess?.token) return;
-    if (sess.expiry && new Date(sess.expiry) < new Date()) {
-      sessionStorage.removeItem('impexio'); return;
-    }
-    // Already logged in — redirect
-    if (sess.role === 'Owner') window.location.href = 'admin/admin-dashboard.html';
-    else if (sess.company)     window.location.href = 'main.html';
-  } catch(e) {}
-
-  showStep(0);
-});
-</script>
+            setTimeout(() => {
+                window.location.href = 'main.html';
+            }, 500);
+        }
+    </script>
 </body>
 </html>

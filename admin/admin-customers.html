@@ -321,10 +321,10 @@ async function saveCustomer(){
   try {
     let res;
     if(editId){
-      res=await fetch(`${API_BASE}/admin/customers/${editId}`,{method:'PUT',headers:authHeaders(),body:JSON.stringify(payload)});
+      res=await fetch(`${API_BASE}/admin/customers.php/${editId}`,{method:'PUT',headers:authHeaders(),body:JSON.stringify(payload)});
     } else {
       // Create customer first
-      res=await fetch(`${API_BASE}/admin/customers`,{method:'POST',headers:authHeaders(),body:JSON.stringify(payload)});
+      res=await fetch(`${API_BASE}/admin/customers.php`,{method:'POST',headers:authHeaders(),body:JSON.stringify(payload)});
       const json=await res.json();
       if(!json.success){showToast('❌',json.message||'Failed.');return;}
       const newCustId=json.data;
@@ -355,7 +355,7 @@ async function toggleCustomer(id,isActive){
   if(!confirm(isActive?'Deactivate this customer?':'Activate this customer?'))return;
   const c=allCustomers.find(x=>x.id===id);if(!c)return;
   try{
-    const res=await fetch(`${API_BASE}/admin/customers/${id}`,{method:'PUT',headers:authHeaders(),body:JSON.stringify({...c,isActive:!isActive,clientCode:c.clientCode,companyName:c.companyName,email:c.email,country:c.country||'India'})});
+    const res=await fetch(`${API_BASE}/admin/customers.php?id=${id}`,{method:'PUT',headers:authHeaders(),body:JSON.stringify({...c,isActive:!isActive,clientCode:c.clientCode,companyName:c.companyName,email:c.email,country:c.country||'India'})});
     const json=await res.json();
     if(json.success){showToast(isActive?'🔴':'🟢',isActive?'Customer deactivated.':'Customer activated.');loadCustomers();}
     else showToast('❌',json.message||'Failed.');

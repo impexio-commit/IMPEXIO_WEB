@@ -3,7 +3,7 @@
    JWT Auth + ClientCode Filter + Subscription Expiry Check
    ============================================================ */
 
-   const API_BASE = 'https://impexio.in/api';
+const API_BASE = 'https://impexio.in/api';
 
 const YEARS = [
   { id: 'Y1', label: '2025-26', start: '01 Apr 2025', end: '31 Mar 2026' },
@@ -11,7 +11,6 @@ const YEARS = [
   { id: 'Y3', label: '2023-24', start: '01 Apr 2023', end: '31 Mar 2024' }
 ];
 
-// ── Session ───────────────────────────────────────────────────
 let sess = null;
 
 function loadSess() {
@@ -20,12 +19,10 @@ function loadSess() {
     if (!raw) { redirectToLogin(); return; }
     sess = JSON.parse(raw);
     if (!sess || !sess.token) { redirectToLogin(); return; }
-    // Check token expiry
     if (sess.expiry && new Date(sess.expiry) < new Date()) {
       sessionStorage.removeItem('impexio');
       redirectToLogin(); return;
     }
-    // Must have completed login (year selected)
     if (!sess.year && page() === 'main') {
       redirectToLogin(); return;
     }
@@ -50,7 +47,6 @@ function getClientCode() {
   return sess?.clientCode || '';
 }
 
-// ── Auth Headers — sent with every API call ───────────────────
 function authHeaders() {
   return {
     'Content-Type': 'application/json',
@@ -58,33 +54,25 @@ function authHeaders() {
   };
 }
 
-// ── Subscription expiry check ─────────────────────────────────
 function checkSubscription() {
   if (!sess) return;
-  if (sess.role === 'Owner') return; // Owner not restricted
-
-  // If no expiry info yet — skip check
+  if (sess.role === 'Owner') return;
   if (!sess.subExpiry) return;
-
   const expiry = new Date(sess.subExpiry);
   const now    = new Date();
-
   if (expiry < now) {
-    // Subscription expired — block access
     sessionStorage.removeItem('impexio');
-    alert('⚠️ Your subscription has expired. Please contact your administrator.');
+    alert('Your subscription has expired. Please contact your administrator.');
     window.location.href = 'login.html';
     return;
   }
-
-  // Warn if expiring within 7 days
   const daysLeft = Math.ceil((expiry - now) / (1000*60*60*24));
   if (daysLeft <= 7) {
     const toast = document.getElementById('toast');
     const icon  = document.getElementById('toastIcon');
     const msg   = document.getElementById('toastMsg');
     if (toast) {
-      if (icon) icon.textContent = '⚠️';
+      if (icon) icon.textContent = '';
       if (msg)  msg.textContent  = `Subscription expires in ${daysLeft} day${daysLeft===1?'':'s'}!`;
       toast.classList.add('show');
       setTimeout(() => toast.classList.remove('show'), 6000);
@@ -92,7 +80,6 @@ function checkSubscription() {
   }
 }
 
-// ── Page detection ────────────────────────────────────────────
 function page() {
   const p = location.pathname;
   if (p.includes('login')) return 'login';
@@ -100,7 +87,6 @@ function page() {
   return 'index';
 }
 
-// ── Navbar ────────────────────────────────────────────────────
 window.addEventListener('scroll', () => {
   const n = document.getElementById('navbar');
   if (n) n.classList.toggle('scrolled', scrollY > 20);
@@ -137,7 +123,6 @@ function toggleMobDD(id, btn) {
 
 function gotoLogin() { window.location.href = 'login.html'; }
 
-// ── Scroll Animations ─────────────────────────────────────────
 function initScrollAnim() {
   const obs = new IntersectionObserver(entries => {
     entries.forEach(e => {
@@ -147,7 +132,6 @@ function initScrollAnim() {
       }
     });
   }, { threshold: 0.1 });
-
   document.querySelectorAll('.feat-card, .mod-card').forEach((el, i) => {
     el.style.opacity = '0';
     el.style.transform = 'translateY(28px)';
@@ -170,7 +154,6 @@ function animateCounters() {
   });
 }
 
-// ── Shake ─────────────────────────────────────────────────────
 (function () {
   const s = document.createElement('style');
   s.textContent = '@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}';
@@ -184,7 +167,6 @@ function shake(el) {
   el.style.animation = 'shake 0.4s ease';
 }
 
-// ── Login Steps ───────────────────────────────────────────────
 let curStep  = 0;
 let loginSess = {};
 
@@ -211,7 +193,6 @@ function showErr(step, msg) {
   setTimeout(() => box.classList.remove('show'), 4000);
 }
 
-// ── STEP 0 — Client Code (kept for UX, not verified against hardcoded) ──
 function verifyClient() {
   const val = (document.getElementById('clientCode')?.value || '').trim();
   if (!val) { showErr(0, 'Please enter your client code.'); return; }
@@ -219,7 +200,6 @@ function verifyClient() {
   goToStep(1);
 }
 
-// ── STEP 1 — Login via API ────────────────────────────────────
 async function verifyLogin() {
   const email    = (document.getElementById('username')?.value || '').trim();
   const password = document.getElementById('password')?.value || '';
@@ -233,7 +213,7 @@ async function verifyLogin() {
   if (btn) { btn.textContent = 'Signing in...'; btn.disabled = true; }
 
   try {
-    const res  = await fetch(`${API_BASE}/admin/auth/login`, {
+    const res  = await fetch(`${API_BASE}/auth/login.php`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ email, password })
@@ -244,7 +224,6 @@ async function verifyLogin() {
     if (json.success) {
       const data = json.data;
 
-      // Save full session
       loginSess = {
         token:       data.token,
         username:    data.fullName,
@@ -256,7 +235,6 @@ async function verifyLogin() {
         subExpiry:   data.subExpiry   || null
       };
 
-      // Owner → go straight to admin
       if (data.role === 'Owner') {
         sessionStorage.setItem('impexio', JSON.stringify(loginSess));
         localStorage.setItem('impexio_admin', JSON.stringify({ ...loginSess, fullName: data.fullName }));
@@ -264,7 +242,6 @@ async function verifyLogin() {
         return;
       }
 
-      // Customer → show company then year
       buildCompanies(data.companyName);
       goToStep(2);
 
@@ -281,7 +258,6 @@ async function verifyLogin() {
   }
 }
 
-// ── STEP 2 — Company ──────────────────────────────────────────
 function buildCompanies(companyName) {
   const list = document.getElementById('compList');
   if (!list) return;
@@ -326,7 +302,6 @@ function pickCompany() {
   goToStep(3);
 }
 
-// ── STEP 3 — Year ─────────────────────────────────────────────
 function buildYears() {
   const list = document.getElementById('yearList');
   if (!list) return;
@@ -358,11 +333,9 @@ function pickYear() {
   const year = YEARS.find(y => y.id === sel.dataset.id);
   loginSess.year = year;
 
-  // Save final session
   sessionStorage.setItem('impexio', JSON.stringify(loginSess));
   localStorage.setItem('impexio_admin', JSON.stringify({ ...loginSess, fullName: loginSess.username }));
 
-  // Smooth exit
   const shell = document.querySelector('.login-shell');
   if (shell) {
     shell.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
@@ -376,7 +349,6 @@ function pickYear() {
 
 function goBack(from) { goToStep(from - 1); }
 
-// Enter key support
 document.addEventListener('keydown', e => {
   if (e.key !== 'Enter') return;
   if (curStep === 0) verifyClient();
@@ -385,30 +357,21 @@ document.addEventListener('keydown', e => {
   else if (curStep === 3) pickYear();
 });
 
-// ── Dashboard ─────────────────────────────────────────────────
 function initDash() {
   loadSess();
   if (!sess) return;
-
-  // Subscription expiry check on every page load
   checkSubscription();
-
   const c = sess.company;
   const y = sess.year;
-
   set('ds-client',  sess.clientCode  || '—');
   set('ds-company', c ? c.name : sess.companyName || '—');
   set('ds-year',    y ? `FY ${y.label}` : '—');
   set('ds-user',    sess.username || '—');
   set('ds-role',    sess.role     || '—');
-
   set('dtbUname', sess.username || 'User');
   set('dtbRole',  sess.role     || 'Customer');
-
   const av = document.getElementById('dtbAv');
   if (av && sess.username) av.textContent = sess.username[0].toUpperCase();
-
-  // Meta chips
   const meta = document.getElementById('dtbMeta');
   if (meta) {
     meta.innerHTML = `
@@ -416,8 +379,6 @@ function initDash() {
       <div class="dtb-chip">🏢 <strong>${c ? c.name.split(' ').slice(0,3).join(' ') : sess.companyName || '—'}</strong></div>
       <div class="dtb-chip">📅 <strong>${y ? 'FY '+y.label : '—'}</strong></div>`;
   }
-
-  // Stagger tiles
   document.querySelectorAll('.m-tile').forEach((el, i) => {
     el.style.opacity   = '0';
     el.style.transform = 'translateY(18px)';
@@ -429,23 +390,16 @@ function initDash() {
   });
 }
 
-// ── populateTopbar — called in all module pages ───────────────
 function populateTopbar() {
   loadSess();
   if (!sess) return;
-
-  // Subscription expiry check on every module page
   checkSubscription();
-
   const c = sess.company;
   const y = sess.year;
-
   set('dtbUname', sess.username || 'User');
   set('dtbRole',  sess.role     || 'Customer');
-
   const av = document.getElementById('dtbAv');
   if (av && sess.username) av.textContent = sess.username[0].toUpperCase();
-
   const meta = document.getElementById('dtbMeta');
   if (meta) {
     meta.innerHTML = `
@@ -465,7 +419,7 @@ function openMod(name) {
   const icon  = document.getElementById('toastIcon');
   const msg   = document.getElementById('toastMsg');
   if (!toast) return;
-  if (icon) icon.textContent = '🚀';
+  if (icon) icon.textContent = '';
   if (msg)  msg.textContent  = `Opening: ${name}`;
   toast.classList.add('show');
   clearTimeout(toast._t);
@@ -480,17 +434,13 @@ function doLogout() {
   }
 }
 
-// ── Init ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   const p = page();
-
   if (p === 'index') {
     setTimeout(animateCounters, 900);
     initScrollAnim();
   }
-
   if (p === 'login') {
-    // Only redirect if fully logged in with year selected
     try {
       const raw = sessionStorage.getItem('impexio');
       if (raw) {
@@ -504,10 +454,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
     } catch(e) {}
-    // Clear any bad session and show login
     goToStep(0);
   }
-
   if (p === 'main') {
     initDash();
   }
