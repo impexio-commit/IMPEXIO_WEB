@@ -112,7 +112,7 @@ const PLAN_BORDER = { 3:'rgba(22,163,74,0.3)', 6:'rgba(42,82,152,0.3)', 12:'rgba
 
 async function loadPlans(){
   try {
-    const res  = await fetch(`${API_BASE}/admin/plans`, { headers: authHeaders() });
+    const res  = await fetch(`${API_BASE}/api/admin/plans.php`, { headers: authHeaders() });
     const json = await res.json();
     const plans = json.data || [];
 

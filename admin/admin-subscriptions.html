@@ -208,12 +208,12 @@ function daysLeftBadge(days){
 async function loadAll(){
   try {
     // Load customers
-    const cRes  = await fetch(`${API_BASE}/admin/customers`, { headers: authHeaders() });
+    const cRes  = await fetch(`${API_BASE}/api/admin/customers.php`, { headers: authHeaders() });
     const cJson = await cRes.json();
     allCustomers = cJson.data || [];
 
     // Load plans
-    const pRes  = await fetch(`${API_BASE}/admin/plans`, { headers: authHeaders() });
+    const pRes  = await fetch(`${API_BASE}/api/admin/plans.php`, { headers: authHeaders() });
     const pJson = await pRes.json();
     allPlans = pJson.data || [];
 
@@ -376,7 +376,7 @@ async function saveSubscription(){
 async function toggleSub(id, isActive){
   if(!confirm(isActive?'Deactivate this subscription?':'Activate this subscription?')) return;
   try {
-    const res  = await fetch(`${API_BASE}/admin/subscriptions/${id}/toggle`, {
+    const res  = await fetch(`${API_BASE}/admin/subscriptions.php?id=${id}`, {
       method: 'PUT', headers: authHeaders(),
       body: JSON.stringify({ isActive: !isActive })
     });

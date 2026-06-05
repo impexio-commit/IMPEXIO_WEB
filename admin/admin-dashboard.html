@@ -169,7 +169,7 @@
   // ── Load dashboard data ──────────────────────────────────
   async function loadDashboard() {
     try {
-      const res  = await fetch(`${API_BASE}/admin/customers`, { headers: authHeaders() });
+      const res  = await fetch(`${API_BASE}/api/admin/customers.php`, { headers: authHeaders() });
       const json = await res.json();
       if (!json.success) return;
 
